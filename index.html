@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Filament Pool v2.3</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; overflow-x: hidden; width: 100vw; }
+        .fade-in { animation: fadeIn 0.2s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        
+        input, select { font-size: 16px !important; }
+
+        input[type="range"] {
+            -webkit-appearance: none; width: 100%; height: 10px;
+            background: #1e293b; border-radius: 6px; outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 24px; height: 24px;
+            background: #4f46e5; border-radius: 50%; cursor: pointer; border: 3px solid #0f172a;
+        }
+
+        .mat-tag { font-size: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 6px; border-radius: 4px; border-width: 1px; background-color: rgba(15, 23, 42, 0.8); }
+        .mat-pla { color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
+        .mat-petg { color: #f97316; border-color: rgba(249, 115, 22, 0.3); }
+        .mat-abs { color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
+        .mat-asa { color: #fb7185; border-color: rgba(190, 18, 60, 0.3); }
+        
+        .color-bubble { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #334155; transition: all 0.2s; cursor: pointer; position: relative; flex-shrink: 0; }
+        .color-bubble.active { border-color: #fff; transform: scale(1.15); z-index: 10; box-shadow: 0 0 12px rgba(255,255,255,0.4); }
+        .color-bubble.active::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: bold; text-shadow: 0 0 4px black; }
+        
+        .look-translucent { background-image: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%); border-style: dashed; }
+        .look-silk { background-image: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, transparent 50%, rgba(255,255,255,0.6) 100%); }
+        .look-metallic { background-image: linear-gradient(45deg, rgba(0,0,0,0.4) 0%, rgba(255,255,255,0.4) 50%, rgba(0,0,0,0.4) 100%); box-shadow: inset 0 0 4px rgba(255,255,255,0.3); }
+        .look-galaxy { background-image: radial-gradient(white 1px, transparent 1px); background-size: 8px 8px; opacity: 0.9; }
+        .look-glow { box-shadow: 0 0 8px #a3e635; border-color: #a3e635; }
+
+        .scroll-hide::-webkit-scrollbar { display: none; }
+        .spool-chip.selected { background-color: rgba(79, 70, 229, 0.2); border-color: #4f46e5; }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen pb-20 select-none">
+
+    <div id="app" class="w-full max-w-md mx-auto p-4 flex flex-col items-center relative min-h-screen">
+        
+        <!-- HEADER -->
+        <div class="w-full flex items-center justify-between mb-6">
+            <div class="flex items-center gap-2">
+                <div class="bg-indigo-600 p-1.5 rounded-lg shadow-lg">
+                    <i data-lucide="layers" class="text-white w-5 h-5"></i>
+                </div>
+                <h1 class="text-xl font-bold tracking-tight">Filament Pool</h1>
+            </div>
+            <div class="flex gap-2">
+                <!-- QUICK MENU BUTTON -->
+                <button onclick="openQuickMenu()" class="p-2 bg-indigo-500/20 rounded-full text-indigo-400 border border-indigo-500/30 active:bg-indigo-500/40 transition-colors">
+                    <i data-lucide="zap" class="w-5 h-5"></i>
+                </button>
+                <button onclick="openSettings()" class="relative p-2 bg-slate-900 rounded-full text-indigo-400 border border-slate-800 active:bg-slate-800">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                    <div id="settings-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold px-1.5 rounded-full border border-slate-950 hidden">0</div>
+                </button>
+            </div>
+        </div>
+
+        <!-- STATS -->
+        <div class="w-full bg-slate-900/50 border border-slate-800 rounded-2xl p-4 mb-6">
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Bestand</span>
+                <span id="counter" class="text-[10px] font-mono bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full">0 / 100</span>
+            </div>
+            <div id="stats-container" class="flex flex-wrap gap-2"></div>
+        </div>
+
+        <!-- SEARCH & ADD -->
+        <div class="w-full space-y-4 mb-8">
+            <div class="flex gap-2">
+                <div class="relative flex-grow">
+                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
+                    <input type="text" id="search-input" oninput="render()" placeholder="Suchen..." class="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <button onclick="toggleSort()" class="bg-slate-900 border border-slate-800 rounded-xl px-3 flex items-center gap-2 text-indigo-400 active:bg-slate-800 min-w-[80px] justify-center transition-colors">
+                    <i data-lucide="arrow-up-down" class="w-4 h-4"></i>
+                    <span id="sort-label" class="text-xs font-bold uppercase">ID</span>
+                </button>
+            </div>
+            <button onclick="createNewSpool()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                <i data-lucide="plus" class="w-6 h-6"></i> 
+                <span>Neue Spule</span>
+            </button>
+        </div>
+
+        <div id="spool-list" class="grid grid-cols-2 gap-3 w-full pb-20"></div>
+        <div id="empty-state" class="hidden text-center py-10 text-slate-600 text-sm italic">Keine Rollen im Lager.</div>
+    </div>
+
+    <!-- QUICK MENU OVERLAY -->
+    <div id="quick-menu-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[250] hidden flex items-end sm:items-center justify-center p-4">
+        <div class="bg-slate-900 w-full max-w-sm p-6 rounded-3xl shadow-2xl border border-slate-800 transform translate-y-full transition-transform duration-300 flex flex-col max-h-[90vh]" id="quick-menu-content">
+            <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                <div class="flex items-center gap-2 text-indigo-400">
+                    <i data-lucide="zap" class="w-5 h-5"></i>
+                    <h3 class="font-bold text-lg text-white">Schnell-Buchung</h3>
+                </div>
+                <button onclick="closeQuickMenu()" class="p-2 bg-slate-800 rounded-full text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <!-- SPOOL SELECTOR LIST -->
+            <div class="flex-shrink-0 mb-2">
+                 <label class="text-[10px] text-slate-500 font-bold uppercase block mb-2 tracking-widest px-1">Spule wählen</label>
+            </div>
+            
+            <div id="quick-spool-list" class="flex-grow overflow-y-auto space-y-2 pr-1 mb-4 scroll-hide bg-slate-950/30 rounded-xl p-2 border border-slate-800/50 min-h-[150px]">
+                <!-- Populated via JS -->
+            </div>
+
+            <div class="space-y-4 flex-shrink-0 pt-2 border-t border-slate-800">
+                <!-- GRAMS ADDER -->
+                <div>
+                    <label class="text-[10px] text-slate-500 font-bold uppercase block mb-2 tracking-widest px-1">Verbrauch addieren</label>
+                    <div class="flex items-center gap-3 bg-slate-950 border border-slate-800 rounded-xl p-2 mb-3">
+                         <div class="flex-grow text-right pr-4 text-2xl font-mono text-white" id="quick-gram-display">0g</div>
+                         <button onclick="resetQuickGrams()" class="p-2 text-slate-500 hover:text-white"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></button>
+                    </div>
+                    
+                    <div class="grid grid-cols-3 gap-2">
+                        <button onclick="addQuickGrams(10)" class="py-3 bg-slate-800 rounded-xl font-mono font-bold text-slate-300 active:bg-indigo-600 active:text-white transition-colors">+10g</button>
+                        <button onclick="addQuickGrams(50)" class="py-3 bg-slate-800 rounded-xl font-mono font-bold text-slate-300 active:bg-indigo-600 active:text-white transition-colors">+50g</button>
+                        <button onclick="addQuickGrams(100)" class="py-3 bg-slate-800 rounded-xl font-mono font-bold text-slate-300 active:bg-indigo-600 active:text-white transition-colors">+100g</button>
+                    </div>
+                </div>
+
+                <!-- BASE WEIGHT -->
+                <div class="flex justify-end pt-1">
+                    <select id="quick-base" class="bg-transparent text-[10px] text-slate-500 outline-none text-right">
+                        <option value="1000">Basis: 1kg Spule</option>
+                        <option value="750">Basis: 750g Spule</option>
+                        <option value="500">Basis: 500g Spule</option>
+                    </select>
+                </div>
+
+                <button onclick="performQuickBook()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                    <i data-lucide="check-circle" class="w-5 h-5"></i> 
+                    <span>Abziehen & Speichern</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN EDITOR MODAL -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] hidden flex items-end sm:items-center justify-center p-4">
+        <div class="bg-slate-900 w-full max-w-sm p-6 rounded-3xl shadow-2xl border border-slate-800 transform translate-y-full transition-transform duration-300" id="modal-content">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 id="modal-context-title" class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Editor</h3>
+                    <span class="text-4xl font-black text-white font-mono" id="modal-title">#001</span>
+                </div>
+                <div class="flex gap-2">
+                    <button id="btn-quick-shop" onclick="copyToShop()" class="p-2 bg-slate-800 rounded-full text-emerald-400 border border-slate-700 active:bg-slate-700" title="Auf Einkaufsliste"><i data-lucide="shopping-bag" class="w-5 h-5"></i></button>
+                    <button onclick="closeModal()" class="p-2 bg-slate-800 rounded-full text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+                </div>
+            </div>
+            
+            <div class="space-y-6 max-h-[65vh] overflow-y-auto pr-1 scroll-hide">
+                <div id="level-section" class="bg-slate-950/50 p-4 rounded-2xl border border-slate-800">
+                    <div class="flex justify-between text-[10px] text-slate-500 font-bold uppercase mb-4 tracking-widest px-2">
+                        <span>Leer</span>
+                        <span>Rest: <span id="level-display" class="text-indigo-400">100%</span></span>
+                        <span>Voll</span>
+                    </div>
+                    <input type="range" id="input-level" min="0" max="100" step="5" oninput="updateLevelDisplay(this.value)">
+                </div>
+
+                <!-- COLORS -->
+                <div>
+                    <label class="text-[10px] text-slate-500 font-bold uppercase block mb-3 tracking-widest px-1">Farbe & Look</label>
+                    <div class="space-y-4">
+                        <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-800/50">
+                            <span class="text-[8px] text-slate-600 font-black uppercase mb-2 block">Standard</span>
+                            <div id="colors-standard" class="flex flex-wrap gap-2"></div>
+                        </div>
+                        <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-800/50">
+                            <span class="text-[8px] text-slate-600 font-black uppercase mb-2 block">Special (Silk / Galaxy / Glow)</span>
+                            <div id="colors-special" class="flex flex-wrap gap-2"></div>
+                        </div>
+                        <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-800/50">
+                            <span class="text-[8px] text-slate-600 font-black uppercase mb-2 block">Metallic</span>
+                            <div id="colors-metallic" class="flex flex-wrap gap-2"></div>
+                        </div>
+                        <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-800/50">
+                            <span class="text-[8px] text-slate-600 font-black uppercase mb-2 block">Transparent (Translucent)</span>
+                            <div id="colors-trans" class="flex flex-wrap gap-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="text-[10px] text-slate-500 font-bold uppercase block mb-2 tracking-widest px-1">Material</label>
+                    <div class="grid grid-cols-4 gap-2" id="material-grid"></div>
+                </div>
+                <div>
+                    <label class="text-[10px] text-slate-500 font-bold uppercase block mb-2 tracking-widest px-1">Marke</label>
+                    <select id="input-brand" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white outline-none focus:border-indigo-500"></select>
+                </div>
+            </div>
+            
+            <div class="mt-8 flex flex-col gap-3">
+                <button onclick="saveItem()" class="w-full py-4 rounded-xl bg-indigo-600 text-white font-bold shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                    <i data-lucide="check" class="w-5 h-5"></i> Speichern
+                </button>
+                <button id="btn-delete-item" onclick="openDeleteDialog()" class="text-red-500/40 text-[10px] font-bold uppercase tracking-widest mt-2">Element entfernen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SETTINGS & SHOPPING OVERLAY -->
+    <div id="settings-overlay" class="fixed inset-0 bg-slate-950 z-[100] hidden overflow-y-auto">
+        <div class="w-full max-w-md mx-auto p-4 min-h-screen flex flex-col">
+            <div class="flex items-center justify-between mb-8 mt-2">
+                <h2 class="text-xl font-bold">Einstellungen</h2>
+                <button onclick="closeSettings()" class="p-2 bg-slate-900 rounded-full text-slate-400 border border-slate-800">
+                    <i data-lucide="x" class="w-6 h-6"></i>
+                </button>
+            </div>
+
+            <!-- MENU BUTTONS -->
+            <div id="settings-menu-main" class="flex flex-col gap-4">
+                
+                <button onclick="openSettingsSub('stats')" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between active:bg-slate-800 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-indigo-500/10 p-3 rounded-full text-indigo-500"><i data-lucide="bar-chart-3" class="w-6 h-6"></i></div>
+                        <div class="text-left">
+                            <div class="font-bold text-white">Statistik & Bestand</div>
+                            <div class="text-xs text-slate-500">Mengen & Auswertung</div>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-right" class="text-slate-600"></i>
+                </button>
+
+                <button onclick="openSettingsSub('shopping')" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between active:bg-slate-800 transition-colors relative">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-emerald-500/10 p-3 rounded-full text-emerald-500"><i data-lucide="shopping-cart" class="w-6 h-6"></i></div>
+                        <div class="text-left">
+                            <div class="font-bold text-white flex items-center gap-2">
+                                Einkaufsliste 
+                                <span id="shop-badge-menu" class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                            </div>
+                            <div class="text-xs text-slate-500">Verwalte deine Wünsche</div>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-right" class="text-slate-600"></i>
+                </button>
+
+                <button onclick="openSettingsSub('backup')" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between active:bg-slate-800 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-blue-500/10 p-3 rounded-full text-blue-500"><i data-lucide="download-cloud" class="w-6 h-6"></i></div>
+                        <div class="text-left">
+                            <div class="font-bold text-white">Export / Import</div>
+                            <div class="text-xs text-slate-500">Daten sichern</div>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-right" class="text-slate-600"></i>
+                </button>
+
+                <button onclick="openSettingsSub('reset')" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between active:bg-slate-800 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-red-500/10 p-3 rounded-full text-red-500"><i data-lucide="alert-triangle" class="w-6 h-6"></i></div>
+                        <div class="text-left">
+                            <div class="font-bold text-white">Werkseinstellungen</div>
+                            <div class="text-xs text-slate-500">Lager leeren & Reset</div>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-right" class="text-slate-600"></i>
+                </button>
+
+                <div class="mt-8 text-center text-slate-700 text-xs">
+                    Filament Pool v2.3
+                </div>
+            </div>
+
+            <!-- SUB MENU: STATS -->
+            <div id="settings-menu-stats" class="hidden flex-col h-full">
+                <div class="flex items-center gap-2 mb-6">
+                    <button onclick="backToMainMenu()" class="text-slate-400"><i data-lucide="arrow-left"></i></button>
+                    <h3 class="font-bold text-lg text-white">Bestands-Analyse</h3>
+                </div>
+
+                <div class="bg-slate-900 p-1 rounded-xl flex mb-6 border border-slate-800">
+                    <button onclick="setStatsMode('mat')" id="btn-stat-mat" class="flex-1 py-2 rounded-lg text-xs font-bold transition-colors bg-indigo-600 text-white">Nach Material</button>
+                    <button onclick="setStatsMode('col')" id="btn-stat-col" class="flex-1 py-2 rounded-lg text-xs font-bold transition-colors text-slate-400">Nach Farbe</button>
+                </div>
+
+                <div id="stats-detail-list" class="space-y-3 flex-grow pb-10 overflow-y-auto scroll-hide"></div>
+            </div>
+
+            <!-- SUB MENU: SHOPPING -->
+            <div id="settings-menu-shopping" class="hidden flex-col h-full">
+                <div class="flex items-center gap-2 mb-6">
+                    <button onclick="backToMainMenu()" class="text-slate-400"><i data-lucide="arrow-left"></i></button>
+                    <h3 class="font-bold text-lg text-white">Einkaufsliste</h3>
+                </div>
+                
+                <div class="flex gap-2 mb-4">
+                    <button onclick="openShopAdd()" class="flex-1 bg-emerald-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2"><i data-lucide="plus"></i> Hinzufügen</button>
+                </div>
+                
+                <button onclick="openAlert('Einkaufsliste leeren?', 'Alle Wünsche werden gelöscht.', `<button onclick='performPurge(\`shop\`)' class='w-full bg-red-600 text-white font-bold p-3 rounded-xl'>Ja, leeren</button><button onclick='closeAlert()' class='p-2 text-slate-500 text-xs'>Abbrechen</button>`)" class="w-full bg-slate-800 text-red-400 font-bold py-3 rounded-xl border border-slate-700 mb-4">Liste leeren</button>
+
+                <div id="settings-shop-list" class="space-y-3 flex-grow pb-10"></div>
+                <div id="shop-empty-state" class="hidden text-center py-10 text-slate-600 text-xs italic">Die Liste ist leer.</div>
+            </div>
+
+            <!-- SUB MENU: BACKUP -->
+            <div id="settings-menu-backup" class="hidden flex-col">
+                <div class="flex items-center gap-2 mb-6">
+                    <button onclick="backToMainMenu()" class="text-slate-400"><i data-lucide="arrow-left"></i></button>
+                    <h3 class="font-bold text-lg text-white">Datenverwaltung</h3>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                        <h4 class="text-sm font-bold text-slate-300 mb-2">Export</h4>
+                        <p class="text-xs text-slate-500 mb-4">Lade deine Datenbank als Datei herunter.</p>
+                        <button onclick="exportData()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2"><i data-lucide="download" class="w-4 h-4"></i> Exportieren</button>
+                    </div>
+
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
+                        <h4 class="text-sm font-bold text-slate-300 mb-2">Import</h4>
+                        <p class="text-xs text-slate-500 mb-4">Stelle Daten aus einer Datei wieder her.</p>
+                        <input type="file" id="import-file" onchange="importData(event)" class="hidden" accept=".json">
+                        <button onclick="document.getElementById('import-file').click()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl border border-slate-700 flex items-center justify-center gap-2"><i data-lucide="upload" class="w-4 h-4"></i> Importieren</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUB MENU: RESET -->
+            <div id="settings-menu-reset" class="hidden flex-col">
+                <div class="flex items-center gap-2 mb-6">
+                    <button onclick="backToMainMenu()" class="text-slate-400"><i data-lucide="arrow-left"></i></button>
+                    <h3 class="font-bold text-lg text-white">Werkseinstellungen</h3>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="p-4 bg-red-900/10 border border-red-900/30 rounded-2xl">
+                        <h4 class="text-red-400 font-bold mb-1">Lager leeren</h4>
+                        <p class="text-xs text-red-400/60 mb-4">Löscht alle Spulen.</p>
+                        <button onclick="openAlert('Lager leeren?', 'Alle Spulen im Inventar werden gelöscht.', `<button onclick='performPurge(\`inv\`)' class='w-full bg-red-600 text-white font-bold p-3 rounded-xl'>Lager löschen</button><button onclick='closeAlert()' class='p-2 text-slate-500 text-xs'>Abbrechen</button>`)" class="w-full bg-red-900/20 text-red-500 font-bold py-3 rounded-xl border border-red-900/30">Lager löschen</button>
+                    </div>
+
+                    <div class="p-4 bg-red-900/10 border border-red-900/30 rounded-2xl">
+                        <h4 class="text-red-400 font-bold mb-1">Einkaufsliste leeren</h4>
+                        <p class="text-xs text-red-400/60 mb-4">Löscht alle Wünsche.</p>
+                        <button onclick="openAlert('Einkaufsliste leeren?', 'Alle Einträge werden gelöscht.', `<button onclick='performPurge(\`shop\`)' class='w-full bg-red-600 text-white font-bold p-3 rounded-xl'>Liste löschen</button><button onclick='closeAlert()' class='p-2 text-slate-500 text-xs'>Abbrechen</button>`)" class="w-full bg-red-900/20 text-red-500 font-bold py-3 rounded-xl border border-red-900/30">Liste löschen</button>
+                    </div>
+
+                    <div class="p-4 bg-red-600/10 border border-red-600/30 rounded-2xl mt-8">
+                        <h4 class="text-red-500 font-black mb-1 uppercase tracking-widest">Total Reset</h4>
+                        <p class="text-xs text-red-500/60 mb-4">Löscht ALLE Daten unwiderruflich.</p>
+                        <button onclick="openAlert('WERKSEINSTELLUNGEN?', 'Wirklich ALLES löschen?', `<button onclick='performPurge(\`full\`)' class='w-full bg-red-600 text-white font-black p-4 rounded-xl shadow-lg'>ALLES LÖSCHEN</button><button onclick='closeAlert()' class='p-2 text-slate-500 text-xs'>Abbrechen</button>`)" class="w-full bg-red-600 text-white font-black py-4 rounded-xl shadow-lg shadow-red-900/20">APP ZURÜCKSETZEN</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- UNIVERSAL ALERT OVERLAY -->
+    <div id="alert-overlay" class="fixed inset-0 bg-black/95 z-[300] hidden flex items-center justify-center p-6 transition-opacity opacity-0">
+        <div class="bg-slate-900 w-full max-w-xs p-8 rounded-3xl border border-slate-800 text-center shadow-2xl">
+            <h2 class="font-bold text-lg text-white mb-4" id="alert-title">Titel</h2>
+            <p class="text-slate-400 text-sm mb-6" id="alert-msg">Nachricht</p>
+            <div class="flex flex-col gap-2" id="alert-actions"></div>
+        </div>
+    </div>
+
+    <!-- DELETE CONFIRMATION -->
+    <div id="delete-overlay" class="fixed inset-0 bg-black/95 z-[300] hidden flex items-center justify-center p-6">
+        <div class="bg-slate-900 w-full max-w-xs p-8 rounded-3xl border border-slate-800 text-center shadow-2xl">
+            <h2 class="font-bold text-lg text-white mb-6">Aktion wählen</h2>
+            <div class="flex flex-col gap-2">
+                <button id="btn-del-to-shop" onclick="confirmDeletion(true)" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2">
+                    <i data-lucide="shopping-cart" class="w-4 h-4"></i> Auf Einkaufsliste
+                </button>
+                <button onclick="confirmDeletion(false)" class="w-full bg-red-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i> Endgültig löschen
+                </button>
+                <button onclick="closeDeleteDialog()" class="text-slate-500 font-bold p-2 mt-2">Abbrechen</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white px-6 py-3 rounded-full shadow-2xl z-[400] transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none font-medium text-sm whitespace-nowrap"></div>
+
+    <script>
+        const BRANDS = ["Bambu Lab", "Prusa", "eSun", "Sunlu", "Polymaker", "Elegoo", "Spectrum", "Extrudr", "Das Filament", "FIBERLOGY", "FormFutura", "Filamentum", "Andere"];
+        const MATS = ["PLA", "PETG", "ABS", "ASA", "TPU", "PC", "PA", "Wood", "Carbon"];
+        
+        const COLORS = {
+            standard: [
+                { name: "White", hex: "#FFFFFF" }, { name: "Gray", hex: "#64748b" }, { name: "Black", hex: "#000000" },
+                { name: "Red", hex: "#dc2626" }, { name: "Orange", hex: "#f97316" }, { name: "Yellow", hex: "#facc15" },
+                { name: "Lime", hex: "#84cc16" }, { name: "Green", hex: "#16a34a" }, { name: "Olive", hex: "#3f6212" },
+                { name: "Cyan", hex: "#06b6d4" }, { name: "Blue", hex: "#2563eb" }, { name: "Navy", hex: "#1e3a8a" },
+                { name: "Purple", hex: "#9333ea" }, { name: "Magenta", hex: "#d946ef" }, { name: "Pink", hex: "#db2777" },
+                { name: "Beige", hex: "#d6cfc7" }, { name: "Brown", hex: "#713f12" }
+            ],
+            special: [
+                { name: "Silk White", hex: "#f8fafc", look: "silk" }, { name: "Silk Black", hex: "#334155", look: "silk" },
+                { name: "Silk Red", hex: "#ef4444", look: "silk" }, { name: "Silk Blue", hex: "#3b82f6", look: "silk" },
+                { name: "Silk Gold", hex: "#fbbf24", look: "silk" }, { name: "Silk Silver", hex: "#cbd5e1", look: "silk" },
+                { name: "Silk Copper", hex: "#fdba74", look: "silk" },
+                { name: "Galaxy Black", hex: "#0f172a", look: "galaxy" }, { name: "Galaxy Blue", hex: "#172554", look: "galaxy" },
+                { name: "Galaxy Red", hex: "#450a0a", look: "galaxy" }, { name: "Marble", hex: "#f1f5f9", look: "marble" },
+                { name: "Glow Green", hex: "#d9f99d", look: "glow" }
+            ],
+            metallic: [
+                { name: "Gold", hex: "#d97706", look: "metallic" }, { name: "Silver", hex: "#94a3b8", look: "metallic" }, 
+                { name: "Copper", hex: "#b45309", look: "metallic" }, { name: "Bronze", hex: "#78350f", look: "metallic" }
+            ],
+            translucent: [
+                { name: "Clear", hex: "#e2e8f0", look: "translucent" }, { name: "T-Red", hex: "#ef4444", look: "translucent" },
+                { name: "T-Green", hex: "#22c55e", look: "translucent" }, { name: "T-Blue", hex: "#3b82f6", look: "translucent" },
+                { name: "T-Orange", hex: "#f97316", look: "translucent" }, { name: "T-Purple", hex: "#a855f7", look: "translucent" },
+                { name: "T-Smoke", hex: "#475569", look: "translucent" }
+            ]
+        };
+
+        let spools = JSON.parse(localStorage.getItem('fpool_inv') || '[]');
+        let shopItems = JSON.parse(localStorage.getItem('fpool_shop') || '[]');
+        
+        let activeId = null;
+        let activeCtx = 'Lager';
+        let selCol = "White";
+        let selMat = "PLA";
+        let sortMode = 'id';
+        let quickGrams = 0;
+        let selectedQuickId = null;
+        let statsMode = 'mat'; 
+
+        window.onload = () => { render(); lucide.createIcons(); };
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.classList.remove('opacity-0', 'translate-y-[-20px]');
+            setTimeout(() => t.classList.add('opacity-0', 'translate-y-[-20px]'), 2000);
+        }
+
+        function save() {
+            localStorage.setItem('fpool_inv', JSON.stringify(spools));
+            localStorage.setItem('fpool_shop', JSON.stringify(shopItems));
+            render();
+        }
+
+        function render() {
+            renderLager();
+            renderStats();
+            renderSettingsShop();
+            updateBadges();
+            lucide.createIcons();
+        }
+
+        function updateBadges() {
+            const count = shopItems.length;
+            const mainBadge = document.getElementById('settings-badge');
+            const menuBadge = document.getElementById('shop-badge-menu');
+            
+            if(count > 0) {
+                mainBadge.innerText = count;
+                mainBadge.classList.remove('hidden');
+                menuBadge.innerText = count;
+                menuBadge.classList.remove('hidden');
+            } else {
+                mainBadge.classList.add('hidden');
+                menuBadge.classList.add('hidden');
+            }
+        }
+
+        function renderLager() {
+            const list = document.getElementById('spool-list');
+            const search = document.getElementById('search-input').value.toLowerCase();
+            list.innerHTML = '';
+            
+            let filtered = spools.filter(s => s.color.toLowerCase().includes(search) || s.brand.toLowerCase().includes(search) || s.number.toString().includes(search) || s.material.toLowerCase().includes(search));
+            filtered.sort((a, b) => {
+                if (sortMode === 'id') return a.number - b.number;
+                if (sortMode === 'mat') return a.material.localeCompare(b.material);
+                if (sortMode === 'lvl') return b.level - a.level;
+                return 0;
+            });
+            document.getElementById('sort-label').innerText = sortMode === 'id' ? 'ID' : (sortMode === 'mat' ? 'MAT' : 'LVL');
+
+            document.getElementById('empty-state').classList.toggle('hidden', filtered.length > 0 || search !== '');
+            
+            const allColorsFlat = [...COLORS.standard, ...COLORS.special, ...COLORS.metallic, ...COLORS.translucent];
+
+            filtered.forEach(s => {
+                const cObj = allColorsFlat.find(c => c.name === s.color) || COLORS.standard[0];
+                list.innerHTML += `
+                    <div onclick="openModal(${s.number}, 'Lager')" class="bg-slate-900 border border-slate-800 rounded-2xl active:scale-[0.98] transition-all overflow-hidden flex flex-col group fade-in shadow-lg">
+                        <div class="p-3 flex justify-between items-start" style="background-color: ${cObj.hex}15">
+                            <div class="text-2xl font-black font-mono text-white/90">#${s.number.toString().padStart(3,'0')}</div>
+                            <div class="w-3 h-3 rounded-full shadow-sm look-${cObj.look || 'plain'}" style="background-color: ${cObj.hex}"></div>
+                        </div>
+                        <div class="p-3 pt-2 space-y-2">
+                            <span class="mat-tag inline-block mat-${s.material.toLowerCase()}">${s.material}</span>
+                            <div class="text-[10px] font-bold text-slate-400 truncate uppercase tracking-wider">${s.color}</div>
+                            <div class="flex items-center gap-2 mt-1">
+                                <div class="flex-grow bg-black/40 h-1.5 rounded-full overflow-hidden">
+                                    <div class="h-full bg-indigo-500" style="width: ${s.level}%"></div>
+                                </div>
+                                <span class="text-[8px] font-mono text-slate-500">${s.level}%</span>
+                            </div>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        function renderStats() {
+            const stats = {}; MATS.forEach(m => stats[m] = 0);
+            spools.forEach(s => { if(stats[s.material] !== undefined) stats[s.material]++; });
+            const cont = document.getElementById('stats-container'); cont.innerHTML = '';
+            Object.entries(stats).forEach(([m, c]) => {
+                if(c > 0) cont.innerHTML += `<div class="bg-slate-800 border border-slate-700 px-2 py-1 rounded-lg text-[9px] font-black uppercase"><span class="text-indigo-400 mr-1">${c}x</span> ${m}</div>`;
+            });
+            document.getElementById('counter').innerText = `${spools.length} / 100`;
+        }
+
+        // --- STATS DETAIL LOGIC ---
+        function setStatsMode(m) {
+            statsMode = m;
+            document.getElementById('btn-stat-mat').className = m === 'mat' ? "flex-1 py-2 rounded-lg text-xs font-bold transition-colors bg-indigo-600 text-white" : "flex-1 py-2 rounded-lg text-xs font-bold transition-colors text-slate-400";
+            document.getElementById('btn-stat-col').className = m === 'col' ? "flex-1 py-2 rounded-lg text-xs font-bold transition-colors bg-indigo-600 text-white" : "flex-1 py-2 rounded-lg text-xs font-bold transition-colors text-slate-400";
+            renderStatsDetail();
+        }
+
+        function renderStatsDetail() {
+            const list = document.getElementById('stats-detail-list');
+            list.innerHTML = '';
+            const data = {};
+
+            spools.forEach(s => {
+                const primary = statsMode === 'mat' ? s.material : s.color;
+                const secondary = statsMode === 'mat' ? s.color : s.material;
+                
+                if (!data[primary]) data[primary] = { totalWeight: 0, subs: {} };
+                const weight = s.level * 10; 
+                data[primary].totalWeight += weight;
+
+                if (!data[primary].subs[secondary]) data[primary].subs[secondary] = { weight: 0, count: 0, ids: [] };
+                data[primary].subs[secondary].weight += weight;
+                data[primary].subs[secondary].count++;
+                data[primary].subs[secondary].ids.push(s.number);
+            });
+
+            if (Object.keys(data).length === 0) {
+                list.innerHTML = '<div class="text-center text-slate-500 text-xs mt-10">Keine Daten verfügbar.</div>';
+                return;
+            }
+
+            Object.keys(data).sort().forEach(key => {
+                const group = data[key];
+                const weightKg = (group.totalWeight / 1000).toFixed(1);
+                
+                let subHtml = '';
+                Object.keys(group.subs).sort().forEach(subKey => {
+                    const sub = group.subs[subKey];
+                    const subKg = (sub.weight / 1000).toFixed(1);
+                    const idList = sub.ids.sort((a,b)=>a-b).map(id => `<span class="bg-slate-800 text-slate-400 px-1.5 rounded text-[9px] border border-slate-700">#${id.toString().padStart(3,'0')}</span>`).join(' ');
+
+                    subHtml += `
+                        <div class="flex flex-col py-2 border-t border-slate-800/50">
+                            <div class="flex justify-between items-center text-xs mb-1">
+                                <span class="text-slate-300 pl-2 font-bold">${subKey} <span class="text-[9px] text-slate-500 font-normal">(${sub.count}x)</span></span>
+                                <span class="font-mono text-indigo-300 bg-indigo-500/10 px-1.5 rounded">${subKg} kg</span>
+                            </div>
+                            <div class="pl-2 flex flex-wrap gap-1">
+                                ${idList}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                list.innerHTML += `
+                    <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden mb-2">
+                        <div class="bg-slate-800/50 p-3 flex justify-between items-center">
+                            <span class="font-black text-white uppercase tracking-wide">${key}</span>
+                            <span class="bg-indigo-500/20 text-indigo-400 text-xs font-mono font-bold px-2 py-0.5 rounded-full">${weightKg} kg</span>
+                        </div>
+                        <div class="p-2 bg-slate-950/30">
+                            ${subHtml}
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        // --- QUICK MENU & SHOP LOGIC ---
+        function openQuickMenu() {
+            document.getElementById('quick-menu-overlay').classList.remove('hidden');
+            setTimeout(() => document.getElementById('quick-menu-content').classList.remove('translate-y-full'), 10);
+            quickGrams = 0; selectedQuickId = null; updateQuickDisplay(); renderQuickSpoolList();
+        }
+        function closeQuickMenu() {
+            document.getElementById('quick-menu-content').classList.add('translate-y-full');
+            setTimeout(() => document.getElementById('quick-menu-overlay').classList.add('hidden'), 300);
+        }
+        function renderQuickSpoolList() {
+            const list = document.getElementById('quick-spool-list'); list.innerHTML = '';
+            let sortedSpools = [...spools].sort((a,b) => a.number - b.number);
+            if(sortedSpools.length === 0) { list.innerHTML = '<div class="text-center text-slate-500 text-xs py-4">Keine Spulen vorhanden.</div>'; return; }
+            const allColorsFlat = [...COLORS.standard, ...COLORS.special, ...COLORS.metallic, ...COLORS.translucent];
+            sortedSpools.forEach(s => {
+                const cObj = allColorsFlat.find(c => c.name === s.color) || COLORS.standard[0];
+                const isSelected = selectedQuickId === s.number;
+                list.innerHTML += `<div onclick="selectQuickSpool(${s.number})" class="spool-chip ${isSelected ? 'selected' : ''} flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-900 active:scale-[0.98] transition-all cursor-pointer"><div class="flex items-center gap-3"><div class="font-mono font-black text-white text-lg w-10">#${s.number}</div><div class="w-2 h-8 rounded-full" style="background-color: ${cObj.hex}"></div><div><div class="text-xs font-bold text-white">${s.material}</div><div class="text-[10px] text-slate-500">${s.color}</div></div></div><div class="text-right"><div class="text-sm font-mono font-bold ${s.level < 20 ? 'text-red-500' : 'text-indigo-400'}">${s.level}%</div><div class="text-[9px] text-slate-600 uppercase">Rest</div></div></div>`;
+            });
+        }
+        function selectQuickSpool(id) { selectedQuickId = id; renderQuickSpoolList(); }
+        function addQuickGrams(g) { quickGrams += g; updateQuickDisplay(); }
+        function resetQuickGrams() { quickGrams = 0; updateQuickDisplay(); }
+        function updateQuickDisplay() { document.getElementById('quick-gram-display').innerText = quickGrams + 'g'; }
+        function performQuickBook() {
+            if(!selectedQuickId) { showToast("Bitte Spule wählen!"); return; }
+            if(quickGrams <= 0) { showToast("Kein Verbrauch!"); return; }
+            const s = spools.find(x => x.number === selectedQuickId);
+            if(!s) { showToast("Fehler: Spule weg?"); return; }
+            const base = parseFloat(document.getElementById('quick-base').value);
+            const percentUsed = (quickGrams / base) * 100;
+            let newLevel = Math.round(s.level - percentUsed);
+            if(newLevel < 0) newLevel = 0;
+            s.level = newLevel; save(); closeQuickMenu(); showToast(`${quickGrams}g bei #${selectedQuickId} gebucht!`);
+        }
+        function renderSettingsShop() {
+            const list = document.getElementById('settings-shop-list'); list.innerHTML = '';
+            document.getElementById('shop-empty-state').classList.toggle('hidden', shopItems.length > 0);
+            const allColorsFlat = [...COLORS.standard, ...COLORS.special, ...COLORS.metallic, ...COLORS.translucent];
+            shopItems.forEach((item, idx) => {
+                const cObj = allColorsFlat.find(c => c.name === item.color) || COLORS.standard[0];
+                list.innerHTML += `<div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between shadow-lg fade-in"><div class="flex items-center gap-3 flex-grow" onclick="openModal(${idx}, 'Shop')"><div class="w-8 h-8 rounded-full border border-slate-700 look-${cObj.look || 'plain'}" style="background-color: ${cObj.hex}"></div><div><div class="text-xs font-black text-white">${item.material} - ${item.color}</div><div class="text-[9px] text-slate-600 font-bold uppercase tracking-tighter">${item.brand || 'Beliebig'}</div></div></div><div class="flex gap-2"><button onclick="buyItem(${idx})" class="p-2.5 bg-emerald-500/10 text-emerald-500 rounded-lg border border-emerald-500/10 active:scale-90 transition-transform"><i data-lucide="plus" class="w-4 h-4"></i></button><button onclick="openDeleteDialog(${idx}, 'Shop')" class="p-2.5 bg-red-500/10 text-red-500 rounded-lg border border-red-500/10 active:scale-90 transition-transform"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div>`;
+            });
+        }
+
+        // --- STANDARD APP LOGIC ---
+        function toggleSort() {
+            if (sortMode === 'id') sortMode = 'mat';
+            else if (sortMode === 'mat') sortMode = 'lvl';
+            else sortMode = 'id';
+            render();
+        }
+        function openSettings() { document.getElementById('settings-overlay').classList.remove('hidden'); openSettingsSub(null); }
+        function closeSettings() { document.getElementById('settings-overlay').classList.add('hidden'); }
+        function openSettingsSub(sub) {
+            ['main', 'shopping', 'backup', 'reset', 'stats'].forEach(id => {
+                const el = document.getElementById(`settings-menu-${id}`);
+                if(el) { el.classList.add('hidden'); el.classList.remove('flex'); }
+            });
+            if(!sub) {
+                document.getElementById('settings-menu-main').classList.remove('hidden');
+                document.getElementById('settings-menu-main').classList.add('flex');
+            } else {
+                document.getElementById(`settings-menu-${sub}`).classList.remove('hidden');
+                document.getElementById(`settings-menu-${sub}`).classList.add('flex');
+                if(sub === 'stats') renderStatsDetail();
+            }
+            lucide.createIcons();
+        }
+        function backToMainMenu() { openSettingsSub(null); }
+        function openModal(id, ctx) {
+            try {
+                activeId = id; activeCtx = ctx;
+                const item = ctx === 'Lager' ? spools.find(s => s.number === id) : shopItems[id];
+                if(!item) { console.error("Item not found"); return; }
+                document.getElementById('modal-context-title').innerText = ctx === 'Lager' ? 'Spule editieren' : 'Einkauf editieren';
+                document.getElementById('modal-title').innerText = ctx === 'Lager' ? '#' + id.toString().padStart(3,'0') : 'Neu';
+                const quickShopBtn = document.getElementById('btn-quick-shop');
+                if (ctx === 'Lager') {
+                    quickShopBtn.classList.remove('hidden');
+                    document.getElementById('level-section').style.display = 'block';
+                    document.getElementById('btn-delete-item').style.display = 'flex';
+                } else {
+                    quickShopBtn.classList.add('hidden');
+                    document.getElementById('level-section').style.display = 'none';
+                    document.getElementById('btn-delete-item').style.display = 'none';
+                }
+                
+                selCol = item.color || 'White'; selMat = item.material || 'PLA';
+                document.getElementById('input-level').value = item.level || 100;
+                updateLevelDisplay(item.level || 100);
+                renderColorPalettes(); renderMaterialGrid();
+                const bSel = document.getElementById('input-brand'); bSel.innerHTML = '<option value="">Keine Marke</option>';
+                BRANDS.forEach(b => bSel.innerHTML += `<option value="${b}" ${item.brand === b ? 'selected' : ''}>${b}</option>`);
+                document.getElementById('modal-overlay').classList.remove('hidden');
+                setTimeout(() => document.getElementById('modal-content').classList.remove('translate-y-full'), 10);
+                lucide.createIcons();
+            } catch(e) { alert("Fehler beim Öffnen: " + e.message); }
+        }
+        function closeModal() {
+            document.getElementById('modal-content').classList.add('translate-y-full');
+            setTimeout(() => document.getElementById('modal-overlay').classList.add('hidden'), 300);
+        }
+        function saveItem() {
+            const brand = document.getElementById('input-brand').value;
+            if(activeCtx === 'Lager') {
+                const s = spools.find(x => x.number === activeId);
+                if(s) { s.color = selCol; s.material = selMat; s.brand = brand; s.level = parseInt(document.getElementById('input-level').value); }
+            } else {
+                shopItems[activeId] = { material: selMat, color: selCol, brand: brand };
+            }
+            save(); closeModal();
+        }
+        function createNewSpool() {
+            if(spools.length >= 100) return;
+            let next = 1; const nums = spools.map(s => s.number).sort((a,b)=>a-b);
+            for(let n of nums) { if(n === next) next++; else if (n > next) break; }
+            spools.push({ number: next, material: 'PLA', color: 'White', brand: '', level: 100, createdAt: new Date().toISOString() });
+            save(); openModal(next, 'Lager');
+        }
+        function copyToShop() {
+            const s = spools.find(x => x.number === activeId);
+            if(s) { shopItems.push({ material: s.material, color: s.color, brand: s.brand }); save(); showToast("Auf Einkaufsliste!"); }
+        }
+        function openShopAdd() {
+            const idx = shopItems.length;
+            shopItems.push({ material: 'PLA', color: 'White', brand: '' });
+            localStorage.setItem('fpool_shop', JSON.stringify(shopItems));
+            openModal(idx, 'Shop');
+        }
+        function buyItem(idx) {
+            const item = shopItems[idx];
+            let next = 1; const nums = spools.map(s => s.number).sort((a,b)=>a-b);
+            for(let n of nums) { if(n === next) next++; else if (n > next) break; }
+            spools.push({ number: next, material: item.material, color: item.color, brand: item.brand, level: 100, createdAt: new Date().toISOString() });
+            shopItems.splice(idx, 1);
+            save(); showToast(`Ins Lager: #${next.toString().padStart(3,'0')}`);
+        }
+        function openAlert(title, text, buttonsHtml) {
+            const ol = document.getElementById('alert-overlay');
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-msg').innerText = text;
+            document.getElementById('alert-actions').innerHTML = buttonsHtml;
+            ol.classList.remove('hidden');
+            setTimeout(() => ol.classList.remove('opacity-0'), 10);
+        }
+        function closeAlert() {
+            const ol = document.getElementById('alert-overlay');
+            ol.classList.add('opacity-0');
+            setTimeout(() => ol.classList.add('hidden'), 300);
+        }
+        function openDeleteDialog(id, ctx) {
+            if(id !== undefined) activeId = id;
+            if(ctx !== undefined) activeCtx = ctx;
+            if(activeCtx === 'Shop') {
+                openAlert('Eintrag löschen?', 'Soll dieser Wunsch entfernt werden?', `
+                    <button onclick="performDelete('shop')" class="w-full bg-red-600 text-white font-bold p-3.5 rounded-xl shadow-lg">Ja, löschen</button>
+                    <button onclick="closeAlert()" class="text-slate-500 text-sm font-bold p-2">Abbrechen</button>
+                `);
+            } else {
+                openAlert('Spule entfernen?', 'Wähle eine Aktion für diesen Slot.', `
+                    <button onclick="performDelete('toShop')" class="w-full bg-indigo-600 text-white font-bold p-4 rounded-xl flex justify-center gap-2"><i data-lucide="shopping-cart" class="w-4 h-4"></i> Zur Einkaufsliste</button>
+                    <button onclick="performDelete('permanent')" class="w-full bg-red-600 text-white font-bold p-4 rounded-xl flex justify-center gap-2"><i data-lucide="trash-2" class="w-4 h-4"></i> Endgültig löschen</button>
+                    <button onclick="closeAlert()" class="text-slate-500 font-bold p-2 mt-2">Abbrechen</button>
+                `);
+                lucide.createIcons();
+            }
+        }
+        
+        function performDelete(action) {
+            if (action === 'shop') {
+                shopItems.splice(activeId, 1);
+            } else if (action === 'toShop') {
+                const s = spools.find(x => x.number === activeId);
+                if(s) shopItems.push({ material: s.material, color: s.color, brand: s.brand });
+                spools = spools.filter(x => x.number !== activeId);
+                closeModal();
+            } else if (action === 'permanent') {
+                spools = spools.filter(x => x.number !== activeId);
+                closeModal();
+            }
+            save(); 
+            closeAlert(); // Important: Close the alert for ALL actions
+        }
+
+        function performPurge(type) {
+            if(type === 'shop') shopItems = [];
+            if(type === 'inv') spools = [];
+            if(type === 'full') { spools = []; shopItems = []; backToMainMenu(); closeSettings(); }
+            save(); closeAlert(); renderSettingsShop(); 
+        }
+        function renderColorPalettes() {
+            const renderGroup = (id, list) => {
+                const el = document.getElementById(id);
+                if(!el) return;
+                el.innerHTML = '';
+                list.forEach(c => { el.innerHTML += `<div onclick="setCol('${c.name}')" class="color-bubble ${selCol === c.name ? 'active' : ''} look-${c.look || 'plain'}" style="background-color: ${c.hex}"></div>`; });
+            };
+            renderGroup('colors-standard', COLORS.standard);
+            renderGroup('colors-special', COLORS.special);
+            renderGroup('colors-metallic', COLORS.metallic);
+            renderGroup('colors-trans', COLORS.translucent);
+        }
+        function renderMaterialGrid() {
+            const mg = document.getElementById('material-grid'); mg.innerHTML = '';
+            MATS.forEach(m => mg.innerHTML += `<button onclick="setMat('${m}')" class="py-2.5 rounded-xl text-[10px] font-black border transition-all ${selMat === m ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-950 border-slate-800 text-slate-500'}">${m}</button>`);
+        }
+        function setCol(n) { selCol = n; renderColorPalettes(); }
+        function setMat(m) { selMat = m; renderMaterialGrid(); }
+        function updateLevelDisplay(v) { document.getElementById('level-display').innerText = v + '%'; }
+        function exportData() {
+            const blob = new Blob([JSON.stringify({inventory: spools, shopping: shopItems})], {type: 'application/json'});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `filament_pool_export.json`; a.click();
+        }
+        function importData(e) {
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                try { const d = JSON.parse(ev.target.result); if(d.inventory) { spools = d.inventory; shopItems = d.shopping || []; save(); closeSettings(); } } catch(e) { alert("Formatfehler"); }
+            };
+            reader.readAsText(e.target.files[0]);
+        }
+    </script>
+</body>
+</html>
+
+
