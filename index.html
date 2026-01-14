@@ -2,25 +2,25 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Filament Pool v2.3</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Filament">
+    <link rel="apple-touch-icon" href="https://lucide.dev/favicon.ico">
+    
+    <title>Filament Pool v2.5</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; overflow-x: hidden; width: 100vw; }
+        .safe-top { padding-top: env(safe-area-inset-top); }
+        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
         .fade-in { animation: fadeIn 0.2s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
         
         input, select { font-size: 16px !important; }
-
-        input[type="range"] {
-            -webkit-appearance: none; width: 100%; height: 10px;
-            background: #1e293b; border-radius: 6px; outline: none;
-        }
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none; width: 24px; height: 24px;
-            background: #4f46e5; border-radius: 50%; cursor: pointer; border: 3px solid #0f172a;
-        }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 10px; background: #1e293b; border-radius: 6px; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: #4f46e5; border-radius: 50%; cursor: pointer; border: 3px solid #0f172a; }
 
         .mat-tag { font-size: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 6px; border-radius: 4px; border-width: 1px; background-color: rgba(15, 23, 42, 0.8); }
         .mat-pla { color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
@@ -42,12 +42,12 @@
         .spool-chip.selected { background-color: rgba(79, 70, 229, 0.2); border-color: #4f46e5; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen pb-20 select-none">
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen pb-20 select-none safe-top safe-bottom">
 
     <div id="app" class="w-full max-w-md mx-auto p-4 flex flex-col items-center relative min-h-screen">
         
         <!-- HEADER -->
-        <div class="w-full flex items-center justify-between mb-6">
+        <div class="w-full flex items-center justify-between mb-6 pt-2">
             <div class="flex items-center gap-2">
                 <div class="bg-indigo-600 p-1.5 rounded-lg shadow-lg">
                     <i data-lucide="layers" class="text-white w-5 h-5"></i>
@@ -55,7 +55,6 @@
                 <h1 class="text-xl font-bold tracking-tight">Filament Pool</h1>
             </div>
             <div class="flex gap-2">
-                <!-- QUICK MENU BUTTON -->
                 <button onclick="openQuickMenu()" class="p-2 bg-indigo-500/20 rounded-full text-indigo-400 border border-indigo-500/30 active:bg-indigo-500/40 transition-colors">
                     <i data-lucide="zap" class="w-5 h-5"></i>
                 </button>
@@ -108,17 +107,13 @@
                 <button onclick="closeQuickMenu()" class="p-2 bg-slate-800 rounded-full text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
 
-            <!-- SPOOL SELECTOR LIST -->
             <div class="flex-shrink-0 mb-2">
                  <label class="text-[10px] text-slate-500 font-bold uppercase block mb-2 tracking-widest px-1">Spule wählen</label>
             </div>
             
-            <div id="quick-spool-list" class="flex-grow overflow-y-auto space-y-2 pr-1 mb-4 scroll-hide bg-slate-950/30 rounded-xl p-2 border border-slate-800/50 min-h-[150px]">
-                <!-- Populated via JS -->
-            </div>
+            <div id="quick-spool-list" class="flex-grow overflow-y-auto space-y-2 pr-1 mb-4 scroll-hide bg-slate-950/30 rounded-xl p-2 border border-slate-800/50 min-h-[150px]"></div>
 
             <div class="space-y-4 flex-shrink-0 pt-2 border-t border-slate-800">
-                <!-- GRAMS ADDER -->
                 <div>
                     <label class="text-[10px] text-slate-500 font-bold uppercase block mb-2 tracking-widest px-1">Verbrauch addieren</label>
                     <div class="flex items-center gap-3 bg-slate-950 border border-slate-800 rounded-xl p-2 mb-3">
@@ -133,7 +128,6 @@
                     </div>
                 </div>
 
-                <!-- BASE WEIGHT -->
                 <div class="flex justify-end pt-1">
                     <select id="quick-base" class="bg-transparent text-[10px] text-slate-500 outline-none text-right">
                         <option value="1000">Basis: 1kg Spule</option>
@@ -218,7 +212,7 @@
 
     <!-- SETTINGS & SHOPPING OVERLAY -->
     <div id="settings-overlay" class="fixed inset-0 bg-slate-950 z-[100] hidden overflow-y-auto">
-        <div class="w-full max-w-md mx-auto p-4 min-h-screen flex flex-col">
+        <div class="w-full max-w-md mx-auto p-4 min-h-screen flex flex-col safe-top safe-bottom">
             <div class="flex items-center justify-between mb-8 mt-2">
                 <h2 class="text-xl font-bold">Einstellungen</h2>
                 <button onclick="closeSettings()" class="p-2 bg-slate-900 rounded-full text-slate-400 border border-slate-800">
@@ -277,7 +271,7 @@
                 </button>
 
                 <div class="mt-8 text-center text-slate-700 text-xs">
-                    Filament Pool v2.3
+                    Filament Pool v2.5
                 </div>
             </div>
 
@@ -541,6 +535,10 @@
             const list = document.getElementById('stats-detail-list');
             list.innerHTML = '';
             const data = {};
+            const allColorsFlat = [...COLORS.standard, ...COLORS.special, ...COLORS.metallic, ...COLORS.translucent];
+
+            // Normalize factor: find absolute max weight across all categories to scale bars consistently
+            let globalMaxWeight = 0;
 
             spools.forEach(s => {
                 const primary = statsMode === 'mat' ? s.material : s.color;
@@ -556,6 +554,14 @@
                 data[primary].subs[secondary].ids.push(s.number);
             });
 
+            // Calculate Max for Scaling
+            Object.values(data).forEach(g => {
+                Object.values(g.subs).forEach(s => {
+                    if(s.weight > globalMaxWeight) globalMaxWeight = s.weight;
+                });
+            });
+            if(globalMaxWeight === 0) globalMaxWeight = 1;
+
             if (Object.keys(data).length === 0) {
                 list.innerHTML = '<div class="text-center text-slate-500 text-xs mt-10">Keine Daten verfügbar.</div>';
                 return;
@@ -570,6 +576,14 @@
                     const sub = group.subs[subKey];
                     const subKg = (sub.weight / 1000).toFixed(1);
                     const idList = sub.ids.sort((a,b)=>a-b).map(id => `<span class="bg-slate-800 text-slate-400 px-1.5 rounded text-[9px] border border-slate-700">#${id.toString().padStart(3,'0')}</span>`).join(' ');
+                    
+                    // Determine Bar Color
+                    let barColorHex = '#6366f1'; // Fallback Indigo
+                    let colorNameForLookup = statsMode === 'mat' ? subKey : key; 
+                    const cObj = allColorsFlat.find(c => c.name === colorNameForLookup);
+                    if(cObj) barColorHex = cObj.hex;
+
+                    const percent = (sub.weight / globalMaxWeight) * 100;
 
                     subHtml += `
                         <div class="flex flex-col py-2 border-t border-slate-800/50">
@@ -577,6 +591,14 @@
                                 <span class="text-slate-300 pl-2 font-bold">${subKey} <span class="text-[9px] text-slate-500 font-normal">(${sub.count}x)</span></span>
                                 <span class="font-mono text-indigo-300 bg-indigo-500/10 px-1.5 rounded">${subKg} kg</span>
                             </div>
+                            
+                            <!-- BAR CHART -->
+                            <div class="px-2 mb-2">
+                                <div class="w-full bg-slate-800/50 rounded-full h-2">
+                                    <div class="h-2 rounded-full border border-white/10 transition-all duration-500" style="width: ${percent}%; background-color: ${barColorHex};"></div>
+                                </div>
+                            </div>
+
                             <div class="pl-2 flex flex-wrap gap-1">
                                 ${idList}
                             </div>
