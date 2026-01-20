@@ -6,841 +6,492 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Filament">
-    <link rel="apple-touch-icon" href="https://lucide.dev/favicon.ico">
     
-    <title>Filament Pool v2.5</title>
+    <title>Filament Pool v8.5.0</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
-        body { overscroll-behavior-y: none; -webkit-tap-highlight-color: transparent; overflow-x: hidden; width: 100vw; }
-        .safe-top { padding-top: env(safe-area-inset-top); }
-        .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
-        .fade-in { animation: fadeIn 0.2s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        /* --- CORE THEME --- */
+        :root { --app-bg: #09090b; --card-bg: #18181b; }
+        body { 
+            background-color: var(--app-bg); 
+            overscroll-behavior-y: none; 
+            -webkit-tap-highlight-color: transparent; 
+            width: 100vw; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            color: #e4e4e7;
+        }
         
-        input, select { font-size: 16px !important; }
-        input[type="range"] { -webkit-appearance: none; width: 100%; height: 10px; background: #1e293b; border-radius: 6px; outline: none; }
-        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: #4f46e5; border-radius: 50%; cursor: pointer; border: 3px solid #0f172a; }
+        .safe-top { padding-top: max(env(safe-area-inset-top), 20px); }
+        .safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 20px); }
 
-        .mat-tag { font-size: 8px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.05em; padding: 2px 6px; border-radius: 4px; border-width: 1px; background-color: rgba(15, 23, 42, 0.8); }
-        .mat-pla { color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
-        .mat-petg { color: #f97316; border-color: rgba(249, 115, 22, 0.3); }
-        .mat-abs { color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
-        .mat-asa { color: #fb7185; border-color: rgba(190, 18, 60, 0.3); }
-        
-        .color-bubble { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #334155; transition: all 0.2s; cursor: pointer; position: relative; flex-shrink: 0; }
-        .color-bubble.active { border-color: #fff; transform: scale(1.15); z-index: 10; box-shadow: 0 0 12px rgba(255,255,255,0.4); }
-        .color-bubble.active::after { content: '✓'; position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: bold; text-shadow: 0 0 4px black; }
-        
-        .look-translucent { background-image: radial-gradient(circle, rgba(255,255,255,0.3) 0%, transparent 70%); border-style: dashed; }
-        .look-silk { background-image: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, transparent 50%, rgba(255,255,255,0.6) 100%); }
-        .look-metallic { background-image: linear-gradient(45deg, rgba(0,0,0,0.4) 0%, rgba(255,255,255,0.4) 50%, rgba(0,0,0,0.4) 100%); box-shadow: inset 0 0 4px rgba(255,255,255,0.3); }
-        .look-galaxy { background-image: radial-gradient(white 1px, transparent 1px); background-size: 8px 8px; opacity: 0.9; }
-        .look-glow { box-shadow: 0 0 8px #a3e635; border-color: #a3e635; }
+        /* --- UTILS --- */
+        .fade-in { animation: fadeIn 0.3s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        .scroll-container { flex-grow: 1; overflow-y: auto; min-height: 0; -webkit-overflow-scrolling: touch; }
+        .logo-gradient { background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        .scroll-hide::-webkit-scrollbar { display: none; }
-        .spool-chip.selected { background-color: rgba(79, 70, 229, 0.2); border-color: #4f46e5; }
+        /* --- UI COMPONENTS --- */
+        .glass-panel {
+            background: rgba(24, 24, 27, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #71717a; margin-bottom: 8px; }
+        
+        /* Spool Card */
+        .spool-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            display: flex; align-items: center; padding: 12px; gap: 12px;
+            position: relative; overflow: hidden;
+            transition: transform 0.1s, background 0.2s;
+            cursor: pointer; touch-action: manipulation; z-index: 10;
+        }
+        .spool-card:active { transform: scale(0.98); background: #27272a; }
+        .mini-card { padding: 10px; gap: 12px; }
+
+        /* Icon Graphic */
+        .spool-icon { width: 24px; height: 48px; display: flex; justify-content: space-between; flex-shrink: 0; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5)); }
+        .spool-flange { width: 4px; height: 100%; background: linear-gradient(90deg, #222, #444 40%, #111); border-radius: 2px; border: 1px solid #000; z-index: 2; }
+        .spool-body {
+            flex-grow: 1; height: 88%; margin: 0 -1px; z-index: 1; background-color: var(--fil-color);
+            background-image: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.6) 100%),
+            repeating-linear-gradient(90deg, transparent 0px, transparent 1px, rgba(0,0,0,0.1) 2px);
+        }
+        .look-silk .spool-body { background-image: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(255,255,255,0.7) 40%, rgba(0,0,0,0.4) 100%); }
+        .look-metallic .spool-body { background-image: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.4) 50%, transparent 100%), linear-gradient(0deg, rgba(0,0,0,0.7) 0%, #fff 20%, rgba(0,0,0,0.7) 50%, #fff 80%, rgba(0,0,0,0.7) 100%); }
+        .look-translucent .spool-body { opacity: 0.6; }
+
+        /* Inputs */
+        input, select, textarea { font-size: 16px !important; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; background: #27272a; border-radius: 99px; outline: none; }
+        input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: white; border-radius: 50%; cursor: pointer; box-shadow: 0 0 10px rgba(255,255,255,0.3); border: 2px solid #09090b; }
+        
+        .toggle-checkbox:checked { right: 0; border-color: #10b981; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #10b981; }
+        
+        textarea { resize: none; background: #27272a; color: white; border-radius: 12px; }
+        select { background: #27272a; color: white; border-radius: 12px; appearance: none; }
+        input[type="date"] { background: #27272a; color: white; border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.1); width: 100%; outline: none; font-family: monospace; min-width: 0; box-sizing: border-box; }
+        ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.5; }
+
+        /* Colors */
+        .color-bubble { width: 38px; height: 38px; border-radius: 50%; border: 2px solid #3f3f46; position: relative; transition: transform 0.2s; cursor: pointer; }
+        .color-bubble.active { border-color: #fff; transform: scale(1.1); box-shadow: 0 0 0 2px rgba(255,255,255,0.1); z-index: 10; }
+        .color-add-btn { background: conic-gradient(#ef4444, #eab308, #22c55e, #3b82f6, #a855f7, #ef4444); opacity: 0.8; display: flex; align-items: center; justify-content: center; overflow: hidden;}
+
+        /* AMS Grid */
+        .ams-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px; width: 100%; margin: 0 auto 24px auto; position: relative; }
+        .ams-grid::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: #27272a; border: 4px solid #09090b; border-radius: 50%; z-index: 20; box-shadow: 0 0 10px rgba(0,0,0,0.8); pointer-events: none; }
+        
+        .ams-slot { background: #18181b; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; transition: all 0.2s; cursor: pointer; }
+        .ams-slot:active { transform: scale(0.96); }
+        .ams-slot.filled { border: none; }
+        
+        .ams-fill-bg { position: absolute; inset: 0; z-index: 1; background: var(--ams-color); opacity: 0.25; }
+        .ams-spool-visual { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(2.5); z-index: 2; opacity: 0.9; }
+        .ams-overlay { position: absolute; inset: 0; z-index: 3; background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%); }
+        .ams-content { position: relative; z-index: 5; width: 100%; height: 100%; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; }
+        
+        .ams-number { position: absolute; z-index: 10; font-size: 10px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 6px; backdrop-filter: blur(4px); }
+        .ams-slot:nth-child(1) .ams-number { top: 8px; left: 8px; }
+        .ams-slot:nth-child(2) .ams-number { top: 8px; right: 8px; }
+        .ams-slot:nth-child(3) .ams-number { bottom: 8px; left: 8px; }
+        .ams-slot:nth-child(4) .ams-number { bottom: 8px; right: 8px; }
+        
+        .ams-del-btn { position: absolute; z-index: 20; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.8); color: white; border-radius: 50%; }
+        .ams-slot:nth-child(1) .ams-del-btn { top: 8px; right: 8px; }
+        .ams-slot:nth-child(2) .ams-del-btn { top: 8px; left: 8px; }
+        .ams-slot:nth-child(3) .ams-del-btn { bottom: 8px; right: 8px; }
+        .ams-slot:nth-child(4) .ams-del-btn { bottom: 8px; left: 8px; }
+
+        /* Stats & Buttons */
+        .stats-bar-container { background: #27272a; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 4px; position: relative; }
+        .stats-bar-fill { height: 100%; background: #6366f1; border-radius: 4px; transition: width 0.5s ease-out; }
+        .tool-btn-row { display: flex; align-items: center; text-align: left; background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; gap: 16px; transition: 0.2s; width: 100%; margin-bottom: 12px; }
+        .tool-btn-row:active { transform: scale(0.98); background: #27272a; }
+        .tool-icon-large { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .calc-btn { background: #27272a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; font-weight: bold; color: white; transition: 0.1s; }
+        .calc-btn:active { background: #3f3f46; transform: scale(0.95); }
+        
+        /* Overlays - High Z-Index */
+        .overlay-base { z-index: 100; position: fixed; inset: 0; background: #09090b; display: flex; flex-direction: column; }
+        .overlay-hidden { display: none; }
     </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen pb-20 select-none safe-top safe-bottom">
+<body class="safe-top safe-bottom">
 
-    <div id="app" class="w-full max-w-md mx-auto p-4 flex flex-col items-center relative min-h-screen">
-        
-        <!-- HEADER -->
-        <div class="w-full flex items-center justify-between mb-6 pt-2">
-            <div class="flex items-center gap-2">
-                <div class="bg-indigo-600 p-1.5 rounded-lg shadow-lg">
-                    <i data-lucide="layers" class="text-white w-5 h-5"></i>
-                </div>
-                <h1 class="text-xl font-bold tracking-tight">Filament Pool</h1>
-            </div>
-            <div class="flex gap-2">
-                <button onclick="openQuickMenu()" class="p-2 bg-indigo-500/20 rounded-full text-indigo-400 border border-indigo-500/30 active:bg-indigo-500/40 transition-colors">
-                    <i data-lucide="zap" class="w-5 h-5"></i>
-                </button>
-                <button onclick="openSettings()" class="relative p-2 bg-slate-900 rounded-full text-indigo-400 border border-slate-800 active:bg-slate-800">
-                    <i data-lucide="settings" class="w-5 h-5"></i>
-                    <div id="settings-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold px-1.5 rounded-full border border-slate-950 hidden">0</div>
-                </button>
-            </div>
-        </div>
-
-        <!-- STATS -->
-        <div class="w-full bg-slate-900/50 border border-slate-800 rounded-2xl p-4 mb-6">
-            <div class="flex justify-between items-center mb-3">
-                <span class="text-[10px] font-bold uppercase tracking-widest text-slate-500">Bestand</span>
-                <span id="counter" class="text-[10px] font-mono bg-indigo-500/20 text-indigo-400 px-2 py-0.5 rounded-full">0 / 100</span>
-            </div>
-            <div id="stats-container" class="flex flex-wrap gap-2"></div>
-        </div>
-
-        <!-- SEARCH & ADD -->
-        <div class="w-full space-y-4 mb-8">
-            <div class="flex gap-2">
-                <div class="relative flex-grow">
-                    <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500"></i>
-                    <input type="text" id="search-input" oninput="render()" placeholder="Suchen..." class="w-full bg-slate-900 border border-slate-800 rounded-xl py-3 pl-10 pr-4 text-white focus:outline-none focus:border-indigo-500">
-                </div>
-                <button onclick="toggleSort()" class="bg-slate-900 border border-slate-800 rounded-xl px-3 flex items-center gap-2 text-indigo-400 active:bg-slate-800 min-w-[80px] justify-center transition-colors">
-                    <i data-lucide="arrow-up-down" class="w-4 h-4"></i>
-                    <span id="sort-label" class="text-xs font-bold uppercase">ID</span>
-                </button>
-            </div>
-            <button onclick="createNewSpool()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                <i data-lucide="plus" class="w-6 h-6"></i> 
-                <span>Neue Spule</span>
-            </button>
-        </div>
-
-        <div id="spool-list" class="grid grid-cols-2 gap-3 w-full pb-20"></div>
-        <div id="empty-state" class="hidden text-center py-10 text-slate-600 text-sm italic">Keine Rollen im Lager.</div>
+    <!-- SPLASH -->
+    <div id="splash" class="fixed inset-0 bg-[#09090b] z-[9999] flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="mb-4 text-indigo-500"><i data-lucide="disc" class="w-16 h-16"></i></div>
+        <h1 class="text-3xl font-black tracking-tighter logo-gradient">FILAMENT</h1>
+        <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">MN.CONCEPTS</p>
     </div>
 
-    <!-- QUICK MENU OVERLAY -->
-    <div id="quick-menu-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[250] hidden flex items-end sm:items-center justify-center p-4">
-        <div class="bg-slate-900 w-full max-w-sm p-6 rounded-3xl shadow-2xl border border-slate-800 transform translate-y-full transition-transform duration-300 flex flex-col max-h-[90vh]" id="quick-menu-content">
-            <div class="flex justify-between items-center mb-4 flex-shrink-0">
-                <div class="flex items-center gap-2 text-indigo-400">
-                    <i data-lucide="zap" class="w-5 h-5"></i>
-                    <h3 class="font-bold text-lg text-white">Schnell-Buchung</h3>
-                </div>
-                <button onclick="closeQuickMenu()" class="p-2 bg-slate-800 rounded-full text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <!-- MAIN APP -->
+    <div id="app" class="w-full max-w-md mx-auto p-4 flex flex-col min-h-screen opacity-0 transition-opacity duration-500 relative z-10">
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-6 pt-2">
+            <div>
+                <div class="flex items-center gap-2"><i data-lucide="disc" class="text-indigo-500 w-6 h-6"></i><h1 class="text-2xl font-black tracking-tight text-white">Lager</h1></div>
+                <div id="mini-dashboard" class="text-xs text-zinc-500 font-medium pl-8 mt-1">Lade Daten...</div>
             </div>
-
-            <div class="flex-shrink-0 mb-2">
-                 <label class="text-[10px] text-slate-500 font-bold uppercase block mb-2 tracking-widest px-1">Spule wählen</label>
-            </div>
-            
-            <div id="quick-spool-list" class="flex-grow overflow-y-auto space-y-2 pr-1 mb-4 scroll-hide bg-slate-950/30 rounded-xl p-2 border border-slate-800/50 min-h-[150px]"></div>
-
-            <div class="space-y-4 flex-shrink-0 pt-2 border-t border-slate-800">
-                <div>
-                    <label class="text-[10px] text-slate-500 font-bold uppercase block mb-2 tracking-widest px-1">Verbrauch addieren</label>
-                    <div class="flex items-center gap-3 bg-slate-950 border border-slate-800 rounded-xl p-2 mb-3">
-                         <div class="flex-grow text-right pr-4 text-2xl font-mono text-white" id="quick-gram-display">0g</div>
-                         <button onclick="resetQuickGrams()" class="p-2 text-slate-500 hover:text-white"><i data-lucide="rotate-ccw" class="w-4 h-4"></i></button>
-                    </div>
-                    
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="addQuickGrams(10)" class="py-3 bg-slate-800 rounded-xl font-mono font-bold text-slate-300 active:bg-indigo-600 active:text-white transition-colors">+10g</button>
-                        <button onclick="addQuickGrams(50)" class="py-3 bg-slate-800 rounded-xl font-mono font-bold text-slate-300 active:bg-indigo-600 active:text-white transition-colors">+50g</button>
-                        <button onclick="addQuickGrams(100)" class="py-3 bg-slate-800 rounded-xl font-mono font-bold text-slate-300 active:bg-indigo-600 active:text-white transition-colors">+100g</button>
-                    </div>
-                </div>
-
-                <div class="flex justify-end pt-1">
-                    <select id="quick-base" class="bg-transparent text-[10px] text-slate-500 outline-none text-right">
-                        <option value="1000">Basis: 1kg Spule</option>
-                        <option value="750">Basis: 750g Spule</option>
-                        <option value="500">Basis: 500g Spule</option>
-                    </select>
-                </div>
-
-                <button onclick="performQuickBook()" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                    <i data-lucide="check-circle" class="w-5 h-5"></i> 
-                    <span>Abziehen & Speichern</span>
+            <div class="flex gap-2">
+                <button onclick="openTools()" class="p-3 bg-zinc-800 rounded-xl text-indigo-400 active:scale-95 transition-transform"><i data-lucide="layout-grid" class="w-5 h-5"></i></button>
+                <button onclick="openSettings()" class="relative p-3 bg-zinc-800 rounded-xl text-zinc-400 active:scale-95 transition-transform">
+                    <i data-lucide="settings-2" class="w-5 h-5"></i>
+                    <div id="settings-badge" class="hidden absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#09090b]"></div>
                 </button>
             </div>
         </div>
+        <!-- Search -->
+        <div class="mb-6 flex gap-2">
+            <div class="relative flex-grow">
+                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"></i>
+                <input type="text" id="search-input" oninput="render()" placeholder="Suchen..." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3.5 pl-11 pr-4 text-white text-sm focus:border-indigo-500 outline-none transition-colors">
+            </div>
+            <button onclick="toggleSort()" class="bg-zinc-900 border border-zinc-800 rounded-xl px-4 flex items-center justify-center min-w-[50px] text-indigo-400 active:bg-zinc-800 transition-colors"><span id="sort-label" class="text-xs font-bold">ID</span></button>
+            <button onclick="createNewSpool()" class="bg-indigo-600 rounded-xl px-4 flex items-center justify-center shadow-lg active:scale-95 transition-transform text-white"><i data-lucide="plus" class="w-5 h-5"></i></button>
+        </div>
+        <!-- List -->
+        <div id="spool-list" class="grid grid-cols-2 gap-3 pb-24 relative z-10"></div>
+        <div id="empty-state" class="hidden text-center py-10 text-zinc-600 text-sm">Lager ist leer.</div>
     </div>
 
-    <!-- MAIN EDITOR MODAL -->
-    <div id="modal-overlay" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[200] hidden flex items-end sm:items-center justify-center p-4">
-        <div class="bg-slate-900 w-full max-w-sm p-6 rounded-3xl shadow-2xl border border-slate-800 transform translate-y-full transition-transform duration-300" id="modal-content">
+    <!-- === MODALS === -->
+    
+    <!-- EDITOR -->
+    <div id="modal-overlay" class="fixed inset-0 bg-black/80 z-[200] hidden flex items-end sm:items-center justify-center p-4 backdrop-blur-sm">
+        <div class="glass-panel w-full max-w-sm p-6 rounded-3xl shadow-2xl transform translate-y-full transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="modal-content">
+            <div class="w-12 h-1 bg-zinc-700 rounded-full mx-auto mb-4"></div>
             <div class="flex justify-between items-center mb-6">
-                <div>
-                    <h3 id="modal-context-title" class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Editor</h3>
-                    <span class="text-4xl font-black text-white font-mono" id="modal-title">#001</span>
-                </div>
-                <div class="flex gap-2">
-                    <button id="btn-quick-shop" onclick="copyToShop()" class="p-2 bg-slate-800 rounded-full text-emerald-400 border border-slate-700 active:bg-slate-700" title="Auf Einkaufsliste"><i data-lucide="shopping-bag" class="w-5 h-5"></i></button>
-                    <button onclick="closeModal()" class="p-2 bg-slate-800 rounded-full text-slate-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+                <div><div class="section-title">Bearbeiten</div><div class="text-3xl font-black text-white font-mono flex items-center gap-2"><span id="modal-title">#001</span><span class="text-[10px] text-zinc-500 font-normal normal-case tracking-normal">(Swipe ↔)</span></div></div>
+                <div class="text-right">
+                    <div id="modal-date" class="text-[10px] text-zinc-500 font-mono font-bold"></div>
+                    <div class="flex gap-2 mt-2">
+                        <button id="btn-quick-shop" onclick="copyToShop()" class="p-3 bg-zinc-800 rounded-full text-emerald-400"><i data-lucide="shopping-bag" class="w-5 h-5"></i></button>
+                        <button onclick="closeModal()" class="p-3 bg-zinc-800 rounded-full text-zinc-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+                    </div>
                 </div>
             </div>
-            
-            <div class="space-y-6 max-h-[65vh] overflow-y-auto pr-1 scroll-hide">
-                <div id="level-section" class="bg-slate-950/50 p-4 rounded-2xl border border-slate-800">
-                    <div class="flex justify-between text-[10px] text-slate-500 font-bold uppercase mb-4 tracking-widest px-2">
-                        <span>Leer</span>
-                        <span>Rest: <span id="level-display" class="text-indigo-400">100%</span></span>
-                        <span>Voll</span>
-                    </div>
+            <div class="space-y-6">
+                <div id="level-section" class="bg-zinc-900/50 p-4 rounded-2xl border border-white/5">
+                    <div class="flex justify-between text-xs text-zinc-400 font-bold mb-3"><span>0%</span> <span id="level-display" class="text-indigo-400">100%</span> <span>100%</span></div>
                     <input type="range" id="input-level" min="0" max="100" step="5" oninput="updateLevelDisplay(this.value)">
                 </div>
-
-                <!-- COLORS -->
-                <div>
-                    <label class="text-[10px] text-slate-500 font-bold uppercase block mb-3 tracking-widest px-1">Farbe & Look</label>
-                    <div class="space-y-4">
-                        <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-800/50">
-                            <span class="text-[8px] text-slate-600 font-black uppercase mb-2 block">Standard</span>
-                            <div id="colors-standard" class="flex flex-wrap gap-2"></div>
-                        </div>
-                        <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-800/50">
-                            <span class="text-[8px] text-slate-600 font-black uppercase mb-2 block">Special (Silk / Galaxy / Glow)</span>
-                            <div id="colors-special" class="flex flex-wrap gap-2"></div>
-                        </div>
-                        <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-800/50">
-                            <span class="text-[8px] text-slate-600 font-black uppercase mb-2 block">Metallic</span>
-                            <div id="colors-metallic" class="flex flex-wrap gap-2"></div>
-                        </div>
-                        <div class="bg-slate-950/40 p-3 rounded-2xl border border-slate-800/50">
-                            <span class="text-[8px] text-slate-600 font-black uppercase mb-2 block">Transparent (Translucent)</span>
-                            <div id="colors-trans" class="flex flex-wrap gap-2"></div>
-                        </div>
+                <div class="grid grid-cols-2 gap-3" id="meta-switches">
+                    <div id="dryer-section" class="bg-zinc-900/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-between hidden">
+                        <div class="section-title" style="margin-bottom:0">Trocknung</div>
+                        <div class="flex justify-between items-end mt-2"><div id="dryer-status" class="text-xs text-zinc-300">Unbekannt</div><button onclick="setDryerDate()" class="bg-zinc-800 p-2 rounded text-white active:scale-95"><i data-lucide="rotate-cw" class="w-4 h-4"></i></button></div>
+                    </div>
+                    <div id="calib-section" class="bg-zinc-900/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-between">
+                         <div class="section-title" style="margin-bottom:0">Kalibriert</div>
+                         <div class="flex justify-between items-center mt-2"><span class="text-xs text-zinc-300">Status</span><div class="relative inline-block w-10 h-5 align-middle select-none"><input type="checkbox" id="input-calib" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all right-5 border-zinc-600"/><label for="input-calib" class="toggle-label block overflow-hidden h-5 rounded-full bg-zinc-700 cursor-pointer"></label></div></div>
                     </div>
                 </div>
-
-                <div>
-                    <label class="text-[10px] text-slate-500 font-bold uppercase block mb-2 tracking-widest px-1">Material</label>
-                    <div class="grid grid-cols-4 gap-2" id="material-grid"></div>
-                </div>
-                <div>
-                    <label class="text-[10px] text-slate-500 font-bold uppercase block mb-2 tracking-widest px-1">Marke</label>
-                    <select id="input-brand" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-white outline-none focus:border-indigo-500"></select>
-                </div>
-            </div>
-            
-            <div class="mt-8 flex flex-col gap-3">
-                <button onclick="saveItem()" class="w-full py-4 rounded-xl bg-indigo-600 text-white font-bold shadow-lg flex items-center justify-center gap-2 active:scale-95 transition-transform">
-                    <i data-lucide="check" class="w-5 h-5"></i> Speichern
-                </button>
-                <button id="btn-delete-item" onclick="openDeleteDialog()" class="text-red-500/40 text-[10px] font-bold uppercase tracking-widest mt-2">Element entfernen</button>
+                <div><label class="section-title block mb-2">Material</label><div class="grid grid-cols-4 gap-2" id="material-grid"></div></div>
+                <div><label class="section-title block mb-3">Farbe & Look</label><div class="space-y-3">
+                        <div class="bg-zinc-900/30 p-3 rounded-2xl border border-white/5"><div class="text-[9px] text-zinc-600 uppercase mb-2 pl-1">Standard</div><div id="colors-standard" class="flex flex-wrap gap-3"></div></div>
+                        <div class="bg-zinc-900/30 p-3 rounded-2xl border border-white/5"><div class="text-[9px] text-zinc-600 uppercase mb-2 pl-1">Special</div><div id="colors-special" class="flex flex-wrap gap-3"></div></div>
+                        <div class="bg-zinc-900/30 p-3 rounded-2xl border border-white/5"><div class="text-[9px] text-zinc-600 uppercase mb-2 pl-1">Metallic</div><div id="colors-metallic" class="flex flex-wrap gap-3"></div></div>
+                        <div class="bg-zinc-900/30 p-3 rounded-2xl border border-white/5"><div class="text-[9px] text-zinc-600 uppercase mb-2 pl-1">Trans</div><div id="colors-trans" class="flex flex-wrap gap-3"></div></div>
+                    </div></div>
+                <div><label class="section-title block mb-2">Marke</label><select id="input-brand" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3.5 text-white outline-none"></select></div>
+                <div id="date-section"><label class="section-title block mb-2">Erstellt am</label><div class="w-full overflow-hidden rounded-xl"><input type="date" id="input-date"></div></div>
+                <div><label class="section-title block mb-2">Notizen</label><textarea id="input-notes" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3.5 text-white text-sm h-24 placeholder-zinc-600" placeholder="..."></textarea></div>
+                <div class="flex flex-col gap-3 pt-2"><button onclick="saveItem()" class="w-full bg-indigo-600 py-4 rounded-xl text-white font-bold shadow-lg active:scale-95 transition-transform">Speichern</button><button id="btn-delete-item" onclick="openDeleteDialog()" class="text-red-500/60 text-xs font-bold py-2 uppercase tracking-widest hover:text-red-500 text-center w-full">Element entfernen</button></div>
             </div>
         </div>
     </div>
 
-    <!-- SETTINGS & SHOPPING OVERLAY -->
-    <div id="settings-overlay" class="fixed inset-0 bg-slate-950 z-[100] hidden overflow-y-auto">
-        <div class="w-full max-w-md mx-auto p-4 min-h-screen flex flex-col safe-top safe-bottom">
-            <div class="flex items-center justify-between mb-8 mt-2">
-                <h2 class="text-xl font-bold">Einstellungen</h2>
-                <button onclick="closeSettings()" class="p-2 bg-slate-900 rounded-full text-slate-400 border border-slate-800">
-                    <i data-lucide="x" class="w-6 h-6"></i>
-                </button>
-            </div>
+    <!-- GLOBAL OVERLAYS -->
+    <div id="tools-overlay" class="overlay-base overlay-hidden"><div class="w-full max-w-md mx-auto p-5 flex flex-col h-full safe-top safe-bottom"><div id="tools-header" class="flex justify-between items-center mb-6 flex-shrink-0"></div><div id="tools-content" class="flex flex-col gap-2 scroll-container"></div></div></div>
+    <div id="ams-picker-overlay" class="overlay-base overlay-hidden" style="z-index: 160;"><div class="safe-top p-4 bg-zinc-900 border-b border-white/5 flex justify-between items-center shadow-md flex-shrink-0"><h2 class="text-xl font-bold text-white">Spule wählen</h2><button onclick="closeAMSPicker()" class="p-2 bg-zinc-800 rounded-full text-zinc-400"><i data-lucide="x"></i></button></div><div id="ams-picker-list" class="scroll-container p-4 space-y-2 safe-bottom"></div></div>
+    <div id="settings-overlay" class="overlay-base overlay-hidden"><div class="w-full max-w-md mx-auto p-5 flex flex-col h-full safe-top safe-bottom"><div class="flex justify-between items-center mb-6 flex-shrink-0"><h2 class="text-2xl font-bold text-white">Einstellungen</h2><button onclick="closeSettings()" class="p-2 bg-zinc-900 rounded-full text-zinc-400"><i data-lucide="x"></i></button></div><div id="settings-content" class="flex flex-col gap-6 scroll-container"></div></div></div>
 
-            <!-- MENU BUTTONS -->
-            <div id="settings-menu-main" class="flex flex-col gap-4">
-                
-                <button onclick="openSettingsSub('stats')" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between active:bg-slate-800 transition-colors">
-                    <div class="flex items-center gap-4">
-                        <div class="bg-indigo-500/10 p-3 rounded-full text-indigo-500"><i data-lucide="bar-chart-3" class="w-6 h-6"></i></div>
-                        <div class="text-left">
-                            <div class="font-bold text-white">Statistik & Bestand</div>
-                            <div class="text-xs text-slate-500">Mengen & Auswertung</div>
-                        </div>
-                    </div>
-                    <i data-lucide="chevron-right" class="text-slate-600"></i>
-                </button>
+    <!-- DIALOGS -->
+    <div id="confirm-overlay" class="fixed inset-0 bg-black/80 z-[300] hidden flex items-center justify-center p-6 backdrop-blur-sm"><div class="glass-panel w-full max-w-xs p-8 rounded-3xl text-center"><div class="w-12 h-12 bg-indigo-500/20 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4" id="confirm-icon"><i data-lucide="alert-circle"></i></div><h2 class="font-bold text-xl text-white mb-2" id="confirm-title">?</h2><p class="text-zinc-400 text-sm mb-6" id="confirm-msg">...</p><div class="flex gap-2"><button id="btn-confirm-action" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform">Ja</button><button onclick="closeConfirm()" class="w-full bg-zinc-800 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform">Abbruch</button></div></div></div>
+    <div id="delete-overlay" class="fixed inset-0 bg-black/80 z-[300] hidden flex items-center justify-center p-6 backdrop-blur-sm"><div class="glass-panel w-full max-w-xs p-8 rounded-3xl text-center"><h2 class="font-bold text-xl text-white mb-6">Aktion wählen</h2><div class="flex flex-col gap-3"><button onclick="confirmDeletion(true)" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95"><i data-lucide="shopping-cart" class="w-4 h-4"></i> Auf Einkaufsliste</button><button onclick="confirmDeletion(false)" class="w-full bg-red-600/10 text-red-500 border border-red-500/20 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95"><i data-lucide="trash-2" class="w-4 h-4"></i> Endgültig löschen</button><button onclick="closeDeleteDialog()" class="text-zinc-500 font-bold p-2 mt-1 text-sm">Abbrechen</button></div></div></div>
+    <div id="confirm-booking-overlay" class="fixed inset-0 bg-black/80 z-[300] hidden flex items-center justify-center p-6 backdrop-blur-sm"><div class="glass-panel w-full max-w-xs p-8 rounded-3xl text-center"><div class="w-12 h-12 bg-indigo-500/20 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4"><i data-lucide="scale"></i></div><h2 class="font-bold text-xl text-white mb-2">Menge abbuchen?</h2><p class="text-zinc-400 text-sm mb-6" id="confirm-booking-msg"></p><div class="flex gap-2"><button id="btn-confirm-book" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform">Ja</button><button onclick="closeConfirmBooking()" class="w-full bg-zinc-800 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform">Abbruch</button></div></div></div>
+    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-zinc-800 text-white px-6 py-3 rounded-full shadow-2xl z-[500] transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none font-bold text-sm flex gap-2 border border-white/10"></div>
 
-                <button onclick="openSettingsSub('shopping')" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between active:bg-slate-800 transition-colors relative">
-                    <div class="flex items-center gap-4">
-                        <div class="bg-emerald-500/10 p-3 rounded-full text-emerald-500"><i data-lucide="shopping-cart" class="w-6 h-6"></i></div>
-                        <div class="text-left">
-                            <div class="font-bold text-white flex items-center gap-2">
-                                Einkaufsliste 
-                                <span id="shop-badge-menu" class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
-                            </div>
-                            <div class="text-xs text-slate-500">Verwalte deine Wünsche</div>
-                        </div>
-                    </div>
-                    <i data-lucide="chevron-right" class="text-slate-600"></i>
-                </button>
-
-                <button onclick="openSettingsSub('backup')" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between active:bg-slate-800 transition-colors">
-                    <div class="flex items-center gap-4">
-                        <div class="bg-blue-500/10 p-3 rounded-full text-blue-500"><i data-lucide="download-cloud" class="w-6 h-6"></i></div>
-                        <div class="text-left">
-                            <div class="font-bold text-white">Export / Import</div>
-                            <div class="text-xs text-slate-500">Daten sichern</div>
-                        </div>
-                    </div>
-                    <i data-lucide="chevron-right" class="text-slate-600"></i>
-                </button>
-
-                <button onclick="openSettingsSub('reset')" class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between active:bg-slate-800 transition-colors">
-                    <div class="flex items-center gap-4">
-                        <div class="bg-red-500/10 p-3 rounded-full text-red-500"><i data-lucide="alert-triangle" class="w-6 h-6"></i></div>
-                        <div class="text-left">
-                            <div class="font-bold text-white">Werkseinstellungen</div>
-                            <div class="text-xs text-slate-500">Lager leeren & Reset</div>
-                        </div>
-                    </div>
-                    <i data-lucide="chevron-right" class="text-slate-600"></i>
-                </button>
-
-                <div class="mt-8 text-center text-slate-700 text-xs">
-                    Filament Pool v2.5
-                </div>
-            </div>
-
-            <!-- SUB MENU: STATS -->
-            <div id="settings-menu-stats" class="hidden flex-col h-full">
-                <div class="flex items-center gap-2 mb-6">
-                    <button onclick="backToMainMenu()" class="text-slate-400"><i data-lucide="arrow-left"></i></button>
-                    <h3 class="font-bold text-lg text-white">Bestands-Analyse</h3>
-                </div>
-
-                <div class="bg-slate-900 p-1 rounded-xl flex mb-6 border border-slate-800">
-                    <button onclick="setStatsMode('mat')" id="btn-stat-mat" class="flex-1 py-2 rounded-lg text-xs font-bold transition-colors bg-indigo-600 text-white">Nach Material</button>
-                    <button onclick="setStatsMode('col')" id="btn-stat-col" class="flex-1 py-2 rounded-lg text-xs font-bold transition-colors text-slate-400">Nach Farbe</button>
-                </div>
-
-                <div id="stats-detail-list" class="space-y-3 flex-grow pb-10 overflow-y-auto scroll-hide"></div>
-            </div>
-
-            <!-- SUB MENU: SHOPPING -->
-            <div id="settings-menu-shopping" class="hidden flex-col h-full">
-                <div class="flex items-center gap-2 mb-6">
-                    <button onclick="backToMainMenu()" class="text-slate-400"><i data-lucide="arrow-left"></i></button>
-                    <h3 class="font-bold text-lg text-white">Einkaufsliste</h3>
-                </div>
-                
-                <div class="flex gap-2 mb-4">
-                    <button onclick="openShopAdd()" class="flex-1 bg-emerald-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2"><i data-lucide="plus"></i> Hinzufügen</button>
-                </div>
-                
-                <button onclick="openAlert('Einkaufsliste leeren?', 'Alle Wünsche werden gelöscht.', `<button onclick='performPurge(\`shop\`)' class='w-full bg-red-600 text-white font-bold p-3 rounded-xl'>Ja, leeren</button><button onclick='closeAlert()' class='p-2 text-slate-500 text-xs'>Abbrechen</button>`)" class="w-full bg-slate-800 text-red-400 font-bold py-3 rounded-xl border border-slate-700 mb-4">Liste leeren</button>
-
-                <div id="settings-shop-list" class="space-y-3 flex-grow pb-10"></div>
-                <div id="shop-empty-state" class="hidden text-center py-10 text-slate-600 text-xs italic">Die Liste ist leer.</div>
-            </div>
-
-            <!-- SUB MENU: BACKUP -->
-            <div id="settings-menu-backup" class="hidden flex-col">
-                <div class="flex items-center gap-2 mb-6">
-                    <button onclick="backToMainMenu()" class="text-slate-400"><i data-lucide="arrow-left"></i></button>
-                    <h3 class="font-bold text-lg text-white">Datenverwaltung</h3>
-                </div>
-                
-                <div class="space-y-4">
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-                        <h4 class="text-sm font-bold text-slate-300 mb-2">Export</h4>
-                        <p class="text-xs text-slate-500 mb-4">Lade deine Datenbank als Datei herunter.</p>
-                        <button onclick="exportData()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2"><i data-lucide="download" class="w-4 h-4"></i> Exportieren</button>
-                    </div>
-
-                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl">
-                        <h4 class="text-sm font-bold text-slate-300 mb-2">Import</h4>
-                        <p class="text-xs text-slate-500 mb-4">Stelle Daten aus einer Datei wieder her.</p>
-                        <input type="file" id="import-file" onchange="importData(event)" class="hidden" accept=".json">
-                        <button onclick="document.getElementById('import-file').click()" class="w-full bg-slate-800 text-white font-bold py-3 rounded-xl border border-slate-700 flex items-center justify-center gap-2"><i data-lucide="upload" class="w-4 h-4"></i> Importieren</button>
-                    </div>
-                </div>
-            </div>
-
-            <!-- SUB MENU: RESET -->
-            <div id="settings-menu-reset" class="hidden flex-col">
-                <div class="flex items-center gap-2 mb-6">
-                    <button onclick="backToMainMenu()" class="text-slate-400"><i data-lucide="arrow-left"></i></button>
-                    <h3 class="font-bold text-lg text-white">Werkseinstellungen</h3>
-                </div>
-                
-                <div class="space-y-4">
-                    <div class="p-4 bg-red-900/10 border border-red-900/30 rounded-2xl">
-                        <h4 class="text-red-400 font-bold mb-1">Lager leeren</h4>
-                        <p class="text-xs text-red-400/60 mb-4">Löscht alle Spulen.</p>
-                        <button onclick="openAlert('Lager leeren?', 'Alle Spulen im Inventar werden gelöscht.', `<button onclick='performPurge(\`inv\`)' class='w-full bg-red-600 text-white font-bold p-3 rounded-xl'>Lager löschen</button><button onclick='closeAlert()' class='p-2 text-slate-500 text-xs'>Abbrechen</button>`)" class="w-full bg-red-900/20 text-red-500 font-bold py-3 rounded-xl border border-red-900/30">Lager löschen</button>
-                    </div>
-
-                    <div class="p-4 bg-red-900/10 border border-red-900/30 rounded-2xl">
-                        <h4 class="text-red-400 font-bold mb-1">Einkaufsliste leeren</h4>
-                        <p class="text-xs text-red-400/60 mb-4">Löscht alle Wünsche.</p>
-                        <button onclick="openAlert('Einkaufsliste leeren?', 'Alle Einträge werden gelöscht.', `<button onclick='performPurge(\`shop\`)' class='w-full bg-red-600 text-white font-bold p-3 rounded-xl'>Liste löschen</button><button onclick='closeAlert()' class='p-2 text-slate-500 text-xs'>Abbrechen</button>`)" class="w-full bg-red-900/20 text-red-500 font-bold py-3 rounded-xl border border-red-900/30">Liste löschen</button>
-                    </div>
-
-                    <div class="p-4 bg-red-600/10 border border-red-600/30 rounded-2xl mt-8">
-                        <h4 class="text-red-500 font-black mb-1 uppercase tracking-widest">Total Reset</h4>
-                        <p class="text-xs text-red-500/60 mb-4">Löscht ALLE Daten unwiderruflich.</p>
-                        <button onclick="openAlert('WERKSEINSTELLUNGEN?', 'Wirklich ALLES löschen?', `<button onclick='performPurge(\`full\`)' class='w-full bg-red-600 text-white font-black p-4 rounded-xl shadow-lg'>ALLES LÖSCHEN</button><button onclick='closeAlert()' class='p-2 text-slate-500 text-xs'>Abbrechen</button>`)" class="w-full bg-red-600 text-white font-black py-4 rounded-xl shadow-lg shadow-red-900/20">APP ZURÜCKSETZEN</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- UNIVERSAL ALERT OVERLAY -->
-    <div id="alert-overlay" class="fixed inset-0 bg-black/95 z-[300] hidden flex items-center justify-center p-6 transition-opacity opacity-0">
-        <div class="bg-slate-900 w-full max-w-xs p-8 rounded-3xl border border-slate-800 text-center shadow-2xl">
-            <h2 class="font-bold text-lg text-white mb-4" id="alert-title">Titel</h2>
-            <p class="text-slate-400 text-sm mb-6" id="alert-msg">Nachricht</p>
-            <div class="flex flex-col gap-2" id="alert-actions"></div>
-        </div>
-    </div>
-
-    <!-- DELETE CONFIRMATION -->
-    <div id="delete-overlay" class="fixed inset-0 bg-black/95 z-[300] hidden flex items-center justify-center p-6">
-        <div class="bg-slate-900 w-full max-w-xs p-8 rounded-3xl border border-slate-800 text-center shadow-2xl">
-            <h2 class="font-bold text-lg text-white mb-6">Aktion wählen</h2>
-            <div class="flex flex-col gap-2">
-                <button id="btn-del-to-shop" onclick="confirmDeletion(true)" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2">
-                    <i data-lucide="shopping-cart" class="w-4 h-4"></i> Auf Einkaufsliste
-                </button>
-                <button onclick="confirmDeletion(false)" class="w-full bg-red-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2">
-                    <i data-lucide="trash-2" class="w-4 h-4"></i> Endgültig löschen
-                </button>
-                <button onclick="closeDeleteDialog()" class="text-slate-500 font-bold p-2 mt-2">Abbrechen</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- TOAST -->
-    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-emerald-600 text-white px-6 py-3 rounded-full shadow-2xl z-[400] transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none font-medium text-sm whitespace-nowrap"></div>
+    <input type="color" id="custom-color-picker" style="position:fixed; top:0; left:0; width:1px; height:1px; opacity:0; pointer-events:none;">
 
     <script>
-        const BRANDS = ["Bambu Lab", "Prusa", "eSun", "Sunlu", "Polymaker", "Elegoo", "Spectrum", "Extrudr", "Das Filament", "FIBERLOGY", "FormFutura", "Filamentum", "Andere"];
-        const MATS = ["PLA", "PETG", "ABS", "ASA", "TPU", "PC", "PA", "Wood", "Carbon"];
-        
-        const COLORS = {
-            standard: [
-                { name: "White", hex: "#FFFFFF" }, { name: "Gray", hex: "#64748b" }, { name: "Black", hex: "#000000" },
-                { name: "Red", hex: "#dc2626" }, { name: "Orange", hex: "#f97316" }, { name: "Yellow", hex: "#facc15" },
-                { name: "Lime", hex: "#84cc16" }, { name: "Green", hex: "#16a34a" }, { name: "Olive", hex: "#3f6212" },
-                { name: "Cyan", hex: "#06b6d4" }, { name: "Blue", hex: "#2563eb" }, { name: "Navy", hex: "#1e3a8a" },
-                { name: "Purple", hex: "#9333ea" }, { name: "Magenta", hex: "#d946ef" }, { name: "Pink", hex: "#db2777" },
-                { name: "Beige", hex: "#d6cfc7" }, { name: "Brown", hex: "#713f12" }
-            ],
-            special: [
-                { name: "Silk White", hex: "#f8fafc", look: "silk" }, { name: "Silk Black", hex: "#334155", look: "silk" },
-                { name: "Silk Red", hex: "#ef4444", look: "silk" }, { name: "Silk Blue", hex: "#3b82f6", look: "silk" },
-                { name: "Silk Gold", hex: "#fbbf24", look: "silk" }, { name: "Silk Silver", hex: "#cbd5e1", look: "silk" },
-                { name: "Silk Copper", hex: "#fdba74", look: "silk" },
-                { name: "Galaxy Black", hex: "#0f172a", look: "galaxy" }, { name: "Galaxy Blue", hex: "#172554", look: "galaxy" },
-                { name: "Galaxy Red", hex: "#450a0a", look: "galaxy" }, { name: "Marble", hex: "#f1f5f9", look: "marble" },
-                { name: "Glow Green", hex: "#d9f99d", look: "glow" }
-            ],
-            metallic: [
-                { name: "Gold", hex: "#d97706", look: "metallic" }, { name: "Silver", hex: "#94a3b8", look: "metallic" }, 
-                { name: "Copper", hex: "#b45309", look: "metallic" }, { name: "Bronze", hex: "#78350f", look: "metallic" }
-            ],
-            translucent: [
-                { name: "Clear", hex: "#e2e8f0", look: "translucent" }, { name: "T-Red", hex: "#ef4444", look: "translucent" },
-                { name: "T-Green", hex: "#22c55e", look: "translucent" }, { name: "T-Blue", hex: "#3b82f6", look: "translucent" },
-                { name: "T-Orange", hex: "#f97316", look: "translucent" }, { name: "T-Purple", hex: "#a855f7", look: "translucent" },
-                { name: "T-Smoke", hex: "#475569", look: "translucent" }
-            ]
+        const BRANDS=["Bambu Lab","Prusa","eSun","Sunlu","Polymaker","Elegoo","Spectrum","Extrudr","Das Filament","FIBERLOGY","FormFutura","Andere"];
+        const MATS=["PLA","PETG","ABS","ASA","TPU","PC","PA","Wood","Carbon"];
+        const HYGRO_MATS=["PETG","ABS","ASA","TPU","PC","PA","Carbon"];
+        const COLORS={
+            standard:[{name:"White",hex:"#FFFFFF"},{name:"Black",hex:"#18181b"},{name:"Gray",hex:"#71717a"},{name:"Red",hex:"#ef4444"},{name:"Blue",hex:"#3b82f6"},{name:"Green",hex:"#22c55e"},{name:"Yellow",hex:"#eab308"},{name:"Orange",hex:"#f97316"},{name:"Purple",hex:"#a855f7"},{name:"Pink",hex:"#ec4899"},{name:"Brown",hex:"#78350f"},{name:"Beige",hex:"#d6d3d1"}],
+            special:[{name:"Silk Gold",hex:"#fbbf24",look:"silk"},{name:"Silk Silver",hex:"#cbd5e1",look:"silk"},{name:"Silk Copper",hex:"#fdba74",look:"silk"},{name:"Glow",hex:"#d9f99d",look:"glow"},{name:"Marble",hex:"#f1f5f9",look:"marble"}],
+            metallic:[{name:"Gold",hex:"#d97706",look:"metallic"},{name:"Silver",hex:"#94a3b8",look:"metallic"}],
+            translucent:[{name:"Clear",hex:"#e2e8f0",look:"translucent"}]
         };
 
-        let spools = JSON.parse(localStorage.getItem('fpool_inv') || '[]');
-        let shopItems = JSON.parse(localStorage.getItem('fpool_shop') || '[]');
-        
-        let activeId = null;
-        let activeCtx = 'Lager';
-        let selCol = "White";
-        let selMat = "PLA";
-        let sortMode = 'id';
-        let quickGrams = 0;
-        let selectedQuickId = null;
-        let statsMode = 'mat'; 
+        let spools=[], shopItems=[], amsSlots=[null,null,null,null], activeId=null, activeCtx='Lager';
+        let selCol="White", selHex="#FFFFFF", selLook="plain", selMat="PLA";
+        let sortMode='id', pickerTargetLook='plain', prodWeight=0, pendingBooking=null, activeAMSSlotIndex=null;
+        let touchstartX=0, touchendX=0, confirmCallback=null, pendingImportData=null;
+        let lastProdState = { mat: "", brand: "", col: "" };
 
-        window.onload = () => { render(); lucide.createIcons(); };
+        const db={get inv(){return spools},set inv(v){spools=v},get shop(){return shopItems},set shop(v){shopItems=v}};
 
-        function showToast(msg) {
-            const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.classList.remove('opacity-0', 'translate-y-[-20px]');
-            setTimeout(() => t.classList.add('opacity-0', 'translate-y-[-20px]'), 2000);
-        }
+        window.onload = function() {
+            setTimeout(()=>{document.getElementById('splash').style.display='none';document.getElementById('app').style.opacity='1';},2000);
+            try {
+                spools=JSON.parse(localStorage.getItem('fpool_inv')||'[]');
+                shopItems=JSON.parse(localStorage.getItem('fpool_shop')||'[]');
+                const sAMS=JSON.parse(localStorage.getItem('fpool_ams')); if(sAMS) amsSlots=sAMS;
+            } catch(e){spools=[];}
+            render(); checkBackup(); setupSwipe(); setupCustomConfirm();
+            const p=document.getElementById('custom-color-picker'); if(p){p.oninput=(e)=>setCustomColor(e.target.value,pickerTargetLook);p.onchange=(e)=>setCustomColor(e.target.value,pickerTargetLook);}
+        };
 
         function save() {
-            localStorage.setItem('fpool_inv', JSON.stringify(spools));
-            localStorage.setItem('fpool_shop', JSON.stringify(shopItems));
+            localStorage.setItem('fpool_inv',JSON.stringify(spools));
+            localStorage.setItem('fpool_shop',JSON.stringify(shopItems));
+            localStorage.setItem('fpool_ams',JSON.stringify(amsSlots));
             render();
         }
-
         function render() {
-            renderLager();
-            renderStats();
-            renderSettingsShop();
-            updateBadges();
-            lucide.createIcons();
+            renderLager(); renderStatsMini();
+            document.getElementById('settings-badge').classList.toggle('hidden',!isBackupOverdue());
+            if(window.lucide) lucide.createIcons();
         }
 
-        function updateBadges() {
-            const count = shopItems.length;
-            const mainBadge = document.getElementById('settings-badge');
-            const menuBadge = document.getElementById('shop-badge-menu');
-            
-            if(count > 0) {
-                mainBadge.innerText = count;
-                mainBadge.classList.remove('hidden');
-                menuBadge.innerText = count;
-                menuBadge.classList.remove('hidden');
-            } else {
-                mainBadge.classList.add('hidden');
-                menuBadge.classList.add('hidden');
+        /* --- LOGIC --- */
+        function getSpoolVisualHtml(s){ const v=getVisuals(s); return `<div class="spool-icon"><div class="spool-flange left"></div><div class="spool-body look-${v.look}" style="--fil-color: ${v.hex}"></div><div class="spool-flange right"></div></div>`; }
+        function getFilteredSpools() {
+            const q=document.getElementById('search-input').value.toLowerCase();
+            let f=spools.filter(s=>s.color.toLowerCase().includes(q)||s.brand.toLowerCase().includes(q)||s.number.toString().includes(q)||s.material.toLowerCase().includes(q));
+            f.sort((a,b)=>{
+                if(sortMode==='id')return a.number-b.number;
+                if(sortMode==='mat')return a.material.localeCompare(b.material);
+                if(sortMode==='date_new')return new Date(b.createdAt)-new Date(a.createdAt);
+                if(sortMode==='date_old')return new Date(a.createdAt)-new Date(b.createdAt);
+                return b.level-a.level;
+            }); return f;
+        }
+        function renderLager(){
+            const l=document.getElementById('spool-list'); l.innerHTML='';
+            const f=getFilteredSpools();
+            document.getElementById('sort-label').innerText=sortMode==='id'?'ID':(sortMode==='mat'?'MAT':(sortMode==='date_new'?'NEU':(sortMode==='date_old'?'ALT':'LVL')));
+            document.getElementById('empty-state').classList.toggle('hidden',f.length>0||document.getElementById('search-input').value!=='');
+            f.forEach(s=>{
+                const v=getVisuals(s), d=s.createdAt?new Date(s.createdAt).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'}):'';
+                l.innerHTML+=`<div onclick="openModal(${s.number},'Lager')" class="spool-card fade-in">${getSpoolVisualHtml(s)}<div class="flex-grow min-w-0"><div class="flex justify-between items-center mb-1"><span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">${s.material}</span><span class="font-mono font-bold text-white text-lg">#${s.number.toString().padStart(3,'0')}</span></div><div class="text-sm font-bold text-white truncate mb-2">${v.name}</div><div class="flex justify-between items-end mt-1"><span class="text-[10px] bg-zinc-800 px-2 py-0.5 rounded text-zinc-400 border border-white/5 max-w-[60px] truncate">${s.brand||'-'}</span><div class="text-right flex flex-col items-end"><span class="text-[10px] font-mono font-bold ${s.level<20?'text-red-500':'text-emerald-500'}">${s.level}%</span><span class="text-[8px] text-zinc-600 font-mono leading-tight">${d}</span></div></div></div>${s.isCalibrated?'<div class="absolute top-2 left-2 text-indigo-400 z-20"><span class="text-[8px]">🎯</span></div>':''}${needsDrying(s)?'<div class="absolute top-2 right-2 text-blue-400 z-20"><i data-lucide="droplets" class="w-3 h-3"></i></div>':''}</div>`;
+            });
+        }
+        function getVisuals(s){return{name:s.color,hex:s.hex||'#FFF',look:s.look||'plain'};}
+        function needsDrying(i){if(!HYGRO_MATS.includes(i.material))return false;if(!i.lastDried)return true;return(Date.now()-i.lastDried)>2592000000;}
+        function isBackupOverdue(){const l=localStorage.getItem('fpool_last_backup');return!l||(Date.now()-l>1209600000);}
+        function checkBackup(){if(isBackupOverdue())toast("Backup empfohlen!");}
+        function renderStatsMini(){let w=0;spools.forEach(s=>w+=s.level*10);document.getElementById('mini-dashboard').innerText=`${spools.length} Spulen • ca. ${(w/1000).toFixed(1)} kg`;}
+
+        /* --- INPUTS & MODALS --- */
+        function setupSwipe(){
+            const m=document.getElementById('modal-content');
+            m.addEventListener('touchstart',e=>{touchstartX=e.changedTouches[0].screenX;},{passive:true});
+            m.addEventListener('touchend',e=>{touchendX=e.changedTouches[0].screenX;handleSwipe();},{passive:true});
+        }
+        function handleSwipe(){
+            if(activeCtx!=='Lager')return;
+            // Only swipe if horizontal move is significant
+            if(Math.abs(touchendX-touchstartX)>50) {
+                if(touchendX<touchstartX) navigateSpool(1);
+                if(touchendX>touchstartX) navigateSpool(-1);
             }
         }
-
-        function renderLager() {
-            const list = document.getElementById('spool-list');
-            const search = document.getElementById('search-input').value.toLowerCase();
-            list.innerHTML = '';
-            
-            let filtered = spools.filter(s => s.color.toLowerCase().includes(search) || s.brand.toLowerCase().includes(search) || s.number.toString().includes(search) || s.material.toLowerCase().includes(search));
-            filtered.sort((a, b) => {
-                if (sortMode === 'id') return a.number - b.number;
-                if (sortMode === 'mat') return a.material.localeCompare(b.material);
-                if (sortMode === 'lvl') return b.level - a.level;
-                return 0;
-            });
-            document.getElementById('sort-label').innerText = sortMode === 'id' ? 'ID' : (sortMode === 'mat' ? 'MAT' : 'LVL');
-
-            document.getElementById('empty-state').classList.toggle('hidden', filtered.length > 0 || search !== '');
-            
-            const allColorsFlat = [...COLORS.standard, ...COLORS.special, ...COLORS.metallic, ...COLORS.translucent];
-
-            filtered.forEach(s => {
-                const cObj = allColorsFlat.find(c => c.name === s.color) || COLORS.standard[0];
-                list.innerHTML += `
-                    <div onclick="openModal(${s.number}, 'Lager')" class="bg-slate-900 border border-slate-800 rounded-2xl active:scale-[0.98] transition-all overflow-hidden flex flex-col group fade-in shadow-lg">
-                        <div class="p-3 flex justify-between items-start" style="background-color: ${cObj.hex}15">
-                            <div class="text-2xl font-black font-mono text-white/90">#${s.number.toString().padStart(3,'0')}</div>
-                            <div class="w-3 h-3 rounded-full shadow-sm look-${cObj.look || 'plain'}" style="background-color: ${cObj.hex}"></div>
-                        </div>
-                        <div class="p-3 pt-2 space-y-2">
-                            <span class="mat-tag inline-block mat-${s.material.toLowerCase()}">${s.material}</span>
-                            <div class="text-[10px] font-bold text-slate-400 truncate uppercase tracking-wider">${s.color}</div>
-                            <div class="flex items-center gap-2 mt-1">
-                                <div class="flex-grow bg-black/40 h-1.5 rounded-full overflow-hidden">
-                                    <div class="h-full bg-indigo-500" style="width: ${s.level}%"></div>
-                                </div>
-                                <span class="text-[8px] font-mono text-slate-500">${s.level}%</span>
-                            </div>
-                        </div>
-                    </div>`;
-            });
+        function navigateSpool(dir){
+            const list=getFilteredSpools(), idx=list.findIndex(s=>s.number===activeId);
+            if(idx===-1)return;
+            let nI=idx+dir; if(nI>=list.length)nI=0; if(nI<0)nI=list.length-1;
+            openModal(list[nI].number,'Lager');
+            const m=document.getElementById('modal-content'); m.classList.add('pulse-slow'); setTimeout(()=>m.classList.remove('pulse-slow'),300);
         }
 
-        function renderStats() {
-            const stats = {}; MATS.forEach(m => stats[m] = 0);
-            spools.forEach(s => { if(stats[s.material] !== undefined) stats[s.material]++; });
-            const cont = document.getElementById('stats-container'); cont.innerHTML = '';
-            Object.entries(stats).forEach(([m, c]) => {
-                if(c > 0) cont.innerHTML += `<div class="bg-slate-800 border border-slate-700 px-2 py-1 rounded-lg text-[9px] font-black uppercase"><span class="text-indigo-400 mr-1">${c}x</span> ${m}</div>`;
-            });
-            document.getElementById('counter').innerText = `${spools.length} / 100`;
-        }
-
-        // --- STATS DETAIL LOGIC ---
-        function setStatsMode(m) {
-            statsMode = m;
-            document.getElementById('btn-stat-mat').className = m === 'mat' ? "flex-1 py-2 rounded-lg text-xs font-bold transition-colors bg-indigo-600 text-white" : "flex-1 py-2 rounded-lg text-xs font-bold transition-colors text-slate-400";
-            document.getElementById('btn-stat-col').className = m === 'col' ? "flex-1 py-2 rounded-lg text-xs font-bold transition-colors bg-indigo-600 text-white" : "flex-1 py-2 rounded-lg text-xs font-bold transition-colors text-slate-400";
-            renderStatsDetail();
-        }
-
-        function renderStatsDetail() {
-            const list = document.getElementById('stats-detail-list');
-            list.innerHTML = '';
-            const data = {};
-            const allColorsFlat = [...COLORS.standard, ...COLORS.special, ...COLORS.metallic, ...COLORS.translucent];
-
-            // Normalize factor: find absolute max weight across all categories to scale bars consistently
-            let globalMaxWeight = 0;
-
-            spools.forEach(s => {
-                const primary = statsMode === 'mat' ? s.material : s.color;
-                const secondary = statsMode === 'mat' ? s.color : s.material;
-                
-                if (!data[primary]) data[primary] = { totalWeight: 0, subs: {} };
-                const weight = s.level * 10; 
-                data[primary].totalWeight += weight;
-
-                if (!data[primary].subs[secondary]) data[primary].subs[secondary] = { weight: 0, count: 0, ids: [] };
-                data[primary].subs[secondary].weight += weight;
-                data[primary].subs[secondary].count++;
-                data[primary].subs[secondary].ids.push(s.number);
-            });
-
-            // Calculate Max for Scaling
-            Object.values(data).forEach(g => {
-                Object.values(g.subs).forEach(s => {
-                    if(s.weight > globalMaxWeight) globalMaxWeight = s.weight;
-                });
-            });
-            if(globalMaxWeight === 0) globalMaxWeight = 1;
-
-            if (Object.keys(data).length === 0) {
-                list.innerHTML = '<div class="text-center text-slate-500 text-xs mt-10">Keine Daten verfügbar.</div>';
-                return;
-            }
-
-            Object.keys(data).sort().forEach(key => {
-                const group = data[key];
-                const weightKg = (group.totalWeight / 1000).toFixed(1);
-                
-                let subHtml = '';
-                Object.keys(group.subs).sort().forEach(subKey => {
-                    const sub = group.subs[subKey];
-                    const subKg = (sub.weight / 1000).toFixed(1);
-                    const idList = sub.ids.sort((a,b)=>a-b).map(id => `<span class="bg-slate-800 text-slate-400 px-1.5 rounded text-[9px] border border-slate-700">#${id.toString().padStart(3,'0')}</span>`).join(' ');
-                    
-                    // Determine Bar Color
-                    let barColorHex = '#6366f1'; // Fallback Indigo
-                    let colorNameForLookup = statsMode === 'mat' ? subKey : key; 
-                    const cObj = allColorsFlat.find(c => c.name === colorNameForLookup);
-                    if(cObj) barColorHex = cObj.hex;
-
-                    const percent = (sub.weight / globalMaxWeight) * 100;
-
-                    subHtml += `
-                        <div class="flex flex-col py-2 border-t border-slate-800/50">
-                            <div class="flex justify-between items-center text-xs mb-1">
-                                <span class="text-slate-300 pl-2 font-bold">${subKey} <span class="text-[9px] text-slate-500 font-normal">(${sub.count}x)</span></span>
-                                <span class="font-mono text-indigo-300 bg-indigo-500/10 px-1.5 rounded">${subKg} kg</span>
-                            </div>
-                            
-                            <!-- BAR CHART -->
-                            <div class="px-2 mb-2">
-                                <div class="w-full bg-slate-800/50 rounded-full h-2">
-                                    <div class="h-2 rounded-full border border-white/10 transition-all duration-500" style="width: ${percent}%; background-color: ${barColorHex};"></div>
-                                </div>
-                            </div>
-
-                            <div class="pl-2 flex flex-wrap gap-1">
-                                ${idList}
-                            </div>
-                        </div>
-                    `;
-                });
-
-                list.innerHTML += `
-                    <div class="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden mb-2">
-                        <div class="bg-slate-800/50 p-3 flex justify-between items-center">
-                            <span class="font-black text-white uppercase tracking-wide">${key}</span>
-                            <span class="bg-indigo-500/20 text-indigo-400 text-xs font-mono font-bold px-2 py-0.5 rounded-full">${weightKg} kg</span>
-                        </div>
-                        <div class="p-2 bg-slate-950/30">
-                            ${subHtml}
-                        </div>
-                    </div>
-                `;
-            });
-        }
-
-        // --- QUICK MENU & SHOP LOGIC ---
-        function openQuickMenu() {
-            document.getElementById('quick-menu-overlay').classList.remove('hidden');
-            setTimeout(() => document.getElementById('quick-menu-content').classList.remove('translate-y-full'), 10);
-            quickGrams = 0; selectedQuickId = null; updateQuickDisplay(); renderQuickSpoolList();
-        }
-        function closeQuickMenu() {
-            document.getElementById('quick-menu-content').classList.add('translate-y-full');
-            setTimeout(() => document.getElementById('quick-menu-overlay').classList.add('hidden'), 300);
-        }
-        function renderQuickSpoolList() {
-            const list = document.getElementById('quick-spool-list'); list.innerHTML = '';
-            let sortedSpools = [...spools].sort((a,b) => a.number - b.number);
-            if(sortedSpools.length === 0) { list.innerHTML = '<div class="text-center text-slate-500 text-xs py-4">Keine Spulen vorhanden.</div>'; return; }
-            const allColorsFlat = [...COLORS.standard, ...COLORS.special, ...COLORS.metallic, ...COLORS.translucent];
-            sortedSpools.forEach(s => {
-                const cObj = allColorsFlat.find(c => c.name === s.color) || COLORS.standard[0];
-                const isSelected = selectedQuickId === s.number;
-                list.innerHTML += `<div onclick="selectQuickSpool(${s.number})" class="spool-chip ${isSelected ? 'selected' : ''} flex items-center justify-between p-3 rounded-xl border border-slate-800 bg-slate-900 active:scale-[0.98] transition-all cursor-pointer"><div class="flex items-center gap-3"><div class="font-mono font-black text-white text-lg w-10">#${s.number}</div><div class="w-2 h-8 rounded-full" style="background-color: ${cObj.hex}"></div><div><div class="text-xs font-bold text-white">${s.material}</div><div class="text-[10px] text-slate-500">${s.color}</div></div></div><div class="text-right"><div class="text-sm font-mono font-bold ${s.level < 20 ? 'text-red-500' : 'text-indigo-400'}">${s.level}%</div><div class="text-[9px] text-slate-600 uppercase">Rest</div></div></div>`;
-            });
-        }
-        function selectQuickSpool(id) { selectedQuickId = id; renderQuickSpoolList(); }
-        function addQuickGrams(g) { quickGrams += g; updateQuickDisplay(); }
-        function resetQuickGrams() { quickGrams = 0; updateQuickDisplay(); }
-        function updateQuickDisplay() { document.getElementById('quick-gram-display').innerText = quickGrams + 'g'; }
-        function performQuickBook() {
-            if(!selectedQuickId) { showToast("Bitte Spule wählen!"); return; }
-            if(quickGrams <= 0) { showToast("Kein Verbrauch!"); return; }
-            const s = spools.find(x => x.number === selectedQuickId);
-            if(!s) { showToast("Fehler: Spule weg?"); return; }
-            const base = parseFloat(document.getElementById('quick-base').value);
-            const percentUsed = (quickGrams / base) * 100;
-            let newLevel = Math.round(s.level - percentUsed);
-            if(newLevel < 0) newLevel = 0;
-            s.level = newLevel; save(); closeQuickMenu(); showToast(`${quickGrams}g bei #${selectedQuickId} gebucht!`);
-        }
-        function renderSettingsShop() {
-            const list = document.getElementById('settings-shop-list'); list.innerHTML = '';
-            document.getElementById('shop-empty-state').classList.toggle('hidden', shopItems.length > 0);
-            const allColorsFlat = [...COLORS.standard, ...COLORS.special, ...COLORS.metallic, ...COLORS.translucent];
-            shopItems.forEach((item, idx) => {
-                const cObj = allColorsFlat.find(c => c.name === item.color) || COLORS.standard[0];
-                list.innerHTML += `<div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex items-center justify-between shadow-lg fade-in"><div class="flex items-center gap-3 flex-grow" onclick="openModal(${idx}, 'Shop')"><div class="w-8 h-8 rounded-full border border-slate-700 look-${cObj.look || 'plain'}" style="background-color: ${cObj.hex}"></div><div><div class="text-xs font-black text-white">${item.material} - ${item.color}</div><div class="text-[9px] text-slate-600 font-bold uppercase tracking-tighter">${item.brand || 'Beliebig'}</div></div></div><div class="flex gap-2"><button onclick="buyItem(${idx})" class="p-2.5 bg-emerald-500/10 text-emerald-500 rounded-lg border border-emerald-500/10 active:scale-90 transition-transform"><i data-lucide="plus" class="w-4 h-4"></i></button><button onclick="openDeleteDialog(${idx}, 'Shop')" class="p-2.5 bg-red-500/10 text-red-500 rounded-lg border border-red-500/10 active:scale-90 transition-transform"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div>`;
-            });
-        }
-
-        // --- STANDARD APP LOGIC ---
-        function toggleSort() {
-            if (sortMode === 'id') sortMode = 'mat';
-            else if (sortMode === 'mat') sortMode = 'lvl';
-            else sortMode = 'id';
-            render();
-        }
-        function openSettings() { document.getElementById('settings-overlay').classList.remove('hidden'); openSettingsSub(null); }
-        function closeSettings() { document.getElementById('settings-overlay').classList.add('hidden'); }
-        function openSettingsSub(sub) {
-            ['main', 'shopping', 'backup', 'reset', 'stats'].forEach(id => {
-                const el = document.getElementById(`settings-menu-${id}`);
-                if(el) { el.classList.add('hidden'); el.classList.remove('flex'); }
-            });
-            if(!sub) {
-                document.getElementById('settings-menu-main').classList.remove('hidden');
-                document.getElementById('settings-menu-main').classList.add('flex');
-            } else {
-                document.getElementById(`settings-menu-${sub}`).classList.remove('hidden');
-                document.getElementById(`settings-menu-${sub}`).classList.add('flex');
-                if(sub === 'stats') renderStatsDetail();
-            }
-            lucide.createIcons();
-        }
-        function backToMainMenu() { openSettingsSub(null); }
         function openModal(id, ctx) {
-            try {
-                activeId = id; activeCtx = ctx;
-                const item = ctx === 'Lager' ? spools.find(s => s.number === id) : shopItems[id];
-                if(!item) { console.error("Item not found"); return; }
-                document.getElementById('modal-context-title').innerText = ctx === 'Lager' ? 'Spule editieren' : 'Einkauf editieren';
-                document.getElementById('modal-title').innerText = ctx === 'Lager' ? '#' + id.toString().padStart(3,'0') : 'Neu';
-                const quickShopBtn = document.getElementById('btn-quick-shop');
-                if (ctx === 'Lager') {
-                    quickShopBtn.classList.remove('hidden');
-                    document.getElementById('level-section').style.display = 'block';
-                    document.getElementById('btn-delete-item').style.display = 'flex';
-                } else {
-                    quickShopBtn.classList.add('hidden');
-                    document.getElementById('level-section').style.display = 'none';
-                    document.getElementById('btn-delete-item').style.display = 'none';
-                }
-                
-                selCol = item.color || 'White'; selMat = item.material || 'PLA';
-                document.getElementById('input-level').value = item.level || 100;
-                updateLevelDisplay(item.level || 100);
-                renderColorPalettes(); renderMaterialGrid();
-                const bSel = document.getElementById('input-brand'); bSel.innerHTML = '<option value="">Keine Marke</option>';
-                BRANDS.forEach(b => bSel.innerHTML += `<option value="${b}" ${item.brand === b ? 'selected' : ''}>${b}</option>`);
-                document.getElementById('modal-overlay').classList.remove('hidden');
-                setTimeout(() => document.getElementById('modal-content').classList.remove('translate-y-full'), 10);
-                lucide.createIcons();
-            } catch(e) { alert("Fehler beim Öffnen: " + e.message); }
-        }
-        function closeModal() {
-            document.getElementById('modal-content').classList.add('translate-y-full');
-            setTimeout(() => document.getElementById('modal-overlay').classList.add('hidden'), 300);
-        }
-        function saveItem() {
-            const brand = document.getElementById('input-brand').value;
-            if(activeCtx === 'Lager') {
-                const s = spools.find(x => x.number === activeId);
-                if(s) { s.color = selCol; s.material = selMat; s.brand = brand; s.level = parseInt(document.getElementById('input-level').value); }
-            } else {
-                shopItems[activeId] = { material: selMat, color: selCol, brand: brand };
+            activeId=id; activeCtx=ctx;
+            let i = ctx==='ShopNew'?{material:'PLA',color:'White',hex:'#FFFFFF',look:'plain',brand:'',createdAt:new Date().toISOString()}:(ctx==='Lager'?spools.find(s=>s.number===id):shopItems[id]);
+            if(!i)return;
+            
+            document.getElementById('modal-title').innerText=ctx==='Lager'?'#'+id.toString().padStart(3,'0'):(ctx==='ShopNew'?"NEU":"Edit");
+            document.getElementById('modal-date').innerText=(ctx==='Lager'&&i.createdAt)?"Erstellt: "+new Date(i.createdAt).toLocaleDateString('de-DE'):"";
+            
+            const isL=ctx==='Lager';
+            document.getElementById('btn-quick-shop').classList.toggle('hidden',!isL);
+            document.getElementById('level-section').style.display=isL?'block':'none';
+            document.getElementById('btn-delete-item').style.display=(ctx==='ShopNew')?'none':'block';
+            document.getElementById('meta-switches').style.display=isL?'grid':'none';
+            document.getElementById('date-section').style.display=isL?'block':'none';
+            
+            const ds=document.getElementById('dryer-section');
+            if(isL&&HYGRO_MATS.includes(i.material)){ds.classList.remove('hidden');document.getElementById('dryer-status').innerText=i.lastDried?`Vor ${Math.floor((Date.now()-i.lastDried)/86400000)} Tagen`:'Nie';}else{ds.classList.add('hidden');}
+            
+            const v=getVisuals(i); selCol=v.name;selHex=v.hex;selLook=v.look;selMat=i.material||'PLA';
+            
+            if(isL){
+                document.getElementById('input-level').value=i.level||100;
+                document.getElementById('level-display').innerText=(i.level||100)+'%';
+                document.getElementById('input-calib').checked=i.isCalibrated||false;
+                document.getElementById('input-date').value=i.createdAt?new Date(i.createdAt).toISOString().split('T')[0]:new Date().toISOString().split('T')[0];
             }
-            save(); closeModal();
+            document.getElementById('input-notes').value=i.note||'';
+            renderColorPalettes(); renderMaterialGrid(); renderBrandSelect(i.brand);
+            showOverlay('modal-content');
         }
-        function createNewSpool() {
-            if(spools.length >= 100) return;
-            let next = 1; const nums = spools.map(s => s.number).sort((a,b)=>a-b);
-            for(let n of nums) { if(n === next) next++; else if (n > next) break; }
-            spools.push({ number: next, material: 'PLA', color: 'White', brand: '', level: 100, createdAt: new Date().toISOString() });
-            save(); openModal(next, 'Lager');
+        function closeModal(){document.getElementById('modal-content').classList.remove('translate-y-0');document.getElementById('modal-content').classList.add('translate-y-full');setTimeout(()=>document.getElementById('modal-overlay').classList.add('hidden'),300);}
+        function showOverlay(id){document.getElementById('modal-overlay').classList.remove('hidden');const c=document.getElementById(id);if(c){c.classList.remove('translate-y-full');c.classList.add('translate-y-0');}if(window.lucide)lucide.createIcons();}
+
+        function renderColorPalettes() {
+            ['standard','special','metallic','translucent'].forEach(g=>{
+                const el=document.getElementById('colors-'+g); if(!el)return; el.innerHTML='';
+                const l=COLORS[g]||[]; let dl=g==='special'?'silk':(g==='metallic'?'metallic':(g==='translucent'?'translucent':'plain'));
+                l.forEach(c=>{const act=(selCol===c.name);el.innerHTML+=`<div onclick="setColor('${c.name}','${c.hex}','${c.look||dl}')" class="color-bubble ${act?'active':''} look-${c.look||dl}" style="background-color:${c.hex}"></div>`;});
+                // Custom btn
+                if(g==='standard') el.innerHTML+=`<div class="color-bubble color-add-btn relative" onclick="document.getElementById('custom-color-picker').click()"><i data-lucide="plus" class="w-4 h-4 text-white pointer-events-none"></i></div>`;
+            });
+            if(window.lucide)lucide.createIcons();
         }
-        function copyToShop() {
-            const s = spools.find(x => x.number === activeId);
-            if(s) { shopItems.push({ material: s.material, color: s.color, brand: s.brand }); save(); showToast("Auf Einkaufsliste!"); }
+        function renderMaterialGrid(){const el=document.getElementById('material-grid');el.innerHTML='';MATS.forEach(m=>{const a=selMat===m;el.innerHTML+=`<button onclick="setMat('${m}')" class="py-3 rounded-xl text-[10px] font-black uppercase border transition-all ${a?'bg-indigo-600 border-indigo-500 text-white':'bg-zinc-900 border-zinc-800 text-zinc-500'}">${m}</button>`;});}
+        function renderBrandSelect(c){const el=document.getElementById('input-brand');el.innerHTML='<option value="">Keine</option>';BRANDS.forEach(b=>{el.innerHTML+=`<option value="${b}" ${c===b?'selected':''}>${b}</option>`;});}
+        function setCustomColor(h,l){selCol="Custom";selHex=h;selLook=l;renderColorPalettes();}
+        function setColor(n,h,l){selCol=n;selHex=h;selLook=l;renderColorPalettes();}
+        function setMat(m){selMat=m;renderMaterialGrid();const b=document.getElementById('dryer-section');if(activeCtx==='Lager'&&HYGRO_MATS.includes(m))b.classList.remove('hidden');else b.classList.add('hidden');}
+        function updateLevelDisplay(v){document.getElementById('level-display').innerText=v+'%';}
+
+        function saveItem(){
+            const d={material:selMat,color:selCol,hex:selHex,look:selLook,brand:document.getElementById('input-brand').value,note:document.getElementById('input-notes').value};
+            if(activeCtx==='Lager'){const s=spools.find(x=>x.number===activeId);if(s){Object.assign(s,d);s.level=parseInt(document.getElementById('input-level').value);s.isCalibrated=document.getElementById('input-calib').checked;const dt=document.getElementById('input-date').value;if(dt)s.createdAt=new Date(dt).toISOString();}}
+            else if(activeCtx==='Shop'){shopItems[activeId]=d;renderShoppingList();}
+            else if(activeCtx==='ShopNew'){shopItems.push(d);renderShoppingList();toast("Zur Einkaufsliste!");}
+            save();closeModal();
         }
-        function openShopAdd() {
-            const idx = shopItems.length;
-            shopItems.push({ material: 'PLA', color: 'White', brand: '' });
-            localStorage.setItem('fpool_shop', JSON.stringify(shopItems));
-            openModal(idx, 'Shop');
+        function createNewSpool(){let n=1;const nums=spools.map(s=>s.number).sort((a,b)=>a-b);for(let x of nums)if(x===n)n++;spools.push({number:n,material:'PLA',color:'White',hex:'#FFFFFF',look:'plain',brand:'',level:100,note:'',createdAt:new Date().toISOString(),isCalibrated:false});save();openModal(n,'Lager');}
+        function copyToShop(){const s=spools.find(x=>x.number===activeId);if(s){shopItems.push({material:s.material,color:s.color,hex:s.hex,look:s.look,brand:s.brand});save();toast("Auf Einkaufsliste!");}}
+        function setDryerDate(){const s=spools.find(x=>x.number===activeId);if(s){s.lastDried=Date.now();save();document.getElementById('dryer-status').innerText='Gerade eben';toast("Markiert!");}}
+
+        /* --- TOOLS & STATS --- */
+        function openTools(){
+            const o=document.getElementById('tools-overlay'),c=document.getElementById('tools-content');o.classList.remove('overlay-hidden');
+            renderToolHeader('Werkzeuge','closeTools()');
+            c.innerHTML=`<button onclick="openProductionTool()" class="tool-btn-row border-indigo-500/30 bg-indigo-500/5"><div class="tool-icon-large bg-indigo-500 text-white"><i data-lucide="zap"></i></div><div class="flex-grow"><div class="text-lg font-bold text-white">Produktion & Buchung</div><div class="text-xs text-indigo-300">Druckcheck & Verbrauch erfassen</div></div><i data-lucide="chevron-right"></i></button><button onclick="renderShoppingList()" class="tool-btn-row"><div class="tool-icon-large bg-orange-500/20 text-orange-500"><i data-lucide="shopping-cart"></i></div><div class="flex-grow"><div class="text-lg font-bold text-white">Einkaufsliste</div><div class="text-xs text-zinc-500">Filamente nachbestellen</div></div><i data-lucide="chevron-right"></i></button><button onclick="openStatsMenu()" class="tool-btn-row"><div class="tool-icon-large bg-emerald-500/20 text-emerald-500"><i data-lucide="bar-chart-3"></i></div><div class="flex-grow"><div class="text-lg font-bold text-white">Statistik</div><div class="text-xs text-zinc-500">Bestandsanalyse & Kalibrierung</div></div><i data-lucide="chevron-right"></i></button>`;
+            if(window.lucide)lucide.createIcons();
         }
-        function buyItem(idx) {
-            const item = shopItems[idx];
-            let next = 1; const nums = spools.map(s => s.number).sort((a,b)=>a-b);
-            for(let n of nums) { if(n === next) next++; else if (n > next) break; }
-            spools.push({ number: next, material: item.material, color: item.color, brand: item.brand, level: 100, createdAt: new Date().toISOString() });
-            shopItems.splice(idx, 1);
-            save(); showToast(`Ins Lager: #${next.toString().padStart(3,'0')}`);
-        }
-        function openAlert(title, text, buttonsHtml) {
-            const ol = document.getElementById('alert-overlay');
-            document.getElementById('alert-title').innerText = title;
-            document.getElementById('alert-msg').innerText = text;
-            document.getElementById('alert-actions').innerHTML = buttonsHtml;
-            ol.classList.remove('hidden');
-            setTimeout(() => ol.classList.remove('opacity-0'), 10);
-        }
-        function closeAlert() {
-            const ol = document.getElementById('alert-overlay');
-            ol.classList.add('opacity-0');
-            setTimeout(() => ol.classList.add('hidden'), 300);
-        }
-        function openDeleteDialog(id, ctx) {
-            if(id !== undefined) activeId = id;
-            if(ctx !== undefined) activeCtx = ctx;
-            if(activeCtx === 'Shop') {
-                openAlert('Eintrag löschen?', 'Soll dieser Wunsch entfernt werden?', `
-                    <button onclick="performDelete('shop')" class="w-full bg-red-600 text-white font-bold p-3.5 rounded-xl shadow-lg">Ja, löschen</button>
-                    <button onclick="closeAlert()" class="text-slate-500 text-sm font-bold p-2">Abbrechen</button>
-                `);
-            } else {
-                openAlert('Spule entfernen?', 'Wähle eine Aktion für diesen Slot.', `
-                    <button onclick="performDelete('toShop')" class="w-full bg-indigo-600 text-white font-bold p-4 rounded-xl flex justify-center gap-2"><i data-lucide="shopping-cart" class="w-4 h-4"></i> Zur Einkaufsliste</button>
-                    <button onclick="performDelete('permanent')" class="w-full bg-red-600 text-white font-bold p-4 rounded-xl flex justify-center gap-2"><i data-lucide="trash-2" class="w-4 h-4"></i> Endgültig löschen</button>
-                    <button onclick="closeAlert()" class="text-slate-500 font-bold p-2 mt-2">Abbrechen</button>
-                `);
-                lucide.createIcons();
-            }
-        }
-        
-        function performDelete(action) {
-            if (action === 'shop') {
-                shopItems.splice(activeId, 1);
-            } else if (action === 'toShop') {
-                const s = spools.find(x => x.number === activeId);
-                if(s) shopItems.push({ material: s.material, color: s.color, brand: s.brand });
-                spools = spools.filter(x => x.number !== activeId);
-                closeModal();
-            } else if (action === 'permanent') {
-                spools = spools.filter(x => x.number !== activeId);
-                closeModal();
-            }
-            save(); 
-            closeAlert(); // Important: Close the alert for ALL actions
+        function openStatsMenu(){
+            renderToolHeader('Statistik','openTools()'); const c=document.getElementById('tools-content');
+            const tot=spools.length, cal=spools.filter(s=>s.isCalibrated).length, dry=spools.filter(s=>!needsDrying(s)&&HYGRO_MATS.includes(s.material)).length, hygro=spools.filter(s=>HYGRO_MATS.includes(s.material)).length;
+            let w=0;spools.forEach(s=>w+=s.level*10);
+            const mD={}, bD={}; spools.forEach(s=>{mD[s.material]=(mD[s.material]||0)+1;bD[s.brand||'Unbekannt']=(bD[s.brand||'Unbekannt']||0)+1;});
+            const sM=Object.entries(mD).sort((a,b)=>b[1]-a[1]), sB=Object.entries(bD).sort((a,b)=>b[1]-a[1]), crit=spools.filter(s=>s.level<20).sort((a,b)=>a.level-b.level);
+            let h=`<div class="grid grid-cols-2 gap-3 mb-6"><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title">Gesamt</div><div class="text-3xl font-black text-white">${tot}</div><div class="text-[10px] text-zinc-400">Spulen</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title">Masse</div><div class="text-3xl font-black text-white">${(w/1000).toFixed(1)}</div><div class="text-[10px] text-zinc-400">kg (ca.)</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-emerald-500">Kalibriert</div><div class="text-3xl font-black text-white">${cal}</div><div class="text-[10px] text-zinc-400">${Math.round((cal/tot||0)*100)}%</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-blue-500">Trocken</div><div class="text-3xl font-black text-white">${dry}</div><div class="text-[10px] text-zinc-400">${Math.round((dry/hygro||0)*100)}% hygro</div></div></div>`;
+            h+=`<div class="bg-zinc-900/50 p-5 rounded-3xl border border-white/5 mb-6"><h3 class="section-title mb-4">Material</h3>`; sM.forEach(([m,c])=>{const p=Math.round((c/tot)*100);h+=`<div class="mb-3"><div class="flex justify-between text-xs font-bold mb-1"><span>${m}</span><span class="text-zinc-500">${c}</span></div><div class="stats-bar-container"><div class="stats-bar-fill" style="width:${p}%"></div></div></div>`;}); h+=`</div>`;
+            if(crit.length){h+=`<div class="bg-red-500/5 p-5 rounded-3xl border border-red-500/10 mb-6"><h3 class="section-title text-red-500 mb-4">Kritisch (&lt;20%)</h3><div class="space-y-2">`; crit.slice(0,4).forEach(s=>{h+=`<div class="flex items-center justify-between bg-black/20 p-2 rounded-xl border border-red-500/5"><span class="text-xs font-bold text-white">#${s.number} ${s.color}</span><span class="text-xs font-mono font-black text-red-500">${s.level}%</span></div>`;}); h+=`</div></div>`;}
+            c.innerHTML=h;
         }
 
-        function performPurge(type) {
-            if(type === 'shop') shopItems = [];
-            if(type === 'inv') spools = [];
-            if(type === 'full') { spools = []; shopItems = []; backToMainMenu(); closeSettings(); }
-            save(); closeAlert(); renderSettingsShop(); 
+        /* --- PRODUCTION --- */
+        function openProductionTool(){ renderProductionTool(); }
+        function renderProductionTool(){
+            renderToolHeader('Produktion','openTools()'); const c=document.getElementById('tools-content');
+            let ah=`<div class="ams-grid">`; [0,3,1,2].forEach(ai=>{const s=amsSlots[ai]?spools.find(x=>x.number===amsSlots[ai]):null;if(s){const v=getVisuals(s);ah+=`<div class="ams-slot filled" onclick="handleAMSSlotClick(${ai})" style="--ams-color:${v.hex}"><div class="ams-number">A${ai+1}</div><button onclick="event.stopPropagation();clearAMSSlot(${ai})" class="ams-del-btn"><i data-lucide="x" class="w-4 h-4"></i></button><div class="ams-fill-bg"></div><div class="ams-spool-visual">${getSpoolVisualHtml(s)}</div><div class="ams-overlay"></div><div class="ams-content"><div class="text-right"><span class="text-[10px] font-bold text-white bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-sm border border-white/10">${s.level}%</span></div><div class="text-center"><div class="font-mono font-black text-white text-3xl opacity-20">#${s.number}</div></div><div><div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">${s.material}</div><div class="text-xs font-bold text-white truncate leading-tight mb-1">${v.name}</div><div class="text-[9px] text-zinc-300 bg-white/10 inline-block px-1.5 rounded">${s.brand||'-'}</div></div></div></div>`;}else{ah+=`<div class="ams-slot" onclick="openAMSPicker(${ai})"><div class="ams-number">A${ai+1}</div><i data-lucide="plus" class="text-zinc-600 w-8 h-8"></i></div>`;}}); ah+=`</div>`;
+            const mats=[...new Set(spools.map(s=>s.material))].sort(),brands=[...new Set(spools.map(s=>s.brand).filter(b=>b))].sort(),cols=[...new Set(spools.map(s=>s.color))].sort(); const opt=a=>a.map(i=>`<option value="${i}">${i}</option>`).join('');
+            c.innerHTML=ah+`<div class="glass-panel p-5 rounded-3xl mb-4 text-center border-t-0 shadow-xl"><div class="section-title mb-4 tracking-widest">Benötigte Menge</div><div class="mb-6"><div class="flex items-baseline justify-center gap-1"><span id="prod-display" class="font-mono font-black text-6xl text-white">${prodWeight}</span><span class="text-zinc-500 font-bold text-xl">g</span></div></div><div class="grid grid-cols-4 gap-2 mb-4"><button onclick="adjProd(10)" class="calc-btn">+10</button><button onclick="adjProd(50)" class="calc-btn">+50</button><button onclick="adjProd(100)" class="calc-btn">+100</button><button onclick="adjProd(0)" class="calc-btn bg-red-500/20 text-red-500"><i data-lucide="rotate-ccw" class="w-4 h-4 mx-auto"></i></button></div><div class="grid grid-cols-3 gap-2"><select id="prod-mat" onchange="updateProductionResults()" class="bg-zinc-900 text-[10px] font-bold text-zinc-300 p-2 rounded-lg border border-white/5 outline-none text-center"><option value="">Material</option>${opt(mats)}</select><select id="prod-brand" onchange="updateProductionResults()" class="bg-zinc-900 text-[10px] font-bold text-zinc-300 p-2 rounded-lg border border-white/5 outline-none text-center"><option value="">Marke</option>${opt(brands)}</select><select id="prod-col" onchange="updateProductionResults()" class="bg-zinc-900 text-[10px] font-bold text-zinc-300 p-2 rounded-lg border border-white/5 outline-none text-center"><option value="">Farbe</option>${opt(cols)}</select></div></div><div id="prod-results" class="space-y-2 pb-10"></div>`;
+            // Restore Selection
+            if(lastProdState.mat) document.getElementById('prod-mat').value=lastProdState.mat;
+            if(lastProdState.brand) document.getElementById('prod-brand').value=lastProdState.brand;
+            if(lastProdState.col) document.getElementById('prod-col').value=lastProdState.col;
+            updateProductionResults(); if(window.lucide)lucide.createIcons();
         }
-        function renderColorPalettes() {
-            const renderGroup = (id, list) => {
-                const el = document.getElementById(id);
-                if(!el) return;
-                el.innerHTML = '';
-                list.forEach(c => { el.innerHTML += `<div onclick="setCol('${c.name}')" class="color-bubble ${selCol === c.name ? 'active' : ''} look-${c.look || 'plain'}" style="background-color: ${c.hex}"></div>`; });
+        function handleAMSSlotClick(i){if(prodWeight>0&&amsSlots[i])requestBooking(amsSlots[i],prodWeight);}
+        function clearAMSSlot(i){openCustomConfirm("Entfernen","Aus AMS löschen?",()=>{amsSlots[i]=null;save();renderProductionTool();});}
+        function openAMSPicker(i){activeAMSSlotIndex=i;document.getElementById('ams-picker-overlay').classList.remove('overlay-hidden');const l=document.getElementById('ams-picker-list');l.innerHTML='';[...spools].sort((a,b)=>a.number-b.number).forEach(s=>{if(!amsSlots.includes(s.number)){const v=getVisuals(s);l.innerHTML+=`<div onclick="assignSpoolToAMS(${s.number})" class="flex items-center gap-3 p-3 bg-zinc-900 border border-white/5 rounded-xl cursor-pointer active:bg-zinc-800"><div class="font-mono font-bold text-zinc-500 w-8">#${s.number}</div><div class="w-3 h-3 rounded-full" style="background-color:${v.hex}"></div><div class="flex-grow"><div class="text-xs font-bold text-white">${v.name}</div><div class="text-[10px] text-zinc-500">${s.material}</div></div><div class="text-xs font-mono text-emerald-500">${s.level}%</div></div>`;}});if(l.innerHTML==='')l.innerHTML='<div class="text-zinc-500 text-center text-sm p-4">Keine freien Spulen.</div>';}
+        function closeAMSPicker(){document.getElementById('ams-picker-overlay').classList.add('overlay-hidden');}
+        function assignSpoolToAMS(id){amsSlots[activeAMSSlotIndex]=id;save();closeAMSPicker();renderProductionTool();}
+        function adjProd(a){prodWeight=a===0?0:prodWeight+a;document.getElementById('prod-display').innerText=prodWeight;updateProductionResults();}
+        function updateProductionResults(){
+            const r=document.getElementById('prod-results'); if(!r)return;
+            const fm=document.getElementById('prod-mat').value, fb=document.getElementById('prod-brand').value, fc=document.getElementById('prod-col').value;
+            // Save state
+            lastProdState={mat:fm,brand:fb,col:fc};
+            if(prodWeight===0){r.innerHTML='<div class="text-center text-zinc-600 text-xs py-10 flex flex-col items-center gap-2"><i data-lucide="arrow-up" class="w-5 h-5 animate-bounce"></i><span>Wähle ein Gewicht...</span></div>';if(window.lucide)lucide.createIcons();return;}
+            const m=spools.filter(s=>{const w=s.level*10;return !(w<prodWeight || (fm&&s.material!==fm)||(fb&&s.brand!==fb)||(fc&&s.color!==fc));}).sort((a,b)=>a.level-b.level);
+            if(m.length===0){r.innerHTML='<div class="text-center text-red-500/70 text-xs font-bold py-4 bg-red-500/5 rounded-xl border border-red-500/10">Nichts gefunden.</div>';return;}
+            r.innerHTML=`<div class="section-title text-emerald-500 mb-2 pl-2">Verfügbar (${m.length})</div>`;
+            m.forEach(s=>{const v=getVisuals(s);r.innerHTML+=`<div onclick="requestBooking(${s.number},${prodWeight})" class="spool-card mini-card border-emerald-500/20 active:scale-95"><div style="transform:scale(0.7);transform-origin:left center;">${getSpoolVisualHtml(s)}</div><div class="ml-3 flex-grow min-w-0"><div class="flex justify-between items-center mb-0.5"><span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">${s.material}</span><span class="font-mono font-bold text-zinc-500 text-xs">#${s.number}</span></div><div class="text-xs font-bold text-white truncate mb-1">${v.name}</div><div class="flex items-center justify-between mt-1"><span class="text-[9px] bg-zinc-800 px-1.5 rounded text-zinc-400 border border-white/5 truncate max-w-[50px]">${s.brand||'-'}</span><span class="text-[10px] font-mono font-bold text-emerald-400">${s.level*10}g</span></div></div><button onclick="event.stopPropagation();openModal(${s.number},'Lager')" class="p-2 text-zinc-500"><i data-lucide="settings-2" class="w-4 h-4"></i></button></div>`;});
+            if(window.lucide)lucide.createIcons();
+        }
+        function requestBooking(id,g){pendingBooking={id,g};document.getElementById('confirm-booking-msg').innerText=`${g}g von #${id} buchen?`;document.getElementById('btn-confirm-book').onclick=()=>executeBooking();document.getElementById('confirm-booking-overlay').classList.remove('hidden');}
+        function executeBooking(){
+            if(!pendingBooking)return; const {id,g}=pendingBooking; const s=spools.find(x=>x.number===id);
+            if(s){s.level=Math.max(0,s.level-Math.round(g/10));save();toast(`-${g}g verbucht!`);renderProductionTool();}
+            closeConfirmBooking();
+        }
+        function closeConfirmBooking(){document.getElementById('confirm-booking-overlay').classList.add('hidden');pendingBooking=null;}
+
+        /* --- SHOPPING --- */
+        function renderShoppingList(){
+            renderToolHeader('Einkaufsliste','openTools()'); const c=document.getElementById('tools-content');
+            let h=`<div class="flex justify-end mb-4"><button onclick="openNewShopItemModal()" class="bg-emerald-600 px-4 py-2 rounded-lg text-white font-bold text-sm flex gap-2 items-center active:scale-95"><i data-lucide="plus"></i> Hinzufügen</button></div>`;
+            if(shopItems.length===0)h+='<div class="text-zinc-500 italic text-center py-10">Alles erledigt.</div>';
+            shopItems.forEach((i,x)=>{const v=getVisuals(i);h+=`<div onclick="openModal(${x},'Shop')" class="spool-card mini-card mb-2"><div style="transform:scale(0.7);transform-origin:left center;">${getSpoolVisualHtml(i)}</div><div class="ml-3 flex-grow min-w-0"><div class="flex justify-between items-center mb-0.5"><span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">${i.material}</span><span class="font-mono font-bold text-indigo-400 text-xs">SHOP</span></div><div class="text-xs font-bold text-white truncate mb-1">${v.name}</div><div class="flex justify-between items-center mt-1"><span class="text-[9px] bg-zinc-800 px-1.5 rounded text-zinc-400 border border-white/5">${i.brand||'-'}</span><div class="flex gap-3"><button onclick="event.stopPropagation();buyShopItem(${x})" class="text-emerald-500 bg-emerald-500/10 p-1.5 rounded-lg active:scale-90"><i data-lucide="check" class="w-4 h-4"></i></button><button onclick="event.stopPropagation();delShopItem(${x})" class="text-red-500 bg-red-500/10 p-1.5 rounded-lg active:scale-90"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div></div></div>`;});
+            c.innerHTML=h; if(window.lucide)lucide.createIcons();
+        }
+        function openNewShopItemModal(){openModal(null,'ShopNew');}
+        function buyShopItem(x){const i=shopItems[x];let n=1;const nums=spools.map(s=>s.number).sort((a,b)=>a-b);for(let k of nums)if(k===n)n++;spools.push({...i,number:n,level:100,createdAt:new Date().toISOString(),isCalibrated:false});shopItems.splice(x,1);save();renderShoppingList();toast("Gekauft!");}
+        function delShopItem(x){shopItems.splice(x,1);save();renderShoppingList();}
+
+        /* --- SETTINGS & HELPERS --- */
+        function openSettings(){document.getElementById('settings-overlay').classList.remove('overlay-hidden');document.getElementById('settings-content').innerHTML=`<div><div class="section-title">Daten</div><button onclick="exportData()" class="glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full mb-3 active:scale-95"><div class="bg-indigo-500/20 p-2 rounded-lg text-indigo-500"><i data-lucide="download"></i></div><span>Backup erstellen</span></button><div class="relative glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full active:scale-95"><div class="bg-emerald-500/20 p-2 rounded-lg text-emerald-500"><i data-lucide="upload"></i></div><span>Backup einspielen</span><input type="file" accept=".json" onchange="importData(event)" class="absolute inset-0 opacity-0 cursor-pointer"></div></div><div><div class="section-title text-red-500/80">Zone</div><button onclick="performReset()" class="p-4 rounded-xl bg-red-900/10 text-red-500 font-bold border border-red-500/20 flex gap-3 items-center w-full active:scale-95"><div class="bg-red-500/20 p-2 rounded-lg"><i data-lucide="alert-triangle"></i></div><span>Zurücksetzen</span></button></div><div class="text-center text-[10px] text-zinc-600 font-mono pt-4">Filament Pool v8.5.0</div>`;if(window.lucide)lucide.createIcons();}
+        function closeSettings(){document.getElementById('settings-overlay').classList.add('overlay-hidden');}
+        function closeTools(){document.getElementById('tools-overlay').classList.add('overlay-hidden');}
+        function renderToolHeader(t,b){document.getElementById('tools-header').innerHTML=`<div class="flex items-center gap-3"><button onclick="${b}" class="p-2 bg-zinc-800 rounded-full text-zinc-400"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><h2 class="text-xl font-bold text-white">${t}</h2></div>`;if(window.lucide)lucide.createIcons();}
+
+        function setupCustomConfirm(){document.getElementById('btn-confirm-action').onclick=function(){if(confirmCallback)confirmCallback();closeConfirm();};}
+        function openCustomConfirm(t,m,fn){document.getElementById('confirm-title').innerText=t;document.getElementById('confirm-msg').innerText=m;confirmCallback=fn;document.getElementById('confirm-overlay').classList.remove('hidden');}
+        function closeConfirm(){document.getElementById('confirm-overlay').classList.add('hidden');confirmCallback=null;}
+        function toast(m){const t=document.getElementById('toast');t.innerText=m;t.style.opacity='1';t.style.transform='translate(-50%,0)';setTimeout(()=>{t.style.opacity='0';t.style.transform='translate(-50%,-20px)';},2000);}
+        function toggleSort(){const m=['id','mat','date_new','date_old','level'];sortMode=m[(m.indexOf(sortMode)+1)%m.length];renderLager();}
+        function openDeleteDialog(){if(activeCtx!=='Lager')return;document.getElementById('delete-overlay').classList.remove('hidden');}
+        function closeDeleteDialog(){document.getElementById('delete-overlay').classList.add('hidden');}
+        function confirmDeletion(s){if(s)copyToShop();spools=spools.filter(x=>x.number!==activeId);amsSlots=amsSlots.map(i=>i===activeId?null:i);save();closeDeleteDialog();closeModal();toast(s?"Verschoben & Gelöscht":"Gelöscht");}
+        
+        function performReset(){
+            openCustomConfirm("Zurücksetzen","Alle Daten unwiderruflich löschen?",()=>{
+                spools=[]; shopItems=[]; amsSlots=[null,null,null,null];
+                localStorage.clear();
+                save();
+                closeSettings();
+                toast("App zurückgesetzt");
+            });
+        }
+        function exportData(){
+            const b=new Blob([JSON.stringify({inv:spools,shop:shopItems,ams:amsSlots,date:new Date().toISOString()},null,2)],{type:'application/json'});
+            const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`filament_backup_${new Date().toISOString().split('T')[0]}.json`;a.click();
+            localStorage.setItem('fpool_last_backup',Date.now());toast("Backup gespeichert!");
+        }
+        function importData(e){
+            const f=e.target.files[0];if(!f)return;
+            const r=new FileReader();
+            r.onload=(ev)=>{
+                try {
+                    const d=JSON.parse(ev.target.result);
+                    if(d.inv){
+                        pendingImportData=d;
+                        openCustomConfirm("Importieren","Vorhandene Daten überschreiben?",()=>{
+                            spools=pendingImportData.inv; shopItems=pendingImportData.shop||[];
+                            if(pendingImportData.ams) amsSlots=pendingImportData.ams;
+                            save(); closeSettings(); toast("Import erfolgreich!");
+                        });
+                    }
+                } catch(err){toast("Fehler beim Lesen!");}
             };
-            renderGroup('colors-standard', COLORS.standard);
-            renderGroup('colors-special', COLORS.special);
-            renderGroup('colors-metallic', COLORS.metallic);
-            renderGroup('colors-trans', COLORS.translucent);
-        }
-        function renderMaterialGrid() {
-            const mg = document.getElementById('material-grid'); mg.innerHTML = '';
-            MATS.forEach(m => mg.innerHTML += `<button onclick="setMat('${m}')" class="py-2.5 rounded-xl text-[10px] font-black border transition-all ${selMat === m ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-slate-950 border-slate-800 text-slate-500'}">${m}</button>`);
-        }
-        function setCol(n) { selCol = n; renderColorPalettes(); }
-        function setMat(m) { selMat = m; renderMaterialGrid(); }
-        function updateLevelDisplay(v) { document.getElementById('level-display').innerText = v + '%'; }
-        function exportData() {
-            const blob = new Blob([JSON.stringify({inventory: spools, shopping: shopItems})], {type: 'application/json'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `filament_pool_export.json`; a.click();
-        }
-        function importData(e) {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                try { const d = JSON.parse(ev.target.result); if(d.inventory) { spools = d.inventory; shopItems = d.shopping || []; save(); closeSettings(); } } catch(e) { alert("Formatfehler"); }
-            };
-            reader.readAsText(e.target.files[0]);
+            r.readAsText(f);
         }
     </script>
 </body>
