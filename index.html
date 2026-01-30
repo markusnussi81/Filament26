@@ -7,113 +7,75 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Filament">
     
-    <title>Filament Pool v8.5.2</title>
+    <title>Filament Pool v9.7</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
     <style>
-        /* --- CORE THEME --- */
+        /* --- CORE --- */
         :root { --app-bg: #09090b; --card-bg: #18181b; }
-        body { 
-            background-color: var(--app-bg); 
-            overscroll-behavior-y: none; 
-            -webkit-tap-highlight-color: transparent; 
-            width: 100vw; 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            color: #e4e4e7;
-        }
-        
+        body { background-color: var(--app-bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #e4e4e7; width: 100vw; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
+        body.no-scroll { position: fixed; overflow: hidden; width: 100%; height: 100%; }
+
         .safe-top { padding-top: max(env(safe-area-inset-top), 20px); }
         .safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 20px); }
-
-        /* --- UTILS --- */
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .scroll-container { flex-grow: 1; overflow-y: auto; min-height: 0; -webkit-overflow-scrolling: touch; }
-        
-        /* --- UI COMPONENTS --- */
-        .glass-panel {
-            background: rgba(24, 24, 27, 0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(255, 255, 255, 0.1);
-        }
+
+        /* UI Elements */
+        .glass-panel { background: #18181b; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column; }
         .section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #71717a; margin-bottom: 8px; }
         
-        /* Spool Card */
-        .spool-card {
-            background: var(--card-bg);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            display: flex; align-items: center; padding: 12px; gap: 12px;
-            position: relative; overflow: hidden;
-            transition: transform 0.1s, background 0.2s;
-            cursor: pointer; touch-action: manipulation; z-index: 10;
-        }
+        /* Lists */
+        .spool-card { background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 16px; display: flex; align-items: center; padding: 12px; gap: 12px; position: relative; overflow: hidden; transition: transform 0.1s, background 0.2s; cursor: pointer; touch-action: manipulation; z-index: 10; }
         .spool-card:active { transform: scale(0.98); background: #27272a; }
         .mini-card { padding: 10px; gap: 12px; }
 
-        /* Icon Graphic */
+        /* Visuals */
         .spool-icon { width: 24px; height: 48px; display: flex; justify-content: space-between; flex-shrink: 0; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5)); }
         .spool-flange { width: 4px; height: 100%; background: linear-gradient(90deg, #222, #444 40%, #111); border-radius: 2px; border: 1px solid #000; z-index: 2; }
-        .spool-body {
-            flex-grow: 1; height: 88%; margin: 0 -1px; z-index: 1; background-color: var(--fil-color);
-            background-image: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.6) 100%),
-            repeating-linear-gradient(90deg, transparent 0px, transparent 1px, rgba(0,0,0,0.1) 2px);
-        }
-        /* LOOKS */
+        .spool-body { flex-grow: 1; height: 88%; margin: 0 -1px; z-index: 1; background-color: var(--fil-color); background-image: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.6) 100%), repeating-linear-gradient(90deg, transparent 0px, transparent 1px, rgba(0,0,0,0.1) 2px); }
         .look-silk .spool-body { background-image: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(255,255,255,0.8) 40%, rgba(0,0,0,0.4) 100%); }
         .look-metallic .spool-body { background-image: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%), linear-gradient(0deg, rgba(0,0,0,0.8) 0%, #fff 20%, rgba(0,0,0,0.8) 50%, #fff 80%, rgba(0,0,0,0.8) 100%); }
         .look-translucent .spool-body { opacity: 0.6; }
         .look-matte .spool-body { background-image: linear-gradient(0deg, rgba(0,0,0,0.4) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.4) 100%); filter: contrast(0.9); }
         .look-cf .spool-body { background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.2) 0px, rgba(0,0,0,0.2) 2px, transparent 2px, transparent 4px), linear-gradient(0deg, rgba(0,0,0,0.7) 0%, #333 50%, rgba(0,0,0,0.7) 100%); }
         .look-glow .spool-body { box-shadow: inset 0 0 10px rgba(255,255,255,0.5); filter: brightness(1.2); }
+        .look-galaxy .spool-body { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.3) 0px, rgba(255,255,255,0.3) 1px, transparent 1px, transparent 10px); }
 
         /* Inputs */
-        input, select, textarea { font-size: 16px !important; }
-        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; background: #27272a; border-radius: 99px; outline: none; }
+        input, select, textarea { font-size: 16px !important; background: #27272a; color: white; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); outline: none; }
+        input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; background: #27272a; border-radius: 99px; border: none; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: white; border-radius: 50%; cursor: pointer; box-shadow: 0 0 10px rgba(255,255,255,0.3); border: 2px solid #09090b; }
-        
         .toggle-checkbox:checked { right: 0; border-color: #10b981; }
         .toggle-checkbox:checked + .toggle-label { background-color: #10b981; }
         
-        textarea { resize: none; background: #27272a; color: white; border-radius: 12px; }
-        select { background: #27272a; color: white; border-radius: 12px; appearance: none; }
-        input[type="date"] { background: #27272a; color: white; border-radius: 12px; padding: 12px; border: 1px solid rgba(255,255,255,0.1); width: 100%; outline: none; font-family: monospace; min-width: 0; box-sizing: border-box; }
-        ::-webkit-calendar-picker-indicator { filter: invert(1); opacity: 0.5; }
-
-        /* Colors */
-        .color-bubble { width: 38px; height: 38px; border-radius: 50%; border: 2px solid #3f3f46; position: relative; transition: transform 0.2s; cursor: pointer; flex-shrink: 0; }
+        /* Color Grid */
+        .color-option { display: flex; flex-direction: column; align-items: center; width: 60px; cursor: pointer; flex-shrink: 0; }
+        .color-option:active .color-bubble { transform: scale(0.95); }
+        .color-bubble { width: 38px; height: 38px; border-radius: 50%; border: 2px solid #3f3f46; position: relative; transition: transform 0.1s; margin-bottom: 4px; }
         .color-bubble.active { border-color: #fff; transform: scale(1.1); box-shadow: 0 0 0 2px rgba(255,255,255,0.1); z-index: 10; }
-        .color-add-btn { background: conic-gradient(#ef4444, #eab308, #22c55e, #3b82f6, #a855f7, #ef4444); opacity: 0.8; display: flex; align-items: center; justify-content: center; overflow: hidden;}
+        .color-label { font-size: 9px; color: #a1a1aa; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
 
-        /* AMS Grid */
+        /* AMS */
         .ams-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px; width: 100%; margin: 0 auto 24px auto; position: relative; }
         .ams-grid::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: #27272a; border: 4px solid #09090b; border-radius: 50%; z-index: 20; box-shadow: 0 0 10px rgba(0,0,0,0.8); pointer-events: none; }
-        
         .ams-slot { background: #18181b; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; transition: all 0.2s; cursor: pointer; }
         .ams-slot:active { transform: scale(0.96); }
         .ams-slot.filled { border: none; }
-        
         .ams-fill-bg { position: absolute; inset: 0; z-index: 1; background: var(--ams-color); opacity: 0.25; }
         .ams-spool-visual { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(2.5); z-index: 2; opacity: 0.9; }
         .ams-overlay { position: absolute; inset: 0; z-index: 3; background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%); }
         .ams-content { position: relative; z-index: 5; width: 100%; height: 100%; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; }
-        
         .ams-number { position: absolute; z-index: 10; font-size: 10px; font-weight: 900; color: #fff; background: rgba(0,0,0,0.6); padding: 2px 6px; border-radius: 6px; backdrop-filter: blur(4px); }
-        .ams-slot:nth-child(1) .ams-number { top: 8px; left: 8px; }
-        .ams-slot:nth-child(2) .ams-number { top: 8px; right: 8px; }
-        .ams-slot:nth-child(3) .ams-number { bottom: 8px; left: 8px; }
-        .ams-slot:nth-child(4) .ams-number { bottom: 8px; right: 8px; }
-        
+        .ams-slot:nth-child(1) .ams-number { top: 8px; left: 8px; } .ams-slot:nth-child(2) .ams-number { top: 8px; right: 8px; }
+        .ams-slot:nth-child(3) .ams-number { bottom: 8px; left: 8px; } .ams-slot:nth-child(4) .ams-number { bottom: 8px; right: 8px; }
         .ams-del-btn { position: absolute; z-index: 20; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; background: rgba(239, 68, 68, 0.8); color: white; border-radius: 50%; }
-        .ams-slot:nth-child(1) .ams-del-btn { top: 8px; right: 8px; }
-        .ams-slot:nth-child(2) .ams-del-btn { top: 8px; left: 8px; }
-        .ams-slot:nth-child(3) .ams-del-btn { bottom: 8px; right: 8px; }
-        .ams-slot:nth-child(4) .ams-del-btn { bottom: 8px; left: 8px; }
+        .ams-slot:nth-child(1) .ams-del-btn { top: 8px; right: 8px; } .ams-slot:nth-child(2) .ams-del-btn { top: 8px; left: 8px; }
+        .ams-slot:nth-child(3) .ams-del-btn { bottom: 8px; right: 8px; } .ams-slot:nth-child(4) .ams-del-btn { bottom: 8px; left: 8px; }
 
-        /* Stats & Buttons */
+        /* Tools */
         .stats-bar-container { background: #27272a; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 4px; position: relative; }
         .stats-bar-fill { height: 100%; background: #6366f1; border-radius: 4px; transition: width 0.5s ease-out; }
         .tool-btn-row { display: flex; align-items: center; text-align: left; background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; gap: 16px; transition: 0.2s; width: 100%; margin-bottom: 12px; }
@@ -121,10 +83,25 @@
         .tool-icon-large { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .calc-btn { background: #27272a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; font-weight: bold; color: white; transition: 0.1s; }
         .calc-btn:active { background: #3f3f46; transform: scale(0.95); }
+        .sort-btn-row { width: 100%; text-align: left; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: bold; color: #a1a1aa; display: flex; justify-content: space-between; align-items: center; }
+        .sort-btn-row.active { color: #818cf8; }
+        .sort-btn-row:last-child { border-bottom: none; }
+        .sort-btn-row:active { background: rgba(255,255,255,0.05); }
+
+        /* Modals & Scroll */
+        .overlay-base { z-index: 100; position: fixed; inset: 0; background: #09090b; display: flex; flex-direction: column; height: 100%; width: 100%; transition: opacity 0.3s; }
+        .overlay-hidden { display: none !important; opacity: 0; pointer-events: none; }
+        .modal-slide { transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); transform: translateY(100%); background: #09090b; }
+        .modal-slide.active { transform: translateY(0); }
+        .scroll-container { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: env(safe-area-inset-bottom); }
+        .logo-gradient { background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
-        /* Overlays - High Z-Index */
-        .overlay-base { z-index: 100; position: fixed; inset: 0; background: #09090b; display: flex; flex-direction: column; }
-        .overlay-hidden { display: none; }
+        /* ID Select */
+        .id-select-wrapper { display: flex; align-items: center; font-family: monospace; font-size: 1.875rem; font-weight: 900; color: white; position: relative; }
+        .id-select { -webkit-appearance: none; appearance: none; background: transparent; color: white; border: none; font-size: inherit; font-family: inherit; font-weight: inherit; padding-right: 20px; cursor: pointer; outline: none; border-bottom: 2px dashed rgba(255,255,255,0.2); border-radius: 0; }
+        .id-select:disabled { border: none; padding-right: 0; opacity: 1; color: white; }
+        .id-select option { background: #18181b; color: white; font-size: 1rem; font-family: sans-serif; }
+        .id-select-arrow { pointer-events: none; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: rgba(255,255,255,0.4); }
     </style>
 </head>
 <body class="safe-top safe-bottom">
@@ -133,112 +110,140 @@
     <div id="splash" class="fixed inset-0 bg-[#09090b] z-[9999] flex flex-col items-center justify-center transition-opacity duration-500">
         <div class="mb-4 text-indigo-500"><i data-lucide="disc" class="w-16 h-16"></i></div>
         <h1 class="text-3xl font-black tracking-tighter logo-gradient">FILAMENT</h1>
-        <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">MN.CONCEPTS</p>
+        <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">MN.CONCEPTS v9.7</p>
     </div>
 
     <!-- MAIN APP -->
-    <div id="app" class="w-full max-w-md mx-auto p-4 flex flex-col min-h-screen opacity-0 transition-opacity duration-500 relative z-10">
-        <!-- Header -->
+    <div id="app" class="w-full max-w-md mx-auto p-4 flex flex-col min-h-screen opacity-0 transition-opacity duration-500 relative z-10 pb-24">
         <div class="flex items-center justify-between mb-6 pt-2">
-            <div>
-                <div class="flex items-center gap-2"><i data-lucide="disc" class="text-indigo-500 w-6 h-6"></i><h1 class="text-2xl font-black tracking-tight text-white">Lager</h1></div>
-                <div id="mini-dashboard" class="text-xs text-zinc-500 font-medium pl-8 mt-1">Lade Daten...</div>
-            </div>
+            <div><div class="flex items-center gap-2"><i data-lucide="disc" class="text-indigo-500 w-6 h-6"></i><h1 class="text-2xl font-black tracking-tight text-white">Lager</h1></div><div id="mini-dashboard" class="text-xs text-zinc-500 font-medium pl-8 mt-1">Lade...</div></div>
             <div class="flex gap-2">
                 <button onclick="openTools()" class="p-3 bg-zinc-800 rounded-xl text-indigo-400 active:scale-95 transition-transform"><i data-lucide="layout-grid" class="w-5 h-5"></i></button>
-                <button onclick="openSettings()" class="relative p-3 bg-zinc-800 rounded-xl text-zinc-400 active:scale-95 transition-transform">
-                    <i data-lucide="settings-2" class="w-5 h-5"></i>
-                    <div id="settings-badge" class="hidden absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#09090b]"></div>
-                </button>
+                <button onclick="openSettings()" class="relative p-3 bg-zinc-800 rounded-xl text-zinc-400 active:scale-95 transition-transform"><i data-lucide="settings-2" class="w-5 h-5"></i><div id="settings-badge" class="hidden absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#09090b]"></div></button>
             </div>
         </div>
-        <!-- Search -->
         <div class="mb-6 flex gap-2">
-            <div class="relative flex-grow">
-                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"></i>
-                <input type="text" id="search-input" oninput="render()" placeholder="Suchen..." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3.5 pl-11 pr-4 text-white text-sm focus:border-indigo-500 outline-none transition-colors">
-            </div>
-            <button onclick="toggleSort()" class="bg-zinc-900 border border-zinc-800 rounded-xl px-4 flex items-center justify-center min-w-[50px] text-indigo-400 active:bg-zinc-800 transition-colors"><span id="sort-label" class="text-xs font-bold">ID</span></button>
-            <button onclick="createNewSpool()" class="bg-indigo-600 rounded-xl px-4 flex items-center justify-center shadow-lg active:scale-95 transition-transform text-white"><i data-lucide="plus" class="w-5 h-5"></i></button>
+            <div class="relative flex-grow"><i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"></i><input type="text" id="search-input" oninput="render()" placeholder="Suchen..." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3.5 pl-11 pr-4 text-white text-sm focus:border-indigo-500"></div>
+            <!-- SORT BUTTON -->
+            <button onclick="openSortMenu()" class="bg-zinc-900 border border-zinc-800 rounded-xl px-4 flex items-center justify-center min-w-[50px] text-indigo-400 active:bg-zinc-800 gap-2">
+                <i data-lucide="arrow-up-down" class="w-4 h-4"></i>
+            </button>
+            <!-- NEW SPOOL -->
+            <button onclick="openNewSpoolModal()" class="bg-indigo-600 rounded-xl px-4 flex items-center justify-center shadow-lg active:scale-95 text-white"><i data-lucide="plus" class="w-5 h-5"></i></button>
         </div>
-        <!-- List -->
+        
+        <!-- Active Sort Indicator -->
+        <div id="active-sort-indicator" class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mb-3 pl-2 hidden">Sortiert nach: <span id="sort-name" class="text-indigo-400">ID</span></div>
+        
         <div id="spool-list" class="grid grid-cols-2 gap-3 pb-24 relative z-10"></div>
         <div id="empty-state" class="hidden text-center py-10 text-zinc-600 text-sm">Lager ist leer.</div>
     </div>
 
-    <!-- === MODALS === -->
-    
-    <!-- EDITOR -->
-    <div id="modal-overlay" class="fixed inset-0 bg-black/80 z-[200] hidden flex items-end sm:items-center justify-center p-4 backdrop-blur-sm">
-        <div class="glass-panel w-full max-w-sm p-6 rounded-3xl shadow-2xl transform translate-y-full transition-transform duration-300 max-h-[90vh] overflow-y-auto" id="modal-content">
-            <div class="w-12 h-1 bg-zinc-700 rounded-full mx-auto mb-4"></div>
-            <div class="flex justify-between items-center mb-6">
-                <div><div class="section-title">Bearbeiten</div><div class="text-3xl font-black text-white font-mono flex items-center gap-2"><span id="modal-title">#001</span><span class="text-[10px] text-zinc-500 font-normal normal-case tracking-normal">(Swipe ↔)</span></div></div>
-                <div class="text-right">
-                    <div id="modal-date" class="text-[10px] text-zinc-500 font-mono font-bold"></div>
-                    <div class="flex gap-2 mt-2">
-                        <button id="btn-quick-shop" onclick="copyToShop()" class="p-3 bg-zinc-800 rounded-full text-emerald-400"><i data-lucide="shopping-bag" class="w-5 h-5"></i></button>
-                        <button onclick="closeModal()" class="p-3 bg-zinc-800 rounded-full text-zinc-400"><i data-lucide="x" class="w-5 h-5"></i></button>
+    <!-- SORT OVERLAY -->
+    <div id="sort-overlay" class="overlay-base overlay-hidden bg-black/80 backdrop-blur-sm" onclick="closeSortMenu()">
+        <div class="absolute bottom-0 w-full max-w-md mx-auto bg-[#18181b] rounded-t-3xl border-t border-white/10 p-2 safe-bottom" onclick="event.stopPropagation()">
+            <div class="w-12 h-1 bg-zinc-700 rounded-full mx-auto my-3"></div>
+            <div class="section-title text-center mb-2">Sortieren nach</div>
+            <button onclick="setSortMode('id')" class="sort-btn-row" id="sort-btn-id"><span>Nummer (ID)</span><i data-lucide="check" class="opacity-0"></i></button>
+            <button onclick="setSortMode('mat')" class="sort-btn-row" id="sort-btn-mat"><span>Material (Typ)</span><i data-lucide="check" class="opacity-0"></i></button>
+            <button onclick="setSortMode('color')" class="sort-btn-row" id="sort-btn-color"><span>Farbe</span><i data-lucide="check" class="opacity-0"></i></button>
+            <button onclick="setSortMode('brand')" class="sort-btn-row" id="sort-btn-brand"><span>Marke</span><i data-lucide="check" class="opacity-0"></i></button>
+            <button onclick="setSortMode('amount')" class="sort-btn-row" id="sort-btn-amount"><span>Menge (Gewicht)</span><i data-lucide="check" class="opacity-0"></i></button>
+            <button onclick="setSortMode('date_new')" class="sort-btn-row" id="sort-btn-date_new"><span>Datum (Neu zuerst)</span><i data-lucide="check" class="opacity-0"></i></button>
+        </div>
+    </div>
+
+    <!-- EDITOR MODAL -->
+    <div id="modal-overlay" class="overlay-base overlay-hidden bg-black/50 backdrop-blur-sm">
+        <div id="modal-content" class="modal-slide w-full max-w-md mx-auto bg-[#09090b] h-full flex flex-col safe-top safe-bottom p-5 shadow-2xl">
+            <div class="flex justify-between items-center mb-4 flex-shrink-0">
+                <div>
+                    <div class="section-title">Bearbeiten</div>
+                    <div class="id-select-wrapper">
+                        <!-- ID SELECT (Replaces input) -->
+                        <select id="input-spool-id-select" class="id-select" disabled></select>
+                        <i data-lucide="chevron-down" id="id-select-arrow" class="id-select-arrow hidden"></i>
                     </div>
                 </div>
+                <div class="text-right">
+                    <div id="modal-date" class="text-[10px] text-zinc-500 font-mono font-bold mb-1"></div>
+                    <button onclick="closeModal()" class="p-2 bg-zinc-800 rounded-full text-zinc-400"><i data-lucide="x"></i></button>
+                </div>
             </div>
-            <div class="space-y-6">
+            
+            <div class="scroll-container space-y-6" id="editor-scroll-area">
                 <div id="level-section" class="bg-zinc-900/50 p-4 rounded-2xl border border-white/5">
                     <div class="flex justify-between text-xs text-zinc-400 font-bold mb-3"><span>0%</span> <span id="level-display" class="text-indigo-400">100%</span> <span>100%</span></div>
                     <input type="range" id="input-level" min="0" max="100" step="5" oninput="updateLevelDisplay(this.value)">
                 </div>
-                <div class="grid grid-cols-2 gap-3" id="meta-switches">
-                    <div id="dryer-section" class="bg-zinc-900/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-between hidden">
-                        <div class="section-title" style="margin-bottom:0">Trocknung</div>
-                        <div class="flex justify-between items-end mt-2"><div id="dryer-status" class="text-xs text-zinc-300">Unbekannt</div><button onclick="setDryerDate()" class="bg-zinc-800 p-2 rounded text-white active:scale-95"><i data-lucide="rotate-cw" class="w-4 h-4"></i></button></div>
+
+                <!-- HYBRID COLOR PICKER -->
+                <div>
+                    <label class="section-title block mb-2">Farbe</label>
+                    <div class="flex gap-2 mb-3">
+                        <div class="relative flex-grow">
+                            <input type="text" id="input-color-name" oninput="filterColorBubbles(this.value)" placeholder="Farbe eingeben..." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3.5 pl-12 text-white outline-none font-bold">
+                            <div class="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border border-white/20 shadow-sm" id="color-preview-dot" style="background-color: #fff;"></div>
+                        </div>
+                        <div class="relative w-12 flex-shrink-0">
+                            <div class="w-full h-full bg-zinc-800 rounded-xl border border-zinc-700 flex items-center justify-center cursor-pointer relative">
+                                <i data-lucide="droplet" class="w-5 h-5 text-zinc-400 pointer-events-none"></i>
+                                <input type="color" id="native-color-picker" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" oninput="updateFromNativePicker(this.value)" style="padding:0; margin:0; border:none;">
+                            </div>
+                        </div>
                     </div>
-                    <div id="calib-section" class="bg-zinc-900/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-between">
+                    <div class="bg-zinc-900/30 p-3 rounded-2xl border border-white/5">
+                        <div id="color-bubbles-container" class="flex flex-wrap gap-2 max-h-48 overflow-y-auto"></div>
+                    </div>
+                </div>
+
+                <!-- CAPACITY SELECTOR -->
+                <div id="capacity-section" class="grid grid-cols-2 gap-3">
+                     <div>
+                        <label class="section-title block mb-2">Gewicht (Voll)</label>
+                        <select id="input-capacity" class="w-full p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white outline-none font-bold text-sm">
+                            <option value="250">250g (Sample)</option>
+                            <option value="500">500g (Small)</option>
+                            <option value="750">750g (Medium)</option>
+                            <option value="1000" selected>1000g (Standard)</option>
+                            <option value="2000">2000g (Big)</option>
+                            <option value="3000">3000g (Industrial)</option>
+                        </select>
+                    </div>
+                    <div id="calib-section" class="bg-zinc-900/50 p-3 rounded-2xl border border-white/5 flex flex-col justify-between">
                          <div class="section-title" style="margin-bottom:0">Kalibriert</div>
                          <div class="flex justify-between items-center mt-2"><span class="text-xs text-zinc-300">Status</span><div class="relative inline-block w-10 h-5 align-middle select-none"><input type="checkbox" id="input-calib" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all right-5 border-zinc-600"/><label for="input-calib" class="toggle-label block overflow-hidden h-5 rounded-full bg-zinc-700 cursor-pointer"></label></div></div>
                     </div>
                 </div>
-                <div><label class="section-title block mb-2">Material</label><div class="grid grid-cols-4 gap-2" id="material-grid"></div></div>
-                
-                <!-- COLOR PICKER SECTION -->
-                <div>
-                    <label class="section-title block mb-3">Farbe & Look</label>
-                    <div class="space-y-3">
-                        <div class="bg-zinc-900/30 p-3 rounded-2xl border border-white/5">
-                            <div class="text-[9px] text-zinc-600 uppercase mb-2 pl-1">Standard (Plain/Matte/CF)</div>
-                            <div id="colors-standard" class="flex flex-wrap gap-3"></div>
-                        </div>
-                        <div class="bg-zinc-900/30 p-3 rounded-2xl border border-white/5">
-                            <div class="text-[9px] text-zinc-600 uppercase mb-2 pl-1">Special (Silk/Glow/Marble)</div>
-                            <div id="colors-special" class="flex flex-wrap gap-3"></div>
-                        </div>
-                        <div class="bg-zinc-900/30 p-3 rounded-2xl border border-white/5">
-                            <div class="text-[9px] text-zinc-600 uppercase mb-2 pl-1">Metallic</div>
-                            <div id="colors-metallic" class="flex flex-wrap gap-3"></div>
-                        </div>
-                        <div class="bg-zinc-900/30 p-3 rounded-2xl border border-white/5">
-                            <div class="text-[9px] text-zinc-600 uppercase mb-2 pl-1">Translucent</div>
-                            <div id="colors-translucent" class="flex flex-wrap gap-3"></div>
-                        </div>
-                    </div>
+
+                <div id="dryer-section" class="bg-zinc-900/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-between hidden">
+                    <div class="section-title" style="margin-bottom:0">Trocknung</div>
+                    <div class="flex justify-between items-end mt-2"><div id="dryer-status" class="text-xs text-zinc-300">Unbekannt</div><button onclick="setDryerDate()" class="bg-zinc-800 p-2 rounded text-white active:scale-95"><i data-lucide="rotate-cw" class="w-4 h-4"></i></button></div>
                 </div>
 
-                <div><label class="section-title block mb-2">Marke</label><select id="input-brand" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3.5 text-white outline-none"></select></div>
-                <div id="date-section"><label class="section-title block mb-2">Erstellt am</label><div class="w-full overflow-hidden rounded-xl"><input type="date" id="input-date"></div></div>
-                <div><label class="section-title block mb-2">Notizen</label><textarea id="input-notes" class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3.5 text-white text-sm h-24 placeholder-zinc-600" placeholder="..."></textarea></div>
-                <div class="flex flex-col gap-3 pt-2"><button onclick="saveItem()" class="w-full bg-indigo-600 py-4 rounded-xl text-white font-bold shadow-lg active:scale-95 transition-transform">Speichern</button><button id="btn-delete-item" onclick="openDeleteDialog()" class="text-red-500/60 text-xs font-bold py-2 uppercase tracking-widest hover:text-red-500 text-center w-full">Element entfernen</button></div>
+                <div><label class="section-title block mb-2">Material</label><div class="grid grid-cols-4 gap-2" id="material-grid"></div></div>
+                <div><label class="section-title block mb-2">Marke</label><select id="input-brand" class="w-full p-3.5"></select></div>
+                <div id="date-section"><label class="section-title block mb-2">Erstellt am</label><input type="date" id="input-date"></div>
+                <div><label class="section-title block mb-2">Notizen</label><textarea id="input-notes" class="w-full p-3.5 h-24" placeholder="..."></textarea></div>
+                
+                <div class="flex flex-col gap-3 pt-2 pb-10">
+                    <button onclick="saveItem()" class="w-full bg-indigo-600 py-4 rounded-xl text-white font-bold shadow-lg active:scale-95">Speichern</button>
+                    <button id="btn-quick-shop" onclick="copyToShop()" class="w-full bg-emerald-600/10 text-emerald-500 py-3 rounded-xl font-bold border border-emerald-500/20">Auf Einkaufsliste</button>
+                    <button id="btn-delete-item" onclick="openDeleteDialog()" class="text-red-500/60 text-xs font-bold py-2 uppercase tracking-widest hover:text-red-500 text-center w-full">Element entfernen</button>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- GLOBAL OVERLAYS -->
-    <div id="tools-overlay" class="overlay-base overlay-hidden"><div class="w-full max-w-md mx-auto p-5 flex flex-col h-full safe-top safe-bottom"><div id="tools-header" class="flex justify-between items-center mb-6 flex-shrink-0"></div><div id="tools-content" class="flex flex-col gap-2 scroll-container"></div></div></div>
+    <!-- OTHER OVERLAYS -->
+    <div id="tools-overlay" class="overlay-base overlay-hidden"><div class="w-full max-w-md mx-auto p-5 flex flex-col h-full safe-top safe-bottom"><div id="tools-header" class="flex justify-between items-center mb-6 flex-shrink-0"></div><div id="tools-content" class="scroll-container flex flex-col gap-2"></div></div></div>
     <div id="ams-picker-overlay" class="overlay-base overlay-hidden" style="z-index: 160;"><div class="safe-top p-4 bg-zinc-900 border-b border-white/5 flex justify-between items-center shadow-md flex-shrink-0"><h2 class="text-xl font-bold text-white">Spule wählen</h2><button onclick="closeAMSPicker()" class="p-2 bg-zinc-800 rounded-full text-zinc-400"><i data-lucide="x"></i></button></div><div id="ams-picker-list" class="scroll-container p-4 space-y-2 safe-bottom"></div></div>
-    <div id="settings-overlay" class="overlay-base overlay-hidden"><div class="w-full max-w-md mx-auto p-5 flex flex-col h-full safe-top safe-bottom"><div class="flex justify-between items-center mb-6 flex-shrink-0"><h2 class="text-2xl font-bold text-white">Einstellungen</h2><button onclick="closeSettings()" class="p-2 bg-zinc-900 rounded-full text-zinc-400"><i data-lucide="x"></i></button></div><div id="settings-content" class="flex flex-col gap-6 scroll-container"></div></div></div>
+    <div id="settings-overlay" class="overlay-base overlay-hidden"><div class="w-full max-w-md mx-auto p-5 flex flex-col h-full safe-top safe-bottom"><div class="flex justify-between items-center mb-6 flex-shrink-0"><h2 class="text-2xl font-bold text-white">Einstellungen</h2><button onclick="closeSettings()" class="p-2 bg-zinc-900 rounded-full text-zinc-400"><i data-lucide="x"></i></button></div><div id="settings-content" class="scroll-container flex flex-col gap-6"></div></div></div>
 
     <!-- DIALOGS -->
-    <div id="confirm-overlay" class="fixed inset-0 bg-black/80 z-[300] hidden flex items-center justify-center p-6 backdrop-blur-sm"><div class="glass-panel w-full max-w-xs p-8 rounded-3xl text-center"><div class="w-12 h-12 bg-indigo-500/20 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4" id="confirm-icon"><i data-lucide="alert-circle"></i></div><h2 class="font-bold text-xl text-white mb-2" id="confirm-title">?</h2><p class="text-zinc-400 text-sm mb-6" id="confirm-msg">...</p><div class="flex gap-2"><button id="btn-confirm-action" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform">Ja</button><button onclick="closeConfirm()" class="w-full bg-zinc-800 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform">Abbruch</button></div></div></div>
-    <div id="delete-overlay" class="fixed inset-0 bg-black/80 z-[300] hidden flex items-center justify-center p-6 backdrop-blur-sm"><div class="glass-panel w-full max-w-xs p-8 rounded-3xl text-center"><h2 class="font-bold text-xl text-white mb-6">Aktion wählen</h2><div class="flex flex-col gap-3"><button onclick="confirmDeletion(true)" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform shadow-lg"><i data-lucide="shopping-cart" class="w-4 h-4"></i> Auf Einkaufsliste</button><button onclick="confirmDeletion(false)" class="w-full bg-red-600/10 text-red-500 border border-red-500/20 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95 transition-transform"><i data-lucide="trash-2" class="w-4 h-4"></i> Endgültig löschen</button><button onclick="closeDeleteDialog()" class="text-zinc-500 font-bold p-2 mt-1 text-sm">Abbrechen</button></div></div></div>
-    <div id="confirm-booking-overlay" class="fixed inset-0 bg-black/80 z-[300] hidden flex items-center justify-center p-6 backdrop-blur-sm"><div class="glass-panel w-full max-w-xs p-8 rounded-3xl text-center"><div class="w-12 h-12 bg-indigo-500/20 text-indigo-500 rounded-full flex items-center justify-center mx-auto mb-4"><i data-lucide="scale"></i></div><h2 class="font-bold text-xl text-white mb-2">Menge abbuchen?</h2><p class="text-zinc-400 text-sm mb-6" id="confirm-booking-msg"></p><div class="flex gap-2"><button id="btn-confirm-book" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform">Ja</button><button onclick="closeConfirmBooking()" class="w-full bg-zinc-800 text-white font-bold py-3 rounded-xl active:scale-95 transition-transform">Abbruch</button></div></div></div>
+    <div id="confirm-overlay" class="fixed inset-0 bg-black/80 z-[300] hidden flex items-center justify-center p-6 backdrop-blur-sm"><div class="glass-panel w-full max-w-xs p-8 rounded-3xl text-center"><h2 class="font-bold text-xl text-white mb-2" id="confirm-title">?</h2><p class="text-zinc-400 text-sm mb-6" id="confirm-msg">...</p><div class="flex gap-2"><button id="btn-confirm-action" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl active:scale-95">Ja</button><button onclick="closeConfirm()" class="w-full bg-zinc-800 text-white font-bold py-3 rounded-xl active:scale-95">Abbruch</button></div></div></div>
+    <div id="delete-overlay" class="fixed inset-0 bg-black/80 z-[300] hidden flex items-center justify-center p-6 backdrop-blur-sm"><div class="glass-panel w-full max-w-xs p-8 rounded-3xl text-center"><h2 class="font-bold text-xl text-white mb-6">Löschen</h2><div class="flex flex-col gap-3"><button onclick="confirmDeletion(true)" class="w-full bg-indigo-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95"><i data-lucide="shopping-cart" class="w-4 h-4"></i> Auf Einkaufsliste</button><button onclick="confirmDeletion(false)" class="w-full bg-red-600/10 text-red-500 border border-red-500/20 font-bold py-4 rounded-2xl flex items-center justify-center gap-2 active:scale-95"><i data-lucide="trash-2" class="w-4 h-4"></i> Endgültig löschen</button><button onclick="closeDeleteDialog()" class="text-zinc-500 font-bold p-2 mt-1 text-sm">Abbrechen</button></div></div></div>
+    <div id="confirm-booking-overlay" class="fixed inset-0 bg-black/80 z-[300] hidden flex items-center justify-center p-6 backdrop-blur-sm"><div class="glass-panel w-full max-w-xs p-8 rounded-3xl text-center"><h2 class="font-bold text-xl text-white mb-2">Menge buchen?</h2><p class="text-zinc-400 text-sm mb-6" id="confirm-booking-msg"></p><div class="flex gap-2"><button id="btn-confirm-book" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl active:scale-95">Ja</button><button onclick="closeConfirmBooking()" class="w-full bg-zinc-800 text-white font-bold py-3 rounded-xl active:scale-95">Abbruch</button></div></div></div>
     <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-zinc-800 text-white px-6 py-3 rounded-full shadow-2xl z-[500] transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none font-bold text-sm flex gap-2 border border-white/10"></div>
 
     <script>
@@ -246,467 +251,455 @@
         const MATS=["PLA","PETG","ABS","ASA","TPU","PC","PA","Wood","Carbon"];
         const HYGRO_MATS=["PETG","ABS","ASA","TPU","PC","PA","Carbon"];
         
-        // ERWEITERTE FARBPALETTE MIT MATTE & CF
-        const COLORS={
-            standard:[
-                {name:"White",hex:"#FFFFFF"},{name:"Black",hex:"#18181b"},{name:"Gray",hex:"#71717a"},
-                {name:"Red",hex:"#ef4444"},{name:"Blue",hex:"#3b82f6"},{name:"Green",hex:"#22c55e"},
-                {name:"Yellow",hex:"#eab308"},{name:"Orange",hex:"#f97316"},{name:"Purple",hex:"#a855f7"},
-                {name:"Pink",hex:"#ec4899"},{name:"Brown",hex:"#78350f"},{name:"Beige",hex:"#d6d3d1"},
-                {name:"Matte Black",hex:"#111111",look:"matte"}, {name:"Matte White",hex:"#f5f5f5",look:"matte"},
-                {name:"Matte Grey",hex:"#52525b",look:"matte"}, {name:"Matte Navy",hex:"#1e3a8a",look:"matte"},
-                {name:"Matte Olive",hex:"#3f4f3a",look:"matte"}, {name:"Matte Teal",hex:"#134e4a",look:"matte"},
-                {name:"CF Black",hex:"#0a0a0a",look:"cf"}, {name:"CF Grey",hex:"#27272a",look:"cf"}
-            ],
-            special:[
-                {name:"Silk Gold",hex:"#fbbf24",look:"silk"},{name:"Silk Silver",hex:"#cbd5e1",look:"silk"},{name:"Silk Copper",hex:"#fdba74",look:"silk"},
-                {name:"Silk Red",hex:"#dc2626",look:"silk"},{name:"Silk Blue",hex:"#2563eb",look:"silk"},{name:"Silk Green",hex:"#16a34a",look:"silk"},
-                {name:"Silk Purple",hex:"#9333ea",look:"silk"},{name:"Silk White",hex:"#f1f5f9",look:"silk"},
-                {name:"Glow Green",hex:"#d9f99d",look:"glow"},{name:"Glow Blue",hex:"#bfdbfe",look:"glow"},{name:"Glow Red",hex:"#fecaca",look:"glow"},
-                {name:"Marble",hex:"#f1f5f9",look:"marble"}
-            ],
-            metallic:[
-                {name:"Gold",hex:"#d97706",look:"metallic"},{name:"Silver",hex:"#94a3b8",look:"metallic"},
-                {name:"Bronze",hex:"#78350f",look:"metallic"},{name:"Copper",hex:"#b45309",look:"metallic"},
-                {name:"Rose Gold",hex:"#fb7185",look:"metallic"},{name:"Gunmetal",hex:"#374151",look:"metallic"},
-                {name:"Met Blue",hex:"#1e40af",look:"metallic"},{name:"Met Red",hex:"#991b1b",look:"metallic"}
-            ],
-            translucent:[
-                {name:"Clear",hex:"#e2e8f0",look:"translucent"},{name:"Trans Red",hex:"#fca5a5",look:"translucent"},
-                {name:"Trans Blue",hex:"#93c5fd",look:"translucent"},{name:"Trans Green",hex:"#86efac",look:"translucent"},
-                {name:"Trans Orange",hex:"#fdba74",look:"translucent"},{name:"Trans Purple",hex:"#d8b4fe",look:"translucent"},
-                {name:"Trans Yellow",hex:"#fde047",look:"translucent"}
-            ]
-        };
+        const ALL_COLORS = [
+            // Basics
+            {name:"White",hex:"#FFFFFF",look:"plain"},{name:"Black",hex:"#18181b",look:"plain"},{name:"Grey",hex:"#71717a",look:"plain"},
+            {name:"Dark Grey",hex:"#3f3f46",look:"plain"},{name:"Light Grey",hex:"#d4d4d8",look:"plain"},
+            
+            // Reds / Pinks
+            {name:"Red",hex:"#ef4444",look:"plain"},{name:"Dark Red",hex:"#991b1b",look:"plain"},
+            {name:"Orange",hex:"#f97316",look:"plain"},{name:"Yellow",hex:"#eab308",look:"plain"},
+            {name:"Pink",hex:"#ec4899",look:"plain"},{name:"Magenta",hex:"#d946ef",look:"plain"},
+            {name:"Purple",hex:"#a855f7",look:"plain"},{name:"Violet",hex:"#7c3aed",look:"plain"},
+            
+            // Blues / Greens
+            {name:"Blue",hex:"#3b82f6",look:"plain"},{name:"Navy",hex:"#1e3a8a",look:"plain"},
+            {name:"Sky Blue",hex:"#7dd3fc",look:"plain"},{name:"Teal",hex:"#14b8a6",look:"plain"},
+            {name:"Green",hex:"#22c55e",look:"plain"},{name:"Dark Green",hex:"#14532d",look:"plain"},
+            {name:"Lime",hex:"#84cc16",look:"plain"},{name:"Olive",hex:"#3f4f3a",look:"plain"},
+            {name:"Mint",hex:"#6ee7b7",look:"plain"},
+            
+            // Naturals
+            {name:"Brown",hex:"#78350f",look:"plain"},{name:"Beige",hex:"#d6d3d1",look:"plain"},
+            {name:"Tan",hex:"#d4a373",look:"plain"},{name:"Bone",hex:"#e5e5e5",look:"plain"},
 
-        let spools = [], shopItems = [];
-        let amsSlots = [null, null, null, null];
-        let activeId = null, activeCtx = 'Lager';
+            // Matte
+            {name:"Matte Black",hex:"#111111",look:"matte"},{name:"Matte White",hex:"#f5f5f5",look:"matte"},
+            {name:"Matte Grey",hex:"#52525b",look:"matte"},{name:"Matte Navy",hex:"#172554",look:"matte"},
+            {name:"Matte Olive",hex:"#36453b",look:"matte"},{name:"Matte Red",hex:"#7f1d1d",look:"matte"},
+            {name:"Matte Teal",hex:"#134e4a",look:"matte"},{name:"Matte Purple",hex:"#581c87",look:"matte"},
+            
+            // Silk
+            {name:"Silk Gold",hex:"#fbbf24",look:"silk"},{name:"Silk Silver",hex:"#cbd5e1",look:"silk"},
+            {name:"Silk Copper",hex:"#fdba74",look:"silk"},{name:"Silk Bronze",hex:"#b45309",look:"silk"},
+            {name:"Silk Red",hex:"#dc2626",look:"silk"},{name:"Silk Blue",hex:"#2563eb",look:"silk"},
+            {name:"Silk Green",hex:"#16a34a",look:"silk"},{name:"Silk Purple",hex:"#9333ea",look:"silk"},
+            {name:"Silk White",hex:"#ffffff",look:"silk"},{name:"Silk Black",hex:"#27272a",look:"silk"},
+            
+            // Galaxy / Sparkle (Using Galaxy look)
+            {name:"Galaxy Black",hex:"#09090b",look:"galaxy"},{name:"Galaxy Red",hex:"#7f1d1d",look:"galaxy"},
+            {name:"Galaxy Blue",hex:"#1e3a8a",look:"galaxy"},{name:"Galaxy Purple",hex:"#581c87",look:"galaxy"},
+            {name:"Galaxy Green",hex:"#14532d",look:"galaxy"},{name:"Galaxy Grey",hex:"#3f3f46",look:"galaxy"},
+            
+            // CF / Special
+            {name:"CF Black",hex:"#0a0a0a",look:"cf"},{name:"CF Grey",hex:"#27272a",look:"cf"},
+            {name:"Glow Green",hex:"#d9f99d",look:"glow"},{name:"Glow Blue",hex:"#bae6fd",look:"glow"},
+            {name:"Marble",hex:"#f1f5f9",look:"marble"},
+            
+            // Translucent
+            {name:"Clear",hex:"#e2e8f0",look:"translucent"},{name:"Trans Red",hex:"#fca5a5",look:"translucent"},
+            {name:"Trans Blue",hex:"#93c5fd",look:"translucent"},{name:"Trans Green",hex:"#86efac",look:"translucent"},
+        ];
+
+        let spools=[], shopItems=[], amsSlots=[null,null,null,null], activeId=null, activeCtx='Lager';
         let selCol="White", selHex="#FFFFFF", selLook="plain", selMat="PLA";
-        let sortMode='id', pickerTargetLook='plain';
-        let prodWeight = 0; 
-        let pendingBooking = null;
-        let activeAMSSlotIndex = null;
-        
-        let touchstartX = 0;
-        let touchendX = 0;
-
-        let confirmCallback = null;
-        let pendingImportData = null;
-        let lastProdState = { mat: "", brand: "", col: "" };
-
-        const db = {
-            get inv() { return spools; },
-            set inv(v) { spools = v; },
-            get shop() { return shopItems; },
-            set shop(v) { shopItems = v; }
-        };
+        let sortMode='id', prodWeight=0, pendingBooking=null, activeAMSSlotIndex=null;
+        let touchstartX=0, touchendX=0, confirmCallback=null, pendingImportData=null, lastProdState={mat:"",brand:"",col:""};
 
         window.onload = function() {
-            setTimeout(() => {
-                const s = document.getElementById('splash');
-                const a = document.getElementById('app');
-                if(s) { s.style.display = 'none'; s.remove(); a.style.opacity = '1'; }
-            }, 2000);
-
+            setTimeout(()=>{document.getElementById('splash').style.display='none';document.getElementById('app').style.opacity='1';},1500);
             try {
-                spools = JSON.parse(localStorage.getItem('fpool_inv') || '[]');
-                shopItems = JSON.parse(localStorage.getItem('fpool_shop') || '[]');
-                const savedAMS = JSON.parse(localStorage.getItem('fpool_ams'));
-                if(savedAMS && Array.isArray(savedAMS)) amsSlots = savedAMS;
-            } catch(e) { spools=[]; shopItems=[]; }
-
-            render();
-            checkBackup();
-            setupSwipe();
-            setupCustomConfirm();
+                spools=JSON.parse(localStorage.getItem('fpool_inv')||'[]');
+                shopItems=JSON.parse(localStorage.getItem('fpool_shop')||'[]');
+                const sAMS=JSON.parse(localStorage.getItem('fpool_ams')); if(sAMS) amsSlots=sAMS;
+                spools.forEach(s => { if(!s.capacity) s.capacity = 1000; });
+            } catch(e){spools=[];}
+            render(); checkBackup(); setupSwipe(); setupCustomConfirm();
         };
 
+        function toggleBodyScroll(lock) { document.body.classList.toggle('no-scroll', lock); }
+
         function save() {
-            localStorage.setItem('fpool_inv', JSON.stringify(spools));
-            localStorage.setItem('fpool_shop', JSON.stringify(shopItems));
-            localStorage.setItem('fpool_ams', JSON.stringify(amsSlots));
+            localStorage.setItem('fpool_inv',JSON.stringify(spools));
+            localStorage.setItem('fpool_shop',JSON.stringify(shopItems));
+            localStorage.setItem('fpool_ams',JSON.stringify(amsSlots));
             render();
         }
-
         function render() {
-            renderLager();
-            renderStatsMini();
-            const badge = document.getElementById('settings-badge');
-            if(isBackupOverdue()) badge.classList.remove('hidden'); else badge.classList.add('hidden');
+            renderLager(); renderStatsMini();
+            document.getElementById('settings-badge').classList.toggle('hidden',!isBackupOverdue());
             if(window.lucide) lucide.createIcons();
         }
 
-        /* --- VISUALS --- */
-        function getSpoolVisualHtml(s) {
-            const vis = getVisuals(s);
-            return `
-            <div class="spool-icon">
-                <div class="spool-flange left"></div>
-                <div class="spool-body look-${vis.look}" style="--fil-color: ${vis.hex}"></div>
-                <div class="spool-flange right"></div>
-            </div>`;
-        }
-
-        function renderLager() {
-            const list = document.getElementById('spool-list');
-            list.innerHTML = '';
-            let filtered = getFilteredSpools();
-            document.getElementById('sort-label').innerText = sortMode === 'id' ? 'ID' : (sortMode === 'mat' ? 'MAT' : (sortMode === 'date_new' ? 'NEU' : (sortMode === 'date_old' ? 'ALT' : 'LVL')));
-            document.getElementById('empty-state').classList.toggle('hidden', filtered.length > 0 || document.getElementById('search-input').value !== '');
-            filtered.forEach(s => {
-                const vis = getVisuals(s);
-                const dateStr = s.createdAt ? new Date(s.createdAt).toLocaleDateString('de-DE', {day: '2-digit', month:'2-digit', year:'2-digit'}) : '';
-                list.innerHTML += `
-                <div onclick="openModal(${s.number}, 'Lager')" class="spool-card fade-in">
-                    ${getSpoolVisualHtml(s)}
-                    <div class="flex-grow min-w-0">
-                        <div class="flex justify-between items-center mb-1">
-                            <span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">${s.material}</span>
-                            <span class="font-mono font-bold text-white text-lg">#${s.number.toString().padStart(3,'0')}</span>
-                        </div>
-                        <div class="text-sm font-bold text-white truncate mb-2">${vis.name}</div>
-                        <div class="flex justify-between items-end mt-1">
-                            <span class="text-[10px] bg-zinc-800 px-2 py-0.5 rounded text-zinc-400 border border-white/5 max-w-[60px] truncate">${s.brand || '-'}</span>
-                            <div class="text-right flex flex-col items-end">
-                                <span class="text-[10px] font-mono font-bold ${s.level<20?'text-red-500':'text-emerald-500'}">${s.level}%</span>
-                                <span class="text-[8px] text-zinc-600 font-mono leading-tight">${dateStr}</span>
-                            </div>
-                        </div>
-                    </div>
-                    ${s.isCalibrated ? '<div class="absolute top-2 left-2 text-indigo-400 z-20"><span class="text-[8px]">🎯</span></div>' : ''}
-                    ${needsDrying(s) ? '<div class="absolute top-2 right-2 text-blue-400 z-20"><i data-lucide="droplets" class="w-3 h-3"></i></div>' : ''}
-                </div>`;
-            });
-        }
+        /* --- LOGIC --- */
+        function getSpoolVisualHtml(s){ const v=getVisuals(s); return `<div class="spool-icon"><div class="spool-flange left"></div><div class="spool-body look-${v.look}" style="--fil-color: ${v.hex}"></div><div class="spool-flange right"></div></div>`; }
         
         function getFilteredSpools() {
-            const search = document.getElementById('search-input').value.toLowerCase();
-            let filtered = spools.filter(s => s.color.toLowerCase().includes(search) || s.brand.toLowerCase().includes(search) || s.number.toString().includes(search) || s.material.toLowerCase().includes(search));
-            filtered.sort((a, b) => {
-                if(sortMode === 'id') return a.number - b.number;
-                if(sortMode === 'mat') return a.material.localeCompare(b.material);
-                if(sortMode === 'date_new') return (new Date(b.createdAt || 0) - new Date(a.createdAt || 0)); 
-                if(sortMode === 'date_old') return (new Date(a.createdAt || 0) - new Date(b.createdAt || 0)); 
-                return b.level - a.level;
+            const qRaw = document.getElementById('search-input').value.toLowerCase();
+            const terms = qRaw.split(/\s+/).filter(t => t.length > 0);
+            
+            let f = spools.filter(s => {
+                const searchString = `${s.number} ${s.material||''} ${s.color||''} ${s.brand||''} ${s.note||''}`.toLowerCase();
+                return terms.every(term => searchString.includes(term));
             });
-            return filtered;
+            
+            f.sort((a,b)=>{
+                if(sortMode==='id') return a.number-b.number;
+                if(sortMode==='mat') return a.material.localeCompare(b.material);
+                if(sortMode==='color') return a.color.localeCompare(b.color);
+                if(sortMode==='brand') return a.brand.localeCompare(b.brand);
+                if(sortMode==='amount') return getWeight(b) - getWeight(a); // Sort by remaining weight
+                if(sortMode==='date_new') return new Date(b.createdAt)-new Date(a.createdAt);
+                return b.level-a.level;
+            }); 
+            return f;
+        }
+        function getWeight(s) { return Math.round((s.level/100) * (s.capacity || 1000)); }
+
+        function renderLager(){
+            const l=document.getElementById('spool-list'); l.innerHTML='';
+            const f=getFilteredSpools();
+            
+            // Show Active Sort Indicator
+            const sortNames = {'id':'ID', 'mat':'Material', 'color':'Farbe', 'brand':'Marke', 'amount':'Menge', 'date_new':'Datum'};
+            document.getElementById('sort-name').innerText = sortNames[sortMode] || 'ID';
+            document.getElementById('active-sort-indicator').classList.toggle('hidden', sortMode === 'id'); // Hide only if default
+            
+            document.getElementById('empty-state').classList.toggle('hidden',f.length>0||document.getElementById('search-input').value!=='');
+            f.forEach(s=>{
+                const v=getVisuals(s), d=s.createdAt?new Date(s.createdAt).toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit',year:'2-digit'}):'';
+                const w = getWeight(s);
+                let displayLevel = s.level;
+                if (s.level % 1 !== 0) displayLevel = s.level.toFixed(1);
+
+                l.innerHTML+=`<div onclick="openModal(${s.number},'Lager')" class="spool-card fade-in">${getSpoolVisualHtml(s)}<div class="flex-grow min-w-0"><div class="flex justify-between items-center mb-1"><span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">${s.material}</span><span class="font-mono font-bold text-white text-lg">#${s.number.toString().padStart(3,'0')}</span></div><div class="text-sm font-bold text-white truncate mb-2">${v.name}</div><div class="flex justify-between items-end mt-1"><span class="text-[10px] bg-zinc-800 px-2 py-0.5 rounded text-zinc-400 border border-white/5 max-w-[60px] truncate">${s.brand||'-'}</span><div class="text-right flex flex-col items-end"><span class="text-[10px] font-mono font-bold ${s.level<20?'text-red-500':'text-emerald-500'}">${w}g <span class="text-zinc-600">/ ${displayLevel}%</span></span><span class="text-[8px] text-zinc-600 font-mono leading-tight">${d}</span></div></div></div>${s.isCalibrated?'<div class="absolute top-2 left-2 text-indigo-400 z-20"><span class="text-[8px]">🎯</span></div>':''}${needsDrying(s)?'<div class="absolute top-2 right-2 text-blue-400 z-20"><i data-lucide="droplets" class="w-3 h-3"></i></div>':''}</div>`;
+            });
+        }
+        function getVisuals(s){return{name:s.color,hex:s.hex||'#FFF',look:s.look||'plain'};}
+        function needsDrying(i){if(!HYGRO_MATS.includes(i.material))return false;if(!i.lastDried)return true;return(Date.now()-i.lastDried)>2592000000;}
+        function isBackupOverdue(){const l=localStorage.getItem('fpool_last_backup');return!l||(Date.now()-l>1209600000);}
+        function checkBackup(){if(isBackupOverdue())toast("Backup empfohlen!");}
+        function renderStatsMini(){let w=0;spools.forEach(s=>w+=getWeight(s));document.getElementById('mini-dashboard').innerText=`${spools.length} Spulen • ca. ${(w/1000).toFixed(1)} kg`;}
+
+        /* --- HYBRID COLOR PICKER --- */
+        function renderBubbleGrid(filterText = "") {
+            const container = document.getElementById('color-bubbles-container');
+            container.innerHTML = '';
+            
+            const q = filterText.toLowerCase();
+            const filtered = ALL_COLORS.filter(c => c.name.toLowerCase().includes(q));
+            
+            filtered.forEach(c => {
+                const wrapper = document.createElement('div');
+                wrapper.className = 'color-option';
+                wrapper.onclick = () => selectColorFromBubble(c);
+
+                const bubble = document.createElement('div');
+                bubble.className = `color-bubble look-${c.look} ${selCol === c.name ? 'active' : ''}`;
+                bubble.style.backgroundColor = c.hex;
+
+                const label = document.createElement('span');
+                label.className = 'color-label';
+                label.innerText = c.name;
+
+                wrapper.appendChild(bubble);
+                wrapper.appendChild(label);
+                container.appendChild(wrapper);
+            });
+            
+            if(filtered.length === 0) container.innerHTML = '<div class="text-xs text-zinc-500 w-full text-center py-2">Keine Vorschläge</div>';
         }
 
-        function getVisuals(s) { return { name: s.color, hex: s.hex || '#FFF', look: s.look || 'plain' }; }
-        function needsDrying(i) { if(!HYGRO_MATS.includes(i.material)) return false; if(!i.lastDried) return true; return (Date.now() - i.lastDried) > 2592000000; }
-        function isBackupOverdue() { const l = localStorage.getItem('fpool_last_backup'); return !l || (Date.now() - l > 1209600000); }
-        function checkBackup() { if(isBackupOverdue()) toast("Backup empfohlen!"); }
-        function renderStatsMini() { let w = 0; spools.forEach(s => w += s.level * 10); document.getElementById('mini-dashboard').innerText = `${spools.length} Spulen • ca. ${(w/1000).toFixed(1)} kg`; }
-
-        /* --- SWIPE --- */
-        function setupSwipe() {
-            const modal = document.getElementById('modal-content');
-            modal.addEventListener('touchstart', e => { touchstartX = e.changedTouches[0].screenX; }, {passive: true});
-            modal.addEventListener('touchend', e => { touchendX = e.changedTouches[0].screenX; handleSwipe(); }, {passive: true});
+        function filterColorBubbles(val) {
+            selCol = val; 
+            renderBubbleGrid(val);
         }
-        function handleSwipe() { if (activeCtx !== 'Lager') return; const threshold = 50; if (Math.abs(touchendX - touchstartX) > threshold) { if (touchendX < touchstartX) navigateSpool(1); if (touchendX > touchstartX) navigateSpool(-1); } }
-        function navigateSpool(dir) {
-            const currentList = getFilteredSpools();
-            const idx = currentList.findIndex(s => s.number === activeId);
-            if (idx === -1) return;
-            let newIdx = idx + dir;
-            if(newIdx >= currentList.length) newIdx = 0;
-            if(newIdx < 0) newIdx = currentList.length - 1;
-            const nextSpool = currentList[newIdx];
-            if(nextSpool) { openModal(nextSpool.number, 'Lager'); const m = document.getElementById('modal-content'); m.classList.add('pulse-slow'); setTimeout(()=>m.classList.remove('pulse-slow'), 300); }
+
+        function selectColorFromBubble(c) {
+            selCol = c.name;
+            selHex = c.hex;
+            selLook = c.look;
+            
+            document.getElementById('input-color-name').value = c.name;
+            document.getElementById('color-preview-dot').style.backgroundColor = c.hex;
+            document.getElementById('native-color-picker').value = c.hex;
+            
+            renderBubbleGrid(c.name); 
+        }
+
+        function updateFromNativePicker(hex) {
+            selHex = hex;
+            document.getElementById('color-preview-dot').style.backgroundColor = hex;
         }
 
         /* --- MODALS --- */
         function openModal(id, ctx) {
-            activeId = id; activeCtx = ctx;
-            let item = ctx === 'ShopNew' ? { material: 'PLA', color: 'White', hex: '#FFFFFF', look: 'plain', brand: '', createdAt: new Date().toISOString() } : (ctx === 'Lager' ? spools.find(s => s.number === id) : shopItems[id]);
-            if(!item) return;
-            document.getElementById('modal-title').innerText = ctx === 'Lager' ? '#' + id.toString().padStart(3,'0') : (ctx === 'ShopNew' ? "NEU" : "Edit");
-            document.getElementById('modal-date').innerText = (ctx === 'Lager' && item.createdAt) ? "Erstellt: " + new Date(item.createdAt).toLocaleDateString('de-DE') : "";
-            const isLager = ctx === 'Lager';
-            document.getElementById('btn-quick-shop').classList.toggle('hidden', !isLager);
-            document.getElementById('level-section').style.display = isLager ? 'block' : 'none';
-            document.getElementById('btn-delete-item').style.display = (ctx === 'ShopNew') ? 'none' : 'block';
-            document.getElementById('meta-switches').style.display = isLager ? 'grid' : 'none';
-            document.getElementById('date-section').style.display = isLager ? 'block' : 'none';
-            const dryerSection = document.getElementById('dryer-section');
-            if (isLager && HYGRO_MATS.includes(item.material)) { dryerSection.classList.remove('hidden'); document.getElementById('dryer-status').innerText = item.lastDried ? `Vor ${Math.floor((Date.now() - item.lastDried) / 86400000)} Tagen` : 'Nie'; } else { dryerSection.classList.add('hidden'); }
-            const vis = getVisuals(item);
-            selCol = vis.name; selHex = vis.hex; selLook = vis.look; selMat = item.material || 'PLA';
-            if(isLager) { document.getElementById('input-level').value = item.level || 100; document.getElementById('level-display').innerText = (item.level || 100) + '%'; document.getElementById('input-calib').checked = item.isCalibrated || false; document.getElementById('input-date').value = item.createdAt ? new Date(item.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]; }
-            document.getElementById('input-notes').value = item.note || '';
-            renderColorPalettes(); renderMaterialGrid(); renderBrandSelect(item.brand); showOverlay('modal-content');
-        }
+            activeId=id; activeCtx=ctx; toggleBodyScroll(true);
+            
+            // DEFAULT / NEW ITEMS
+            let i = (ctx === 'New') 
+                ? {number: id, material:'PLA', color:'', hex:'#FFFFFF', look:'plain', brand:'', level:100, capacity:1000, createdAt:new Date().toISOString(), isCalibrated:false, note:''} 
+                : (ctx === 'ShopNew')
+                    ? {material:'PLA',color:'',hex:'#FFFFFF',look:'plain',brand:'',createdAt:new Date().toISOString()}
+                    : (ctx==='Lager'?spools.find(s=>s.number===id):shopItems[id]);
 
-        function closeModal() { const el = document.getElementById('modal-content'); el.classList.remove('translate-y-0'); el.classList.add('translate-y-full'); setTimeout(() => document.getElementById('modal-overlay').classList.add('hidden'), 300); }
-        function showOverlay(id) { const overlay = document.getElementById('modal-overlay'); overlay.classList.remove('hidden'); const content = document.getElementById(id); if(content) { content.classList.remove('translate-y-full'); content.classList.add('translate-y-0'); } if(window.lucide) lucide.createIcons(); }
-        
-        function renderColorPalettes() {
-            ['standard', 'special', 'metallic', 'translucent'].forEach(group => {
-                const el = document.getElementById('colors-' + group);
-                if(!el) return;
-                el.innerHTML = '';
-                const list = COLORS[group] || [];
-                let defLook = 'plain';
-                if(group === 'special') defLook = 'silk';
-                else if(group === 'metallic') defLook = 'metallic';
-                else if(group === 'translucent') defLook = 'translucent';
+            if(!i && ctx !== 'New' && ctx !== 'ShopNew') return;
+            
+            // --- ID SELECTOR LOGIC ---
+            const idSelect = document.getElementById('input-spool-id-select');
+            const arrow = document.getElementById('id-select-arrow');
+            idSelect.innerHTML = '';
 
-                list.forEach(c => {
-                    const active = (selCol === c.name);
-                    el.innerHTML += `<div onclick="setColor('${c.name}','${c.hex}','${c.look || defLook}')" class="color-bubble ${active?'active':''} look-${c.look || defLook}" style="background-color:${c.hex}"></div>`;
+            if (ctx === 'New') {
+                idSelect.disabled = false;
+                arrow.classList.remove('hidden');
+
+                // 1. Get Sorted Existing IDs
+                const existingIds = spools.map(s => s.number).sort((a,b) => a-b);
+                let maxId = 0;
+                if (existingIds.length > 0) maxId = existingIds[existingIds.length - 1];
+
+                // 2. Find all unused IDs from 1 to Max+1
+                let freeIds = [];
+                for (let j = 1; j <= maxId + 1; j++) {
+                    if (!existingIds.includes(j)) {
+                        freeIds.push(j);
+                    }
+                }
+
+                // 3. Populate dropdown
+                freeIds.forEach(fid => {
+                    const opt = document.createElement('option');
+                    opt.value = fid;
+                    if (fid > maxId) {
+                        opt.text = `#${fid.toString().padStart(3,'0')} (Neu)`;
+                    } else {
+                        opt.text = `#${fid.toString().padStart(3,'0')} (Frei)`;
+                    }
+                    idSelect.add(opt);
                 });
+
+                // 4. Default Select: The Lowest Free ID (First in list)
+                if (freeIds.length > 0) {
+                    idSelect.value = freeIds[0];
+                }
+
+            } else {
+                // Existing Item or Shop Item
+                idSelect.disabled = true;
+                arrow.classList.add('hidden');
                 
-                // *** FIXED: ADD PICKER DIRECTLY INSIDE BUTTON FOR ROBUSTNESS ***
-                el.innerHTML += `<div class="color-bubble color-add-btn relative">
-                    <i data-lucide="plus" class="w-4 h-4 text-white pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"></i>
-                    <input type="color" class="absolute inset-0 opacity-0 w-full h-full cursor-pointer" 
-                           oninput="setCustomColor(this.value, '${defLook}', false)" 
-                           onchange="setCustomColor(this.value, '${defLook}', true)"
-                           value="${selHex}" 
-                           onclick="pickerTargetLook='${defLook}'">
-                </div>`;
-            });
-            if(window.lucide) lucide.createIcons();
-        }
-
-        function renderMaterialGrid() { const el = document.getElementById('material-grid'); el.innerHTML = ''; MATS.forEach(m => { const active = selMat === m; el.innerHTML += `<button onclick="setMat('${m}')" class="py-3 rounded-xl text-[10px] font-black uppercase border transition-all ${active ? 'bg-indigo-600 border-indigo-500 text-white' : 'bg-zinc-900 border-zinc-800 text-zinc-500'}">${m}</button>`; }); }
-        function renderBrandSelect(cur) { const el = document.getElementById('input-brand'); el.innerHTML = '<option value="">Keine</option>'; BRANDS.forEach(b => { el.innerHTML += `<option value="${b}" ${cur===b?'selected':''}>${b}</option>`; }); }
-        function setCustomColor(h, l, final) { 
-            selCol = "Custom"; selHex = h; selLook = l; 
-            // Only re-render if final selection to avoid closing picker while dragging
-            if(final) renderColorPalettes(); 
-        }
-        function setColor(n, h, l) { selCol = n; selHex = h; selLook = l; renderColorPalettes(); }
-        function setMat(m) { selMat = m; renderMaterialGrid(); const box = document.getElementById('dryer-section'); if(activeCtx === 'Lager' && HYGRO_MATS.includes(m)) box.classList.remove('hidden'); else box.classList.add('hidden'); }
-        function updateLevelDisplay(v) { document.getElementById('level-display').innerText = v + '%'; }
-
-        function saveItem() {
-            const data = { material: selMat, color: selCol, hex: selHex, look: selLook, brand: document.getElementById('input-brand').value, note: document.getElementById('input-notes').value };
-            if(activeCtx === 'Lager') { const s = spools.find(x => x.number === activeId); if(s) { Object.assign(s, data); s.level = parseInt(document.getElementById('input-level').value); s.isCalibrated = document.getElementById('input-calib').checked; const newDateVal = document.getElementById('input-date').value; if(newDateVal) s.createdAt = new Date(newDateVal).toISOString(); } }
-            else if (activeCtx === 'Shop') { shopItems[activeId] = data; renderShoppingList(); }
-            else if (activeCtx === 'ShopNew') { shopItems.push(data); renderShoppingList(); toast("Zur Einkaufsliste!"); }
-            save(); closeModal();
-        }
-
-        function createNewSpool() {
-            let next = 1; const nums = spools.map(s => s.number).sort((a,b)=>a-b);
-            for(let n of nums) if(n===next) next++;
-            spools.push({ number: next, material: 'PLA', color: 'White', hex: '#FFFFFF', look: 'plain', brand: '', level: 100, note: '', createdAt: new Date().toISOString(), isCalibrated: false });
-            save(); openModal(next, 'Lager');
-        }
-
-        function copyToShop() { const s = spools.find(x => x.number === activeId); if(s) { shopItems.push({ material: s.material, color: s.color, hex: s.hex, look: s.look, brand: s.brand }); save(); toast("Auf Einkaufsliste!"); } }
-        function setDryerDate() { const s = spools.find(x => x.number === activeId); if(s) { s.lastDried = Date.now(); save(); document.getElementById('dryer-status').innerText = 'Gerade eben'; toast("Markiert!"); } }
-
-        /* --- TOOLS & STATS --- */
-        function openTools() {
-            const overlay = document.getElementById('tools-overlay');
-            const content = document.getElementById('tools-content');
-            overlay.classList.remove('overlay-hidden');
-            renderToolHeader('Werkzeuge', 'closeTools()');
-            content.innerHTML = `<button onclick="openProductionTool()" class="tool-btn-row border-indigo-500/30 bg-indigo-500/5"><div class="tool-icon-large bg-indigo-500 text-white"><i data-lucide="zap"></i></div><div class="flex-grow"><div class="text-lg font-bold text-white">Produktion & Buchung</div><div class="text-xs text-indigo-300">Druckcheck & Verbrauch erfassen</div></div><i data-lucide="chevron-right"></i></button><button onclick="renderShoppingList()" class="tool-btn-row"><div class="tool-icon-large bg-orange-500/20 text-orange-500"><i data-lucide="shopping-cart"></i></div><div class="flex-grow"><div class="text-lg font-bold text-white">Einkaufsliste</div><div class="text-xs text-zinc-500">Filamente nachbestellen</div></div><i data-lucide="chevron-right"></i></button><button onclick="openStatsMenu()" class="tool-btn-row"><div class="tool-icon-large bg-emerald-500/20 text-emerald-500"><i data-lucide="bar-chart-3"></i></div><div class="flex-grow"><div class="text-lg font-bold text-white">Statistik</div><div class="text-xs text-zinc-500">Bestandsanalyse & Kalibrierung</div></div><i data-lucide="chevron-right"></i></button>`;
-            if(window.lucide) lucide.createIcons();
-        }
-
-        function openStatsMenu() {
-            renderToolHeader('Statistik', 'openTools()');
-            const c = document.getElementById('tools-content');
-            const total = spools.length, calib = spools.filter(s => s.isCalibrated).length, dried = spools.filter(s => !needsDrying(s) && HYGRO_MATS.includes(s.material)).length, hygroTotal = spools.filter(s => HYGRO_MATS.includes(s.material)).length;
-            let weight = 0; spools.forEach(s => weight += s.level*10);
-            const matDist = {}, brandDist = {};
-            spools.forEach(s => { matDist[s.material] = (matDist[s.material] || 0) + 1; brandDist[s.brand || 'Unbekannt'] = (brandDist[s.brand || 'Unbekannt'] || 0) + 1; });
-            const sortedMats = Object.entries(matDist).sort((a,b) => b[1] - a[1]), sortedBrands = Object.entries(brandDist).sort((a,b) => b[1] - a[1]), critical = spools.filter(s => s.level < 20).sort((a,b) => a.level - b.level);
-            let html = `<div class="grid grid-cols-2 gap-3 mb-6"><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title">Gesamt</div><div class="text-3xl font-black text-white">${total}</div><div class="text-[10px] text-zinc-400">Spulen im Bestand</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title">Masse</div><div class="text-3xl font-black text-white">${(weight/1000).toFixed(1)}</div><div class="text-[10px] text-zinc-400">Kilogramm (ca.)</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-emerald-500">Kalibriert</div><div class="text-3xl font-black text-white">${calib}</div><div class="text-[10px] text-zinc-400">${Math.round((calib/total||0)*100)}% aller Spulen</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-blue-500">Trocken</div><div class="text-3xl font-black text-white">${dried}</div><div class="text-[10px] text-zinc-400">${Math.round((dried/hygroTotal||0)*100)}% der hygro. Spulen</div></div></div>`;
-            html += `<div class="bg-zinc-900/50 p-5 rounded-3xl border border-white/5 mb-6"><h3 class="section-title mb-4">Material Verteilung</h3>`;
-            sortedMats.forEach(([m, count]) => { const perc = Math.round((count/total)*100); html += `<div class="mb-3"><div class="flex justify-between text-xs font-bold mb-1"><span>${m}</span><span class="text-zinc-500">${count} (${perc}%)</span></div><div class="stats-bar-container"><div class="stats-bar-fill" style="width: ${perc}%"></div></div></div>`; });
-            html += `</div><div class="bg-zinc-900/50 p-5 rounded-3xl border border-white/5 mb-6"><h3 class="section-title mb-4">Marken Ranking</h3>`;
-            sortedBrands.slice(0, 5).forEach(([b, count]) => { const perc = Math.round((count/total)*100); html += `<div class="mb-3"><div class="flex justify-between text-xs font-bold mb-1"><span>${b}</span><span class="text-zinc-500">${count}</span></div><div class="stats-bar-container"><div class="stats-bar-fill bg-indigo-400" style="width: ${perc}%"></div></div></div>`; });
-            html += `</div>`;
-            if(critical.length > 0) { html += `<div class="bg-red-500/5 p-5 rounded-3xl border border-red-500/10 mb-6"><h3 class="section-title text-red-500 mb-4">Kritischer Bestand (&lt; 20%)</h3><div class="space-y-2">`; critical.slice(0,4).forEach(s => { html += `<div class="flex items-center justify-between bg-black/20 p-2 rounded-xl border border-red-500/5"><span class="text-xs font-bold text-white">#${s.number.toString().padStart(3,'0')} ${s.color}</span><span class="text-xs font-mono font-black text-red-500">${s.level}%</span></div>`; }); html += `</div></div>`; }
-            c.innerHTML = html;
-        }
-
-        /* --- PRODUCTION & BOOKING --- */
-        function openProductionTool() { renderProductionTool(); }
-        
-        function renderProductionTool() {
-            renderToolHeader('Produktion', 'openTools()');
-            const c = document.getElementById('tools-content');
-            let amsHtml = `<div class="ams-grid">`;
-            [0, 3, 1, 2].forEach(amsIndex => {
-                const s = amsSlots[amsIndex] ? db.inv.find(i => i.number === amsSlots[amsIndex]) : null;
-                if(s) {
-                    const vis = getVisuals(s);
-                    amsHtml += `<div class="ams-slot filled" onclick="handleAMSSlotClick(${amsIndex})" style="--ams-color: ${vis.hex}"><div class="ams-number">A${amsIndex+1}</div><button onclick="event.stopPropagation(); clearAMSSlot(${amsIndex})" class="ams-del-btn"><i data-lucide="x" class="w-4 h-4"></i></button><div class="ams-fill-bg"></div><div class="ams-spool-visual">${getSpoolVisualHtml(s)}</div><div class="ams-overlay"></div><div class="ams-content"><div class="text-right"><span class="text-[10px] font-bold text-white bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-sm border border-white/10">${s.level}%</span></div><div class="text-center"><div class="font-mono font-black text-white text-3xl opacity-20">#${s.number}</div></div><div><div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">${s.material}</div><div class="text-xs font-bold text-white truncate leading-tight mb-1">${vis.name}</div><div class="text-[9px] text-zinc-300 bg-white/10 inline-block px-1.5 rounded">${s.brand || '-'}</div></div></div></div>`;
-                } else { amsHtml += `<div class="ams-slot" onclick="openAMSPicker(${amsIndex})"><div class="ams-number">A${amsIndex+1}</div><i data-lucide="plus" class="text-zinc-600 w-8 h-8"></i></div>`; }
-            });
-            const mats = [...new Set(db.inv.map(s => s.material))].sort(), brands = [...new Set(db.inv.map(s => s.brand).filter(b => b))].sort(), colors = [...new Set(db.inv.map(s => s.color))].sort();
-            const opt = (arr) => arr.map(i => `<option value="${i}">${i}</option>`).join('');
-            c.innerHTML = amsHtml + `</div><div class="glass-panel p-5 rounded-3xl mb-4 text-center border-t-0 shadow-xl"><div class="section-title mb-4 tracking-widest">Benötigte Menge</div><div class="mb-6"><div class="flex items-baseline justify-center gap-1"><span id="prod-display" class="font-mono font-black text-6xl text-white">${prodWeight}</span><span class="text-zinc-500 font-bold text-xl">g</span></div></div><div class="grid grid-cols-4 gap-2 mb-4"><button onclick="adjProd(10)" class="calc-btn">+10</button><button onclick="adjProd(50)" class="calc-btn">+50</button><button onclick="adjProd(100)" class="calc-btn">+100</button><button onclick="adjProd(0)" class="calc-btn bg-red-500/20 text-red-500"><i data-lucide="rotate-ccw" class="w-4 h-4 mx-auto"></i></button></div><div class="grid grid-cols-3 gap-2"><select id="prod-mat" onchange="updateProductionResults()" class="bg-zinc-900 text-[10px] font-bold text-zinc-300 p-2 rounded-lg border border-white/5 outline-none text-center"><option value="">Material</option>${opt(mats)}</select><select id="prod-brand" onchange="updateProductionResults()" class="bg-zinc-900 text-[10px] font-bold text-zinc-300 p-2 rounded-lg border border-white/5 outline-none text-center"><option value="">Marke</option>${opt(brands)}</select><select id="prod-col" onchange="updateProductionResults()" class="bg-zinc-900 text-[10px] font-bold text-zinc-300 p-2 rounded-lg border border-white/5 outline-none text-center"><option value="">Farbe</option>${opt(colors)}</select></div></div><div id="prod-results" class="space-y-2 pb-10"></div>`;
-            
-            // Restore Selection
-            if(lastProdState.mat) document.getElementById('prod-mat').value=lastProdState.mat;
-            if(lastProdState.brand) document.getElementById('prod-brand').value=lastProdState.brand;
-            if(lastProdState.col) document.getElementById('prod-col').value=lastProdState.col;
-            
-            updateProductionResults(); 
-            if(window.lucide) lucide.createIcons();
-        }
-
-        function handleAMSSlotClick(idx) { if(prodWeight > 0) { const sid = amsSlots[idx]; if(sid) requestBooking(sid, prodWeight); } }
-        function clearAMSSlot(idx) { openCustomConfirm("Entfernen", "Spule aus AMS entfernen?", () => { amsSlots[idx] = null; save(); renderProductionTool(); }); }
-        function openAMSPicker(idx) { activeAMSSlotIndex = idx; document.getElementById('ams-picker-overlay').classList.remove('overlay-hidden'); const list = document.getElementById('ams-picker-list'); list.innerHTML = ''; [...db.inv].sort((a,b)=>a.number-b.number).forEach(s => { if(!amsSlots.includes(s.number)) { const vis = getVisuals(s); list.innerHTML += `<div onclick="assignSpoolToAMS(${s.number})" class="flex items-center gap-3 p-3 bg-zinc-900 border border-white/5 rounded-xl cursor-pointer active:bg-zinc-800"><div class="font-mono font-bold text-zinc-500 w-8">#${s.number}</div><div class="w-3 h-3 rounded-full" style="background-color:${vis.hex}"></div><div class="flex-grow"><div class="text-xs font-bold text-white">${vis.name}</div><div class="text-[10px] text-zinc-500">${s.material} &bull; ${s.brand}</div></div><div class="text-xs font-mono text-emerald-500">${s.level}%</div></div>`; } }); if(list.innerHTML==='') list.innerHTML='<div class="text-zinc-500 text-center text-sm p-4">Keine freien Spulen.</div>'; }
-        function closeAMSPicker() { document.getElementById('ams-picker-overlay').classList.add('overlay-hidden'); }
-        function assignSpoolToAMS(id) { amsSlots[activeAMSSlotIndex] = id; save(); closeAMSPicker(); renderProductionTool(); }
-        function adjProd(amount) { prodWeight = amount === 0 ? 0 : prodWeight + amount; document.getElementById('prod-display').innerText = prodWeight; updateProductionResults(); }
-        
-        function updateProductionResults() {
-            const r = document.getElementById('prod-results'); 
-            if(!r) return;
-            
-            const fMat=document.getElementById('prod-mat').value, fBrand=document.getElementById('prod-brand').value, fCol=document.getElementById('prod-col').value;
-            lastProdState={mat:fMat,brand:fBrand,col:fCol};
-
-            if(prodWeight === 0) {
-                r.innerHTML = '<div class="text-center text-zinc-600 text-xs py-10 flex flex-col items-center gap-2"><i data-lucide="arrow-up" class="w-5 h-5 animate-bounce"></i><span>Wähle ein Gewicht...</span></div>';
-                if(window.lucide) lucide.createIcons();
-                return;
-            }
-            
-            const m = db.inv.filter(s => {
-                const weight = s.level * 10;
-                return !(weight < prodWeight || (fMat && s.material !== fMat) || (fBrand && s.brand !== fBrand) || (fCol && s.color !== fCol));
-            }).sort((a,b)=>a.level-b.level);
-            
-            if(m.length === 0) {
-                r.innerHTML = '<div class="text-center text-red-500/70 text-xs font-bold py-4 bg-red-500/5 rounded-xl border border-red-500/10">Kein passendes Filament gefunden.</div>';
-                return;
+                let displayId = (ctx === 'Shop' || ctx === 'ShopNew') ? '---' : i.number;
+                const opt = document.createElement('option');
+                opt.value = displayId;
+                opt.text = (typeof displayId === 'number') ? `#${displayId.toString().padStart(3,'0')}` : displayId;
+                idSelect.add(opt);
             }
 
-            r.innerHTML = `<div class="section-title text-emerald-500 mb-2 pl-2">Verfügbar (${m.length}) &bull; Klick zum Buchen</div>`;
 
-            m.forEach(s => {
-                const vis = getVisuals(s);
-                r.innerHTML += `<div onclick="requestBooking(${s.number}, ${prodWeight})" class="spool-card mini-card border-emerald-500/20 active:scale-95"><div style="transform: scale(0.7); transform-origin: left center;">${getSpoolVisualHtml(s)}</div><div class="ml-3 flex-grow min-w-0"><div class="flex justify-between items-center mb-0.5"><span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">${s.material}</span><span class="font-mono font-bold text-zinc-500 text-xs">#${s.number}</span></div><div class="text-xs font-bold text-white truncate mb-1">${vis.name}</div><div class="flex items-center justify-between mt-1"><span class="text-[9px] bg-zinc-800 px-1.5 rounded text-zinc-400 border border-white/5 truncate max-w-[50px]">${s.brand || '-'}</span><span class="text-[10px] font-mono font-bold text-emerald-400">${s.level*10}g</span></div></div><button onclick="event.stopPropagation(); openModal(${s.number}, 'Lager')" class="p-2 text-zinc-500"><i data-lucide="settings-2" class="w-4 h-4"></i></button></div>`;
-            });
+            document.getElementById('modal-date').innerText=(ctx==='Lager'&&i.createdAt)?"Erstellt: "+new Date(i.createdAt).toLocaleDateString('de-DE'):"";
+            
+            const isL= (ctx==='Lager' || ctx==='New'); 
+            document.getElementById('btn-quick-shop').classList.toggle('hidden',!isL);
+            document.getElementById('level-section').style.display=isL?'block':'none';
+            document.getElementById('btn-delete-item').style.display=(ctx==='ShopNew' || ctx==='New')?'none':'block';
+            document.getElementById('capacity-section').style.display=isL?'grid':'none'; 
+            document.getElementById('date-section').style.display=isL?'block':'none';
+            
+            const ds=document.getElementById('dryer-section');
+            if(isL&&HYGRO_MATS.includes(i.material)){ds.classList.remove('hidden');document.getElementById('dryer-status').innerText=i.lastDried?`Vor ${Math.floor((Date.now()-i.lastDried)/86400000)} Tagen`:'Nie';}else{ds.classList.add('hidden');}
+            
+            selCol=i.color || ''; selHex=i.hex||'#FFFFFF'; selLook=i.look||'plain'; selMat=i.material||'PLA';
+            
+            document.getElementById('input-color-name').value = selCol;
+            document.getElementById('color-preview-dot').style.backgroundColor = selHex;
+            document.getElementById('native-color-picker').value = selHex;
+            
+            renderBubbleGrid(selCol); 
+            
+            if(isL){
+                document.getElementById('input-level').value=i.level||100;
+                document.getElementById('level-display').innerText=(i.level||100)+'%';
+                document.getElementById('input-calib').checked=i.isCalibrated||false;
+                document.getElementById('input-capacity').value = i.capacity || 1000;
+                document.getElementById('input-date').value=i.createdAt?new Date(i.createdAt).toISOString().split('T')[0]:new Date().toISOString().split('T')[0];
+            }
+            document.getElementById('input-notes').value=i.note||'';
+            renderMaterialGrid(); renderBrandSelect(i.brand);
+            
+            document.getElementById('modal-overlay').classList.remove('overlay-hidden');
+            const m = document.getElementById('modal-content');
+            m.classList.remove('active'); setTimeout(()=>m.classList.add('active'),10);
             if(window.lucide) lucide.createIcons();
         }
 
-        function requestBooking(id, grams) {
-            pendingBooking = { id, grams };
-            document.getElementById('confirm-booking-msg').innerText = `${grams}g von Spule #${id} abbuchen?`;
-            document.getElementById('btn-confirm-book').onclick = () => executeBooking(id, grams);
-            document.getElementById('confirm-booking-overlay').classList.remove('hidden');
+        function closeModal(){
+            toggleBodyScroll(false);
+            const m=document.getElementById('modal-content'); m.classList.remove('active');
+            setTimeout(()=>document.getElementById('modal-overlay').classList.add('overlay-hidden'),300);
         }
 
-        function executeBooking(id, grams) {
-            const s = db.inv.find(i => i.number === id);
-            if(s) {
-                s.level = Math.max(0, s.level - Math.round(grams/10));
+        /* --- SWIPE --- */
+        function setupSwipe(){
+            const m=document.getElementById('editor-scroll-area'); 
+            m.addEventListener('touchstart',e=>{touchstartX=e.changedTouches[0].screenX;},{passive:true});
+            m.addEventListener('touchend',e=>{touchendX=e.changedTouches[0].screenX;handleSwipe();},{passive:true});
+        }
+        function handleSwipe(){
+            if(activeCtx!=='Lager')return;
+            if(Math.abs(touchendX-touchstartX)>60) {
+                if(touchendX<touchstartX) navigateSpool(1);
+                if(touchendX>touchstartX) navigateSpool(-1);
+            }
+        }
+        function navigateSpool(dir){
+            const list=getFilteredSpools(), idx=list.findIndex(s=>s.number===activeId);
+            if(idx===-1)return;
+            let nI=idx+dir; if(nI>=list.length)nI=0; if(nI<0)nI=list.length-1;
+            openModal(list[nI].number,'Lager');
+        }
+
+        /* --- STANDARD RENDERERS --- */
+        function renderMaterialGrid(){const el=document.getElementById('material-grid');el.innerHTML='';MATS.forEach(m=>{const a=selMat===m;el.innerHTML+=`<button onclick="setMat('${m}')" class="py-3 rounded-xl text-[10px] font-black uppercase border transition-all ${a?'bg-indigo-600 border-indigo-500 text-white':'bg-zinc-900 border-zinc-800 text-zinc-500'}">${m}</button>`;});}
+        function renderBrandSelect(c){const el=document.getElementById('input-brand');el.innerHTML='<option value="">Keine</option>';BRANDS.forEach(b=>{el.innerHTML+=`<option value="${b}" ${c===b?'selected':''}>${b}</option>`;});}
+        function setMat(m){selMat=m;renderMaterialGrid();const b=document.getElementById('dryer-section');if(activeCtx==='Lager'&&HYGRO_MATS.includes(m))b.classList.remove('hidden');else b.classList.add('hidden');}
+        function updateLevelDisplay(v){document.getElementById('level-display').innerText=v+'%';}
+
+        function saveItem(){
+            try {
+                const nameInput = document.getElementById('input-color-name');
+                const finalColorName = nameInput ? nameInput.value : selCol;
+
+                const d={
+                    material:selMat,
+                    color:finalColorName,
+                    hex:selHex,
+                    look:selLook,
+                    brand:document.getElementById('input-brand').value,
+                    note:document.getElementById('input-notes').value
+                };
+
+                if(activeCtx==='Lager'){
+                    const s=spools.find(x=>x.number===activeId);
+                    if(s){
+                        Object.assign(s,d);
+                        s.level=parseFloat(document.getElementById('input-level').value);
+                        s.isCalibrated=document.getElementById('input-calib').checked;
+                        s.capacity=parseInt(document.getElementById('input-capacity').value) || 1000;
+                        const dt=document.getElementById('input-date').value;
+                        if(dt) s.createdAt=new Date(dt).toISOString();
+                    }
+                }
+                else if(activeCtx==='New'){
+                    // NEW ITEM LOGIC WITH SELECT ID
+                    const selectedId = parseInt(document.getElementById('input-spool-id-select').value);
+                    
+                    if (spools.find(s => s.number === selectedId)) {
+                        alert(`Fehler: Nummer #${selectedId} ist doch schon belegt.`);
+                        return;
+                    }
+
+                    const newSpool = {
+                        number: selectedId,
+                        ...d,
+                        level: parseFloat(document.getElementById('input-level').value),
+                        capacity: parseInt(document.getElementById('input-capacity').value) || 1000,
+                        isCalibrated: document.getElementById('input-calib').checked,
+                        createdAt: document.getElementById('input-date').value ? new Date(document.getElementById('input-date').value).toISOString() : new Date().toISOString()
+                    };
+                    spools.push(newSpool);
+                    toast("Gespeichert!");
+                }
+                else if(activeCtx==='Shop'){shopItems[activeId]=d;renderShoppingList();}
+                else if(activeCtx==='ShopNew'){shopItems.push(d);renderShoppingList();toast("Zur Einkaufsliste!");}
+                
                 save();
-                toast(`-${grams}g verbucht (Rest: ${s.level}%)`);
+                closeModal();
+            } catch(e) {
+                console.error(e);
+                alert("Fehler beim Speichern: " + e.message);
+            }
+        }
+
+        // Just opens modal, ID logic inside openModal
+        function createNewSpool(){ openNewSpoolModal(); }
+        function openNewSpoolModal(){ openModal(null, 'New'); }
+
+        function copyToShop(){const s=spools.find(x=>x.number===activeId);if(s){shopItems.push({material:s.material,color:s.color,hex:s.hex,look:s.look,brand:s.brand});save();toast("Auf Einkaufsliste!");}}
+        function setDryerDate(){const s=spools.find(x=>x.number===activeId);if(s){s.lastDried=Date.now();save();document.getElementById('dryer-status').innerText='Gerade eben';toast("Markiert!");}}
+
+        /* --- SORTING --- */
+        function openSortMenu(){ 
+            document.getElementById('sort-overlay').classList.remove('overlay-hidden'); 
+            document.querySelectorAll('.sort-btn-row i').forEach(el=>el.classList.add('opacity-0'));
+            document.querySelectorAll('.sort-btn-row').forEach(el=>el.classList.remove('active'));
+            const btn = document.getElementById(`sort-btn-${sortMode}`);
+            if(btn) {
+                btn.classList.add('active');
+                btn.querySelector('i').classList.remove('opacity-0');
+            }
+        }
+        function closeSortMenu(){ document.getElementById('sort-overlay').classList.add('overlay-hidden'); }
+        function setSortMode(m){ sortMode=m; renderLager(); closeSortMenu(); }
+
+        /* --- TOOLS / AMS / SETTINGS --- */
+        function openTools(){toggleBodyScroll(true);document.getElementById('tools-overlay').classList.remove('overlay-hidden');renderToolHeader('Werkzeuge','closeTools()');
+            document.getElementById('tools-content').innerHTML=`<button onclick="openProductionTool()" class="tool-btn-row border-indigo-500/30 bg-indigo-500/5"><div class="tool-icon-large bg-indigo-500 text-white"><i data-lucide="zap"></i></div><div class="flex-grow"><div class="text-lg font-bold text-white">Produktion & Buchung</div><div class="text-xs text-indigo-300">Druckcheck & Verbrauch erfassen</div></div><i data-lucide="chevron-right"></i></button><button onclick="renderShoppingList()" class="tool-btn-row"><div class="tool-icon-large bg-orange-500/20 text-orange-500"><i data-lucide="shopping-cart"></i></div><div class="flex-grow"><div class="text-lg font-bold text-white">Einkaufsliste</div><div class="text-xs text-zinc-500">Filamente nachbestellen</div></div><i data-lucide="chevron-right"></i></button><button onclick="openStatsMenu()" class="tool-btn-row"><div class="tool-icon-large bg-emerald-500/20 text-emerald-500"><i data-lucide="bar-chart-3"></i></div><div class="flex-grow"><div class="text-lg font-bold text-white">Statistik</div><div class="text-xs text-zinc-500">Bestandsanalyse & Kalibrierung</div></div><i data-lucide="chevron-right"></i></button>`;
+            if(window.lucide)lucide.createIcons();
+        }
+        function openProductionTool(){renderToolHeader('Produktion','openTools()');const c=document.getElementById('tools-content');let ah=`<div class="ams-grid">`;[0,3,1,2].forEach(ai=>{const s=amsSlots[ai]?spools.find(x=>x.number===amsSlots[ai]):null;if(s){const v=getVisuals(s); const w=getWeight(s); ah+=`<div class="ams-slot filled" onclick="handleAMSSlotClick(${ai})" style="--ams-color:${v.hex}"><div class="ams-number">A${ai+1}</div><button onclick="event.stopPropagation();clearAMSSlot(${ai})" class="ams-del-btn"><i data-lucide="x" class="w-4 h-4"></i></button><div class="ams-fill-bg"></div><div class="ams-spool-visual">${getSpoolVisualHtml(s)}</div><div class="ams-overlay"></div><div class="ams-content"><div class="text-right"><span class="text-[10px] font-bold text-white bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-sm border border-white/10">${w}g</span></div><div class="text-center"><div class="font-mono font-black text-white text-3xl opacity-20">#${s.number}</div></div><div><div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">${s.material}</div><div class="text-xs font-bold text-white truncate leading-tight mb-1">${v.name}</div><div class="text-[9px] text-zinc-300 bg-white/10 inline-block px-1.5 rounded">${s.brand||'-'}</div></div></div></div>`;}else{ah+=`<div class="ams-slot" onclick="openAMSPicker(${ai})"><div class="ams-number">A${ai+1}</div><i data-lucide="plus" class="text-zinc-600 w-8 h-8"></i></div>`;}});ah+=`</div>`;const m=[...new Set(spools.map(s=>s.material))].sort(),b=[...new Set(spools.map(s=>s.brand).filter(x=>x))].sort(),co=[...new Set(spools.map(s=>s.color))].sort();const o=a=>a.map(i=>`<option value="${i}">${i}</option>`).join('');c.innerHTML=ah+`<div class="glass-panel p-5 rounded-3xl mb-4 text-center border-t-0 shadow-xl"><div class="section-title mb-4 tracking-widest">Benötigte Menge</div><div class="mb-6"><div class="flex items-baseline justify-center gap-1"><span id="prod-display" class="font-mono font-black text-6xl text-white">${prodWeight}</span><span class="text-zinc-500 font-bold text-xl">g</span></div></div><div class="grid grid-cols-4 gap-2 mb-4"><button onclick="adjProd(10)" class="calc-btn">+10</button><button onclick="adjProd(50)" class="calc-btn">+50</button><button onclick="adjProd(100)" class="calc-btn">+100</button><button onclick="adjProd(0)" class="calc-btn bg-red-500/20 text-red-500"><i data-lucide="rotate-ccw" class="w-4 h-4 mx-auto"></i></button></div><div class="grid grid-cols-3 gap-2"><select id="prod-mat" onchange="updateProductionResults()" class="bg-zinc-900 text-[10px] font-bold text-zinc-300 p-2 rounded-lg border border-white/5 outline-none text-center"><option value="">Material</option>${o(m)}</select><select id="prod-brand" onchange="updateProductionResults()" class="bg-zinc-900 text-[10px] font-bold p-2 rounded-lg border border-white/5 outline-none text-center"><option value="">Marke</option>${o(b)}</select><select id="prod-col" onchange="updateProductionResults()" class="bg-zinc-900 text-[10px] font-bold p-2 rounded-lg border border-white/5 outline-none text-center"><option value="">Farbe</option>${o(co)}</select></div></div><div id="prod-results" class="space-y-2 pb-10"></div>`;if(lastProdState.mat)document.getElementById('prod-mat').value=lastProdState.mat;if(lastProdState.brand)document.getElementById('prod-brand').value=lastProdState.brand;if(lastProdState.col)document.getElementById('prod-col').value=lastProdState.col;updateProductionResults();if(window.lucide)lucide.createIcons();}
+        function renderShoppingList(){renderToolHeader('Einkaufsliste','openTools()');const c=document.getElementById('tools-content');let h=`<div class="flex justify-end mb-4"><button onclick="openNewShopItemModal()" class="bg-emerald-600 px-4 py-2 rounded-lg text-white font-bold text-sm flex gap-2 items-center active:scale-95"><i data-lucide="plus"></i> Hinzufügen</button></div>`;if(shopItems.length===0)h+='<div class="text-zinc-500 italic text-center py-10">Alles erledigt.</div>';shopItems.forEach((i,x)=>{const v=getVisuals(i);h+=`<div onclick="openModal(${x},'Shop')" class="spool-card mini-card mb-2"><div style="transform:scale(0.7);transform-origin:left center;">${getSpoolVisualHtml(i)}</div><div class="ml-3 flex-grow min-w-0"><div class="flex justify-between items-center mb-0.5"><span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">${i.material}</span><span class="font-mono font-bold text-indigo-400 text-xs">SHOP</span></div><div class="text-xs font-bold text-white truncate mb-1">${v.name}</div><div class="flex justify-between items-center mt-1"><span class="text-[9px] bg-zinc-800 px-1.5 rounded text-zinc-400 border border-white/5">${i.brand||'-'}</span><div class="flex gap-3"><button onclick="event.stopPropagation();buyShopItem(${x})" class="text-emerald-500 bg-emerald-500/10 p-1.5 rounded-lg active:scale-90"><i data-lucide="check" class="w-4 h-4"></i></button><button onclick="event.stopPropagation();delShopItem(${x})" class="text-red-500 bg-red-500/10 p-1.5 rounded-lg active:scale-90"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div></div></div>`;});c.innerHTML=h;if(window.lucide)lucide.createIcons();}
+        function openStatsMenu(){renderToolHeader('Statistik','openTools()');const c=document.getElementById('tools-content');const t=spools.length,cal=spools.filter(s=>s.isCalibrated).length,d=spools.filter(s=>!needsDrying(s)&&HYGRO_MATS.includes(s.material)).length,ht=spools.filter(s=>HYGRO_MATS.includes(s.material)).length;let w=0;spools.forEach(s=>w+=getWeight(s));c.innerHTML=`<div class="grid grid-cols-2 gap-3 mb-6"><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title">Gesamt</div><div class="text-3xl font-black text-white">${t}</div><div class="text-[10px] text-zinc-400">Spulen</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title">Masse</div><div class="text-3xl font-black text-white">${(w/1000).toFixed(1)}</div><div class="text-[10px] text-zinc-400">kg (ca.)</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-emerald-500">Kalibriert</div><div class="text-3xl font-black text-white">${cal}</div><div class="text-[10px] text-zinc-400">${Math.round((cal/t||0)*100)}%</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-blue-500">Trocken</div><div class="text-3xl font-black text-white">${d}</div><div class="text-[10px] text-zinc-400">${Math.round((d/ht||0)*100)}% hygro</div></div></div>`;}
+        
+        function openSettings(){toggleBodyScroll(true);document.getElementById('settings-overlay').classList.remove('overlay-hidden');document.getElementById('settings-content').innerHTML=`<div><div class="section-title">Daten</div><button onclick="exportData()" class="glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full mb-3 active:scale-95"><div class="bg-indigo-500/20 p-2 rounded-lg text-indigo-500"><i data-lucide="download"></i></div><span>Backup erstellen</span></button><div class="relative glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full active:scale-95"><div class="bg-emerald-500/20 p-2 rounded-lg text-emerald-500"><i data-lucide="upload"></i></div><span>Backup einspielen</span><input type="file" accept=".json" onchange="importData(event)" class="absolute inset-0 opacity-0 cursor-pointer"></div></div><div><div class="section-title text-red-500/80">Zone</div><button onclick="performReset()" class="p-4 rounded-xl bg-red-900/10 text-red-500 font-bold border border-red-500/20 flex gap-3 items-center w-full active:scale-95"><div class="bg-red-500/20 p-2 rounded-lg"><i data-lucide="alert-triangle"></i></div><span>Zurücksetzen</span></button></div><div class="text-center text-[10px] text-zinc-600 font-mono pt-4">Filament Pool v9.7<br>MN.CONCEPTS</div>`;if(window.lucide)lucide.createIcons();}
+        function closeSettings(){toggleBodyScroll(false);document.getElementById('settings-overlay').classList.add('overlay-hidden');}
+        function closeTools(){toggleBodyScroll(false);document.getElementById('tools-overlay').classList.add('overlay-hidden');}
+        function renderToolHeader(t,b){document.getElementById('tools-header').innerHTML=`<div class="flex items-center gap-3"><button onclick="${b}" class="p-2 bg-zinc-800 rounded-full text-zinc-400"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><h2 class="text-xl font-bold text-white">${t}</h2></div>`;if(window.lucide)lucide.createIcons();}
+
+        /* --- AMS HELPERS --- */
+        function handleAMSSlotClick(i){if(prodWeight>0&&amsSlots[i])requestBooking(amsSlots[i],prodWeight);}
+        function clearAMSSlot(i){openCustomConfirm("Entfernen","Löschen?",()=>{amsSlots[i]=null;save();renderProductionTool();});}
+        function openAMSPicker(i){activeAMSSlotIndex=i;document.getElementById('ams-picker-overlay').classList.remove('overlay-hidden');const l=document.getElementById('ams-picker-list');l.innerHTML='';[...spools].sort((a,b)=>a.number-b.number).forEach(s=>{if(!amsSlots.includes(s.number)){const v=getVisuals(s);l.innerHTML+=`<div onclick="assignSpoolToAMS(${s.number})" class="flex items-center gap-3 p-3 bg-zinc-900 border border-white/5 rounded-xl cursor-pointer active:bg-zinc-800"><div class="font-mono font-bold text-zinc-500 w-8">#${s.number}</div><div class="w-3 h-3 rounded-full" style="background-color:${v.hex}"></div><div class="flex-grow"><div class="text-xs font-bold text-white">${v.name}</div><div class="text-[10px] text-zinc-500">${s.material}</div></div><div class="text-xs font-mono text-emerald-500">${getWeight(s)}g</div></div>`;}});if(l.innerHTML==='')l.innerHTML='<div class="text-zinc-500 text-center text-sm p-4">Keine freien Spulen.</div>';}
+        function closeAMSPicker(){document.getElementById('ams-picker-overlay').classList.add('overlay-hidden');}
+        function assignSpoolToAMS(id){amsSlots[activeAMSSlotIndex]=id;save();closeAMSPicker();renderProductionTool();}
+        function adjProd(a){prodWeight=a===0?0:prodWeight+a;document.getElementById('prod-display').innerText=prodWeight;updateProductionResults();}
+        function updateProductionResults(){const r=document.getElementById('prod-results');if(!r)return;const fm=document.getElementById('prod-mat').value,fb=document.getElementById('prod-brand').value,fc=document.getElementById('prod-col').value;lastProdState={mat:fm,brand:fb,col:fc};if(prodWeight===0){r.innerHTML='<div class="text-center text-zinc-600 text-xs py-10 flex flex-col items-center gap-2"><i data-lucide="arrow-up" class="w-5 h-5 animate-bounce"></i><span>Gewicht wählen...</span></div>';if(window.lucide)lucide.createIcons();return;}const m=spools.filter(s=>{const w=getWeight(s);return !(w<prodWeight||(fm&&s.material!==fm)||(fb&&s.brand!==fb)||(fc&&s.color!==fc));}).sort((a,b)=>getWeight(a)-getWeight(b));if(m.length===0){r.innerHTML='<div class="text-center text-red-500/70 text-xs font-bold py-4 bg-red-500/5 rounded-xl border border-red-500/10">Nichts gefunden.</div>';return;}r.innerHTML=`<div class="section-title text-emerald-500 mb-2 pl-2">Verfügbar (${m.length})</div>`;m.forEach(s=>{const v=getVisuals(s); const w=getWeight(s); r.innerHTML+=`<div onclick="requestBooking(${s.number},${prodWeight})" class="spool-card mini-card border-emerald-500/20 active:scale-95"><div style="transform:scale(0.7);transform-origin:left center;">${getSpoolVisualHtml(s)}</div><div class="ml-3 flex-grow min-w-0"><div class="flex justify-between items-center mb-0.5"><span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">${s.material}</span><span class="font-mono font-bold text-zinc-500 text-xs">#${s.number}</span></div><div class="text-xs font-bold text-white truncate mb-1">${v.name}</div><div class="flex items-center justify-between mt-1"><span class="text-[9px] bg-zinc-800 px-1.5 rounded text-zinc-400 border border-white/5 truncate max-w-[50px]">${s.brand||'-'}</span><span class="text-[10px] font-mono font-bold text-emerald-400">${w}g</span></div></div><button onclick="event.stopPropagation();openModal(${s.number},'Lager')" class="p-2 text-zinc-500"><i data-lucide="settings-2" class="w-4 h-4"></i></button></div>`;});if(window.lucide)lucide.createIcons();}
+        function requestBooking(id,g){pendingBooking={id,g};document.getElementById('confirm-booking-msg').innerText=`${g}g buchen?`;document.getElementById('btn-confirm-book').onclick=()=>executeBooking();document.getElementById('confirm-booking-overlay').classList.remove('hidden');}
+        function executeBooking(){
+            if(!pendingBooking) return;
+            const{id,g}=pendingBooking;
+            const s=spools.find(x=>x.number===id);
+            if(s){
+                // USE FLOAT FOR PRECISION
+                const cap = s.capacity || 1000;
+                const percentUsed = (g / cap) * 100;
+                
+                // FIXED: REMOVED Math.round to allow decimal percentages (e.g. 0.5%)
+                s.level = Math.max(0, s.level - percentUsed);
+                
+                save();
+                toast(`-${g}g verbucht!`);
                 renderProductionTool();
             }
             closeConfirmBooking();
         }
-
-        function closeConfirmBooking() { document.getElementById('confirm-booking-overlay').classList.add('hidden'); pendingBooking = null; }
-
-        /* --- SHOPPING --- */
-        function renderShoppingList() {
-            renderToolHeader('Einkaufsliste', 'openTools()');
-            const c = document.getElementById('tools-content');
-            let h = `<div class="flex justify-end mb-4"><button onclick="openNewShopItemModal()" class="bg-emerald-600 px-4 py-2 rounded-lg text-white font-bold text-sm flex gap-2 items-center active:scale-95 transition-transform"><i data-lucide="plus"></i> Hinzufügen</button></div>`;
-            if(db.shop.length === 0) h += '<div class="text-zinc-500 italic text-center py-10">Alles erledigt.</div>';
-            db.shop.forEach((i, idx) => {
-                const vis = getVisuals(i);
-                h += `<div onclick="openModal(${idx}, 'Shop')" class="spool-card mini-card mb-2"><div style="transform: scale(0.7); transform-origin: left center;">${getSpoolVisualHtml(i)}</div><div class="ml-3 flex-grow min-w-0"><div class="flex justify-between items-center mb-0.5"><span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">${i.material}</span><span class="font-mono font-bold text-indigo-400 text-xs flex items-center gap-1"><i data-lucide="shopping-bag" class="w-3 h-3 inline"></i> SHOP</span></div><div class="text-xs font-bold text-white truncate mb-1">${vis.name}</div><div class="flex justify-between items-center mt-1"><span class="text-[9px] bg-zinc-800 px-1.5 rounded text-zinc-400 border border-white/5">${i.brand || '---'}</span><div class="flex gap-3"><button onclick="event.stopPropagation(); buyShopItem(${idx})" class="text-emerald-500 bg-emerald-500/10 p-1.5 rounded-lg active:scale-90"><i data-lucide="check" class="w-4 h-4"></i></button><button onclick="event.stopPropagation(); delShopItem(${idx})" class="text-red-500 bg-red-500/10 p-1.5 rounded-lg active:scale-90"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div></div></div>`;
-            });
-            c.innerHTML = h;
-            if(window.lucide) lucide.createIcons();
-        }
-
-        function openNewShopItemModal() { openModal(null, 'ShopNew'); }
-        function buyShopItem(idx) { const i = db.shop[idx]; let next=1; const nums=db.inv.map(s=>s.number).sort((a,b)=>a-b); for(let n of nums) if(n===next) next++; db.inv.push({...i, number:next, level:100, createdAt:new Date().toISOString(), isCalibrated: false}); db.shop.splice(idx,1); save(); renderShoppingList(); toast("Gekauft!"); }
-        function delShopItem(idx) { db.shop.splice(idx,1); save(); renderShoppingList(); }
-
-        /* --- SETTINGS --- */
-        function openSettings() {
-            document.getElementById('settings-overlay').classList.remove('overlay-hidden');
-            document.getElementById('settings-content').innerHTML = `<div><div class="section-title">Datenverwaltung</div><button onclick="exportData()" class="glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full mb-3 active:scale-95 transition-transform"><div class="bg-indigo-500/20 p-2 rounded-lg text-indigo-500"><i data-lucide="download"></i></div><span>Backup erstellen</span></button><div class="relative glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full active:scale-95 transition-transform"><div class="bg-emerald-500/20 p-2 rounded-lg text-emerald-500"><i data-lucide="upload"></i></div><span>Backup einspielen</span><input type="file" accept=".json" onchange="importData(event)" class="absolute inset-0 opacity-0 cursor-pointer"></div></div><div><div class="section-title text-red-500/80">Gefahrenzone</div><button onclick="performReset()" class="p-4 rounded-xl bg-red-900/10 text-red-500 font-bold border border-red-500/20 flex gap-3 items-center w-full active:scale-95 transition-transform"><div class="bg-red-500/20 p-2 rounded-lg"><i data-lucide="alert-triangle"></i></div><span>Datenbank zurücksetzen</span></button></div><div class="text-center text-[10px] text-zinc-600 font-mono pt-4">Filament Pool v8.5.2<br>MN.CONCEPTS</div>`;
-            if(window.lucide) lucide.createIcons();
-        }
-        function closeSettings() { document.getElementById('settings-overlay').classList.add('overlay-hidden'); }
-        function closeTools() { document.getElementById('tools-overlay').classList.add('overlay-hidden'); }
-        function renderToolHeader(t, b) { document.getElementById('tools-header').innerHTML = `<div class="flex items-center gap-3"><button onclick="${b}" class="p-2 bg-zinc-800 rounded-full text-zinc-400"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><h2 class="text-xl font-bold text-white">${t}</h2></div>`; if(window.lucide) lucide.createIcons(); }
+        function closeConfirmBooking(){document.getElementById('confirm-booking-overlay').classList.add('hidden');pendingBooking=null;}
 
         /* --- UTILS --- */
-        function setupCustomConfirm() { document.getElementById('btn-confirm-action').onclick = function() { if(confirmCallback) confirmCallback(); closeConfirm(); }; }
-        function openCustomConfirm(title, msg, fn) {
-            document.getElementById('confirm-title').innerText = title;
-            document.getElementById('confirm-msg').innerText = msg;
-            confirmCallback = fn;
-            document.getElementById('confirm-overlay').classList.remove('hidden');
-        }
-        function closeConfirm() { document.getElementById('confirm-overlay').classList.add('hidden'); confirmCallback = null; }
-        function toast(msg) {
-            const t = document.getElementById('toast');
-            t.innerText = msg;
-            t.style.opacity = '1';
-            t.style.transform = 'translate(-50%, 0)';
-            setTimeout(() => {
-                t.style.opacity = '0';
-                t.style.transform = 'translate(-50%, -20px)';
-            }, 2000);
-        }
-        function toggleSort() {
-            const m = ['id', 'mat', 'date_new', 'date_old', 'level'];
-            sortMode = m[(m.indexOf(sortMode) + 1) % m.length];
-            renderLager();
-        }
-        function openDeleteDialog() { if(activeCtx !== 'Lager') return; document.getElementById('delete-overlay').classList.remove('hidden'); }
-        function closeDeleteDialog() { document.getElementById('delete-overlay').classList.add('hidden'); }
-        function confirmDeletion(toShop) {
-            if(toShop) copyToShop();
-            spools = spools.filter(s => s.number !== activeId);
-            amsSlots = amsSlots.map(id => id === activeId ? null : id);
-            save(); closeDeleteDialog(); closeModal(); toast(toShop ? "Auf Einkaufsliste & gelöscht" : "Gelöscht");
-        }
-        
-        function performReset() {
-            openCustomConfirm("Zurücksetzen", "Alle Daten unwiderruflich löschen?", () => {
-                localStorage.clear();
-                spools = []; shopItems = []; amsSlots = [null, null, null, null];
-                save(); closeSettings(); toast("App zurückgesetzt");
-                setTimeout(()=>location.reload(), 500); 
-            });
-        }
-        function exportData() {
-            const b = new Blob([JSON.stringify({inv:spools, shop:shopItems, ams:amsSlots, date:new Date().toISOString()}, null, 2)], {type: 'application/json'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `filament_backup_${new Date().toISOString().split('T')[0]}.json`; a.click();
-            localStorage.setItem('fpool_last_backup', Date.now()); toast("Backup erstellt!");
-        }
-        function importData(e) {
-            const f = e.target.files[0]; if(!f) return;
-            const r = new FileReader();
-            r.onload = (ev) => {
-                try {
-                    const d = JSON.parse(ev.target.result);
-                    if(d.inv) {
-                        pendingImportData = d;
-                        openCustomConfirm("Importieren", "Vorhandene Daten überschreiben?", () => {
-                            spools = pendingImportData.inv;
-                            shopItems = pendingImportData.shop || [];
-                            if(pendingImportData.ams) amsSlots = pendingImportData.ams;
-                            save(); closeSettings(); toast("Import erfolgreich!");
-                        });
-                    }
-                } catch(err) { toast("Fehler beim Lesen!"); }
-            };
-            r.readAsText(f);
-        }
+        function setupCustomConfirm(){document.getElementById('btn-confirm-action').onclick=function(){if(confirmCallback)confirmCallback();closeConfirm();};}
+        function openCustomConfirm(t,m,fn){document.getElementById('confirm-title').innerText=t;document.getElementById('confirm-msg').innerText=m;confirmCallback=fn;document.getElementById('confirm-overlay').classList.remove('hidden');}
+        function closeConfirm(){document.getElementById('confirm-overlay').classList.add('hidden');confirmCallback=null;}
+        function toast(m){const t=document.getElementById('toast');t.innerText=m;t.style.opacity='1';t.style.transform='translate(-50%,0)';setTimeout(()=>{t.style.opacity='0';t.style.transform='translate(-50%,-20px)';},2000);}
+        // function toggleSort() REMOVED
+        function openDeleteDialog(){if(activeCtx!=='Lager')return;document.getElementById('delete-overlay').classList.remove('hidden');}
+        function closeDeleteDialog(){document.getElementById('delete-overlay').classList.add('hidden');}
+        function confirmDeletion(s){if(s)copyToShop();spools=spools.filter(x=>x.number!==activeId);amsSlots=amsSlots.map(i=>i===activeId?null:i);save();closeDeleteDialog();closeModal();toast(s?"Verschoben & Gelöscht":"Gelöscht");}
+        function performReset(){openCustomConfirm("Reset","Alles löschen?",()=>{localStorage.clear();spools=[];shopItems=[];amsSlots=[null,null,null,null];save();closeSettings();toast("Reset OK");setTimeout(()=>location.reload(),500);});}
+        function exportData(){const b=new Blob([JSON.stringify({inv:spools,shop:shopItems,ams:amsSlots,date:new Date().toISOString()},null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=`filament_backup_${new Date().toISOString().split('T')[0]}.json`;a.click();localStorage.setItem('fpool_last_backup',Date.now());toast("Backup OK");}
+        function importData(e){const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=(ev)=>{try{const d=JSON.parse(ev.target.result);if(d.inv){pendingImportData=d;openCustomConfirm("Import","Überschreiben?",()=>{spools=pendingImportData.inv;shopItems=pendingImportData.shop||[];if(pendingImportData.ams)amsSlots=pendingImportData.ams;save();closeSettings();toast("Import OK");});}}catch(err){toast("Fehler!");}};r.readAsText(f);}
+        function openNewShopItemModal(){openModal(null,'ShopNew');}
+        function buyShopItem(x){const i=shopItems[x];let n=1;const nums=spools.map(s=>s.number).sort((a,b)=>a-b);for(let k of nums)if(k===n)n++;spools.push({...i,number:n,level:100,capacity:1000,createdAt:new Date().toISOString(),isCalibrated:false});shopItems.splice(x,1);save();renderShoppingList();toast("Gekauft!");}
+        function delShopItem(x){shopItems.splice(x,1);save();renderShoppingList();}
     </script>
 </body>
 </html>
