@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Filament">
     
-    <title>Filament Pool v9.7</title>
+    <title>Filament Pool v10.2</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -18,8 +18,11 @@
         body { background-color: var(--app-bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #e4e4e7; width: 100vw; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
         body.no-scroll { position: fixed; overflow: hidden; width: 100%; height: 100%; }
 
+        /* iOS Safe Area Fixes */
         .safe-top { padding-top: max(env(safe-area-inset-top), 20px); }
         .safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 20px); }
+        .modal-header-pad { padding-top: max(env(safe-area-inset-top), 40px); }
+
         .fade-in { animation: fadeIn 0.3s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -32,17 +35,24 @@
         .spool-card:active { transform: scale(0.98); background: #27272a; }
         .mini-card { padding: 10px; gap: 12px; }
 
-        /* Visuals */
+        /* Visuals & Looks */
         .spool-icon { width: 24px; height: 48px; display: flex; justify-content: space-between; flex-shrink: 0; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5)); }
         .spool-flange { width: 4px; height: 100%; background: linear-gradient(90deg, #222, #444 40%, #111); border-radius: 2px; border: 1px solid #000; z-index: 2; }
+        
+        /* Base Spool Body */
         .spool-body { flex-grow: 1; height: 88%; margin: 0 -1px; z-index: 1; background-color: var(--fil-color); background-image: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.6) 100%), repeating-linear-gradient(90deg, transparent 0px, transparent 1px, rgba(0,0,0,0.1) 2px); }
+        
+        /* Specific Looks */
         .look-silk .spool-body { background-image: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(255,255,255,0.8) 40%, rgba(0,0,0,0.4) 100%); }
         .look-metallic .spool-body { background-image: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%), linear-gradient(0deg, rgba(0,0,0,0.8) 0%, #fff 20%, rgba(0,0,0,0.8) 50%, #fff 80%, rgba(0,0,0,0.8) 100%); }
         .look-translucent .spool-body { opacity: 0.6; }
         .look-matte .spool-body { background-image: linear-gradient(0deg, rgba(0,0,0,0.4) 0%, rgba(255,255,255,0.05) 50%, rgba(0,0,0,0.4) 100%); filter: contrast(0.9); }
         .look-cf .spool-body { background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.2) 0px, rgba(0,0,0,0.2) 2px, transparent 2px, transparent 4px), linear-gradient(0deg, rgba(0,0,0,0.7) 0%, #333 50%, rgba(0,0,0,0.7) 100%); }
         .look-glow .spool-body { box-shadow: inset 0 0 10px rgba(255,255,255,0.5); filter: brightness(1.2); }
-        .look-galaxy .spool-body { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.3) 0px, rgba(255,255,255,0.3) 1px, transparent 1px, transparent 10px); }
+        .look-galaxy .spool-body { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.4) 0px, rgba(255,255,255,0.4) 1px, transparent 1px, transparent 8px), linear-gradient(0deg, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.5) 100%); }
+        .look-wood .spool-body { background-image: repeating-linear-gradient(90deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 5px), linear-gradient(0deg, rgba(0,0,0,0.3) 0%, transparent 50%, rgba(0,0,0,0.3) 100%); }
+        .look-stone .spool-body { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.4'/%3E%3C/svg%3E"), linear-gradient(0deg, rgba(0,0,0,0.4) 0%, transparent 50%, rgba(0,0,0,0.4) 100%); }
+        .look-rainbow .spool-body { background: var(--fil-gradient); opacity: 0.9; }
 
         /* Inputs */
         input, select, textarea { font-size: 16px !important; background: #27272a; color: white; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); outline: none; }
@@ -54,9 +64,13 @@
         /* Color Grid */
         .color-option { display: flex; flex-direction: column; align-items: center; width: 60px; cursor: pointer; flex-shrink: 0; }
         .color-option:active .color-bubble { transform: scale(0.95); }
-        .color-bubble { width: 38px; height: 38px; border-radius: 50%; border: 2px solid #3f3f46; position: relative; transition: transform 0.1s; margin-bottom: 4px; }
+        .color-bubble { width: 38px; height: 38px; border-radius: 50%; border: 2px solid #3f3f46; position: relative; transition: transform 0.1s; margin-bottom: 4px; overflow: hidden;}
         .color-bubble.active { border-color: #fff; transform: scale(1.1); box-shadow: 0 0 0 2px rgba(255,255,255,0.1); z-index: 10; }
         .color-label { font-size: 9px; color: #a1a1aa; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+        /* Special bubble looks */
+        .color-bubble.look-wood { background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 5px); }
+        .color-bubble.look-galaxy { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.4) 0px, rgba(255,255,255,0.4) 1px, transparent 1px, transparent 8px); }
+        .color-bubble.look-stone { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.4'/%3E%3C/svg%3E"); }
 
         /* AMS */
         .ams-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px; width: 100%; margin: 0 auto 24px auto; position: relative; }
@@ -83,10 +97,13 @@
         .tool-icon-large { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .calc-btn { background: #27272a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; font-weight: bold; color: white; transition: 0.1s; }
         .calc-btn:active { background: #3f3f46; transform: scale(0.95); }
+        
         .sort-btn-row { width: 100%; text-align: left; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: bold; color: #a1a1aa; display: flex; justify-content: space-between; align-items: center; }
         .sort-btn-row.active { color: #818cf8; }
         .sort-btn-row:last-child { border-bottom: none; }
         .sort-btn-row:active { background: rgba(255,255,255,0.05); }
+        .sort-arrow { transition: transform 0.2s; }
+        .sort-arrow.desc { transform: rotate(180deg); }
 
         /* Modals & Scroll */
         .overlay-base { z-index: 100; position: fixed; inset: 0; background: #09090b; display: flex; flex-direction: column; height: 100%; width: 100%; transition: opacity 0.3s; }
@@ -110,7 +127,7 @@
     <div id="splash" class="fixed inset-0 bg-[#09090b] z-[9999] flex flex-col items-center justify-center transition-opacity duration-500">
         <div class="mb-4 text-indigo-500"><i data-lucide="disc" class="w-16 h-16"></i></div>
         <h1 class="text-3xl font-black tracking-tighter logo-gradient">FILAMENT</h1>
-        <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">MN.CONCEPTS v9.7</p>
+        <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">MN.CONCEPTS v10.2</p>
     </div>
 
     <!-- MAIN APP -->
@@ -123,7 +140,7 @@
             </div>
         </div>
         <div class="mb-6 flex gap-2">
-            <div class="relative flex-grow"><i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"></i><input type="text" id="search-input" oninput="render()" placeholder="Suchen..." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3.5 pl-11 pr-4 text-white text-sm focus:border-indigo-500"></div>
+            <div class="relative flex-grow"><i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500"></i><input type="text" id="search-input" oninput="render()" placeholder="Suchen (z.B. Blau, PLA)..." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl py-3.5 pl-11 pr-4 text-white text-sm focus:border-indigo-500"></div>
             <!-- SORT BUTTON -->
             <button onclick="openSortMenu()" class="bg-zinc-900 border border-zinc-800 rounded-xl px-4 flex items-center justify-center min-w-[50px] text-indigo-400 active:bg-zinc-800 gap-2">
                 <i data-lucide="arrow-up-down" class="w-4 h-4"></i>
@@ -133,7 +150,9 @@
         </div>
         
         <!-- Active Sort Indicator -->
-        <div id="active-sort-indicator" class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mb-3 pl-2 hidden">Sortiert nach: <span id="sort-name" class="text-indigo-400">ID</span></div>
+        <div id="active-sort-indicator" class="text-[10px] text-zinc-500 uppercase font-bold tracking-widest mb-3 pl-2 hidden">
+            Sortiert nach: <span id="sort-name" class="text-indigo-400">ID</span> <span id="sort-dir-arrow"></span>
+        </div>
         
         <div id="spool-list" class="grid grid-cols-2 gap-3 pb-24 relative z-10"></div>
         <div id="empty-state" class="hidden text-center py-10 text-zinc-600 text-sm">Lager ist leer.</div>
@@ -141,26 +160,25 @@
 
     <!-- SORT OVERLAY -->
     <div id="sort-overlay" class="overlay-base overlay-hidden bg-black/80 backdrop-blur-sm" onclick="closeSortMenu()">
-        <div class="absolute bottom-0 w-full max-w-md mx-auto bg-[#18181b] rounded-t-3xl border-t border-white/10 p-2 safe-bottom" onclick="event.stopPropagation()">
+        <div class="absolute bottom-0 left-0 right-0 w-full max-w-md mx-auto bg-[#18181b] rounded-t-3xl border-t border-white/10 p-2 safe-bottom" onclick="event.stopPropagation()">
             <div class="w-12 h-1 bg-zinc-700 rounded-full mx-auto my-3"></div>
             <div class="section-title text-center mb-2">Sortieren nach</div>
-            <button onclick="setSortMode('id')" class="sort-btn-row" id="sort-btn-id"><span>Nummer (ID)</span><i data-lucide="check" class="opacity-0"></i></button>
-            <button onclick="setSortMode('mat')" class="sort-btn-row" id="sort-btn-mat"><span>Material (Typ)</span><i data-lucide="check" class="opacity-0"></i></button>
-            <button onclick="setSortMode('color')" class="sort-btn-row" id="sort-btn-color"><span>Farbe</span><i data-lucide="check" class="opacity-0"></i></button>
-            <button onclick="setSortMode('brand')" class="sort-btn-row" id="sort-btn-brand"><span>Marke</span><i data-lucide="check" class="opacity-0"></i></button>
-            <button onclick="setSortMode('amount')" class="sort-btn-row" id="sort-btn-amount"><span>Menge (Gewicht)</span><i data-lucide="check" class="opacity-0"></i></button>
-            <button onclick="setSortMode('date_new')" class="sort-btn-row" id="sort-btn-date_new"><span>Datum (Neu zuerst)</span><i data-lucide="check" class="opacity-0"></i></button>
+            <button onclick="setSortMode('id')" class="sort-btn-row" id="sort-btn-id"><span>Nummer (ID)</span><i data-lucide="arrow-up" class="sort-arrow"></i></button>
+            <button onclick="setSortMode('mat')" class="sort-btn-row" id="sort-btn-mat"><span>Material (Typ)</span><i data-lucide="arrow-up" class="sort-arrow"></i></button>
+            <button onclick="setSortMode('color')" class="sort-btn-row" id="sort-btn-color"><span>Farbe</span><i data-lucide="arrow-up" class="sort-arrow"></i></button>
+            <button onclick="setSortMode('brand')" class="sort-btn-row" id="sort-btn-brand"><span>Marke</span><i data-lucide="arrow-up" class="sort-arrow"></i></button>
+            <button onclick="setSortMode('amount')" class="sort-btn-row" id="sort-btn-amount"><span>Menge (Gewicht)</span><i data-lucide="arrow-up" class="sort-arrow"></i></button>
+            <button onclick="setSortMode('date_new')" class="sort-btn-row" id="sort-btn-date_new"><span>Datum</span><i data-lucide="arrow-up" class="sort-arrow"></i></button>
         </div>
     </div>
 
     <!-- EDITOR MODAL -->
     <div id="modal-overlay" class="overlay-base overlay-hidden bg-black/50 backdrop-blur-sm">
-        <div id="modal-content" class="modal-slide w-full max-w-md mx-auto bg-[#09090b] h-full flex flex-col safe-top safe-bottom p-5 shadow-2xl">
+        <div id="modal-content" class="modal-slide w-full max-w-md mx-auto bg-[#09090b] h-full flex flex-col modal-header-pad safe-bottom p-5 shadow-2xl">
             <div class="flex justify-between items-center mb-4 flex-shrink-0">
                 <div>
                     <div class="section-title">Bearbeiten</div>
                     <div class="id-select-wrapper">
-                        <!-- ID SELECT (Replaces input) -->
                         <select id="input-spool-id-select" class="id-select" disabled></select>
                         <i data-lucide="chevron-down" id="id-select-arrow" class="id-select-arrow hidden"></i>
                     </div>
@@ -174,7 +192,7 @@
             <div class="scroll-container space-y-6" id="editor-scroll-area">
                 <div id="level-section" class="bg-zinc-900/50 p-4 rounded-2xl border border-white/5">
                     <div class="flex justify-between text-xs text-zinc-400 font-bold mb-3"><span>0%</span> <span id="level-display" class="text-indigo-400">100%</span> <span>100%</span></div>
-                    <input type="range" id="input-level" min="0" max="100" step="5" oninput="updateLevelDisplay(this.value)">
+                    <input type="range" id="input-level" min="0" max="100" step="0.5" oninput="updateLevelDisplay(this.value)">
                 </div>
 
                 <!-- HYBRID COLOR PICKER -->
@@ -182,7 +200,7 @@
                     <label class="section-title block mb-2">Farbe</label>
                     <div class="flex gap-2 mb-3">
                         <div class="relative flex-grow">
-                            <input type="text" id="input-color-name" oninput="filterColorBubbles(this.value)" placeholder="Farbe eingeben..." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3.5 pl-12 text-white outline-none font-bold">
+                            <input type="text" id="input-color-name" oninput="filterColorBubbles(this.value)" placeholder="Farbe eingeben (z.B. 'Rot' oder 'Silk')..." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3.5 pl-12 text-white outline-none font-bold">
                             <div class="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border border-white/20 shadow-sm" id="color-preview-dot" style="background-color: #fff;"></div>
                         </div>
                         <div class="relative w-12 flex-shrink-0">
@@ -251,59 +269,139 @@
         const MATS=["PLA","PETG","ABS","ASA","TPU","PC","PA","Wood","Carbon"];
         const HYGRO_MATS=["PETG","ABS","ASA","TPU","PC","PA","Carbon"];
         
+        // --- EXPANDED COLOR DB (v10.2) ---
         const ALL_COLORS = [
-            // Basics
-            {name:"White",hex:"#FFFFFF",look:"plain"},{name:"Black",hex:"#18181b",look:"plain"},{name:"Grey",hex:"#71717a",look:"plain"},
-            {name:"Dark Grey",hex:"#3f3f46",look:"plain"},{name:"Light Grey",hex:"#d4d4d8",look:"plain"},
-            
-            // Reds / Pinks
-            {name:"Red",hex:"#ef4444",look:"plain"},{name:"Dark Red",hex:"#991b1b",look:"plain"},
-            {name:"Orange",hex:"#f97316",look:"plain"},{name:"Yellow",hex:"#eab308",look:"plain"},
-            {name:"Pink",hex:"#ec4899",look:"plain"},{name:"Magenta",hex:"#d946ef",look:"plain"},
-            {name:"Purple",hex:"#a855f7",look:"plain"},{name:"Violet",hex:"#7c3aed",look:"plain"},
-            
-            // Blues / Greens
-            {name:"Blue",hex:"#3b82f6",look:"plain"},{name:"Navy",hex:"#1e3a8a",look:"plain"},
-            {name:"Sky Blue",hex:"#7dd3fc",look:"plain"},{name:"Teal",hex:"#14b8a6",look:"plain"},
-            {name:"Green",hex:"#22c55e",look:"plain"},{name:"Dark Green",hex:"#14532d",look:"plain"},
-            {name:"Lime",hex:"#84cc16",look:"plain"},{name:"Olive",hex:"#3f4f3a",look:"plain"},
-            {name:"Mint",hex:"#6ee7b7",look:"plain"},
-            
-            // Naturals
-            {name:"Brown",hex:"#78350f",look:"plain"},{name:"Beige",hex:"#d6d3d1",look:"plain"},
-            {name:"Tan",hex:"#d4a373",look:"plain"},{name:"Bone",hex:"#e5e5e5",look:"plain"},
+            // 1. YELLOW & GOLD
+            {name:"Yellow",hex:"#FFFF00",look:"plain"},{name:"Lemon Yellow",hex:"#FFF700",look:"plain"},{name:"Sun Yellow",hex:"#FFD700",look:"plain"},
+            {name:"Golden Yellow",hex:"#FFC000",look:"plain"},{name:"Maize",hex:"#FBEC5D",look:"plain"},{name:"Signal Yellow",hex:"#F2C618",look:"plain"},
+            {name:"Silk Yellow",hex:"#FFFF00",look:"silk"},{name:"Silk Gold",hex:"#FFD700",look:"silk"},{name:"Silk Champagne",hex:"#F7E7CE",look:"silk"},
+            {name:"Silk Light Gold",hex:"#F1E5AC",look:"silk"},{name:"Silk Antique Gold",hex:"#CFB53B",look:"silk"},{name:"Silk Brass",hex:"#B5A642",look:"silk"},
+            {name:"Silk Lime-Yellow",hex:"#DFFF00",look:"silk"},
+            {name:"Matte Yellow",hex:"#FFFF00",look:"matte"},{name:"Matte Mustard",hex:"#FFDB58",look:"matte"},{name:"Matte Ocher",hex:"#CC7722",look:"matte"},
+            {name:"Transparent Yellow",hex:"#FFFF00",look:"translucent"},{name:"Neon Yellow",hex:"#CCFF00",look:"plain"},{name:"Glow Yellow",hex:"#FFFFE0",look:"glow"},
+            {name:"Galaxy Gold",hex:"#FFD700",look:"galaxy"},{name:"Banana",hex:"#FFE135",look:"plain"},
 
-            // Matte
-            {name:"Matte Black",hex:"#111111",look:"matte"},{name:"Matte White",hex:"#f5f5f5",look:"matte"},
-            {name:"Matte Grey",hex:"#52525b",look:"matte"},{name:"Matte Navy",hex:"#172554",look:"matte"},
-            {name:"Matte Olive",hex:"#36453b",look:"matte"},{name:"Matte Red",hex:"#7f1d1d",look:"matte"},
-            {name:"Matte Teal",hex:"#134e4a",look:"matte"},{name:"Matte Purple",hex:"#581c87",look:"matte"},
-            
-            // Silk
-            {name:"Silk Gold",hex:"#fbbf24",look:"silk"},{name:"Silk Silver",hex:"#cbd5e1",look:"silk"},
-            {name:"Silk Copper",hex:"#fdba74",look:"silk"},{name:"Silk Bronze",hex:"#b45309",look:"silk"},
-            {name:"Silk Red",hex:"#dc2626",look:"silk"},{name:"Silk Blue",hex:"#2563eb",look:"silk"},
-            {name:"Silk Green",hex:"#16a34a",look:"silk"},{name:"Silk Purple",hex:"#9333ea",look:"silk"},
-            {name:"Silk White",hex:"#ffffff",look:"silk"},{name:"Silk Black",hex:"#27272a",look:"silk"},
-            
-            // Galaxy / Sparkle (Using Galaxy look)
-            {name:"Galaxy Black",hex:"#09090b",look:"galaxy"},{name:"Galaxy Red",hex:"#7f1d1d",look:"galaxy"},
-            {name:"Galaxy Blue",hex:"#1e3a8a",look:"galaxy"},{name:"Galaxy Purple",hex:"#581c87",look:"galaxy"},
-            {name:"Galaxy Green",hex:"#14532d",look:"galaxy"},{name:"Galaxy Grey",hex:"#3f3f46",look:"galaxy"},
-            
-            // CF / Special
-            {name:"CF Black",hex:"#0a0a0a",look:"cf"},{name:"CF Grey",hex:"#27272a",look:"cf"},
-            {name:"Glow Green",hex:"#d9f99d",look:"glow"},{name:"Glow Blue",hex:"#bae6fd",look:"glow"},
-            {name:"Marble",hex:"#f1f5f9",look:"marble"},
-            
-            // Translucent
-            {name:"Clear",hex:"#e2e8f0",look:"translucent"},{name:"Trans Red",hex:"#fca5a5",look:"translucent"},
-            {name:"Trans Blue",hex:"#93c5fd",look:"translucent"},{name:"Trans Green",hex:"#86efac",look:"translucent"},
+            // 2. BLUE
+            {name:"Blue",hex:"#0000FF",look:"plain"},{name:"Sky Blue",hex:"#87CEEB",look:"plain"},{name:"Navy Blue",hex:"#000080",look:"plain"},
+            {name:"Royal Blue",hex:"#4169E1",look:"plain"},{name:"Electric Blue",hex:"#7DF9FF",look:"plain"},{name:"Baby Blue",hex:"#89CFF0",look:"plain"},
+            {name:"Midnight Blue",hex:"#191970",look:"plain"},{name:"Cyan",hex:"#00FFFF",look:"plain"},{name:"Turquoise",hex:"#40E0D0",look:"plain"},
+            {name:"Teal",hex:"#008080",look:"plain"},
+            {name:"Silk Blue",hex:"#0000FF",look:"silk"},{name:"Silk Light Blue",hex:"#ADD8E6",look:"silk"},{name:"Silk Dark Blue",hex:"#00008B",look:"silk"},
+            {name:"Silk Cyan",hex:"#00FFFF",look:"silk"},{name:"Silk Teal",hex:"#008080",look:"silk"},{name:"Silk Ice Blue",hex:"#F0F8FF",look:"silk"},
+            {name:"Matte Blue",hex:"#0000FF",look:"matte"},{name:"Matte Navy",hex:"#000080",look:"matte"},{name:"Matte Teal",hex:"#008080",look:"matte"},
+            {name:"Matte Ice Blue",hex:"#F0F8FF",look:"matte"},
+            {name:"Galaxy Blue",hex:"#0000FF",look:"galaxy"},{name:"Starlight Blue",hex:"#191970",look:"galaxy"},{name:"Sparkle Blue",hex:"#4169E1",look:"galaxy"},
+            {name:"Translucent Blue",hex:"#0000FF",look:"translucent"},{name:"Glass Blue",hex:"#E0FFFF",look:"translucent"},{name:"Glow Blue",hex:"#BAE6FD",look:"glow"},
+
+            // 3. GREEN
+            {name:"Green",hex:"#008000",look:"plain"},{name:"Lime Green",hex:"#32CD32",look:"plain"},{name:"Grass Green",hex:"#7CFC00",look:"plain"},
+            {name:"Forest Green",hex:"#228B22",look:"plain"},{name:"Pine Green",hex:"#01796F",look:"plain"},{name:"Mint Green",hex:"#98FF98",look:"plain"},
+            {name:"Kelly Green",hex:"#4CBB17",look:"plain"},{name:"Emerald Green",hex:"#50C878",look:"plain"},
+            {name:"Olive Drab",hex:"#6B8E23",look:"plain"},{name:"Olive Green",hex:"#808000",look:"plain"},{name:"Army Green",hex:"#4B5320",look:"plain"},
+            {name:"Khaki Green",hex:"#F0E68C",look:"plain"},{name:"Camo Green",hex:"#78866B",look:"plain"},{name:"Ranger Green",hex:"#354A21",look:"plain"},
+            {name:"Silk Green",hex:"#008000",look:"silk"},{name:"Silk Lime",hex:"#32CD32",look:"silk"},{name:"Silk Olive",hex:"#808000",look:"silk"},
+            {name:"Silk Emerald",hex:"#50C878",look:"silk"},{name:"Silk Mint",hex:"#98FF98",look:"silk"},
+            {name:"Matte Green",hex:"#008000",look:"matte"},{name:"Matte Olive",hex:"#808000",look:"matte"},{name:"Matte Mint",hex:"#98FF98",look:"matte"},
+            {name:"Matte Army",hex:"#4B5320",look:"matte"},{name:"Matte Forest",hex:"#228B22",look:"matte"},
+            {name:"Galaxy Green",hex:"#008000",look:"galaxy"},{name:"Sparkle Green",hex:"#006400",look:"galaxy"},{name:"Vertigo Jade",hex:"#00A86B",look:"galaxy"},
+            {name:"Neon Green",hex:"#39FF14",look:"plain"},{name:"Glow Green",hex:"#D9F99D",look:"glow"},{name:"Peak Green",hex:"#228B22",look:"plain"},
+
+            // 4. RED & PINK
+            {name:"Red",hex:"#FF0000",look:"plain"},{name:"Fire Red",hex:"#FF4500",look:"plain"},{name:"Brick Red",hex:"#CB4154",look:"plain"},
+            {name:"Cherry Red",hex:"#D2042D",look:"plain"},{name:"Ruby Red",hex:"#E0115F",look:"plain"},{name:"Maroon",hex:"#800000",look:"plain"},
+            {name:"Burgundy",hex:"#800020",look:"plain"},{name:"Pink",hex:"#FFC0CB",look:"plain"},{name:"Hot Pink",hex:"#FF69B4",look:"plain"},
+            {name:"Magenta",hex:"#FF00FF",look:"plain"},{name:"Rose",hex:"#FF007F",look:"plain"},{name:"Coral",hex:"#FF7F50",look:"plain"},
+            {name:"Peach",hex:"#FFE5B4",look:"plain"},{name:"Salmon",hex:"#FA8072",look:"plain"},
+            {name:"Silk Red",hex:"#FF0000",look:"silk"},{name:"Silk Pink",hex:"#FFC0CB",look:"silk"},{name:"Silk Rose Gold",hex:"#B76E79",look:"silk"},
+            {name:"Silk Magenta",hex:"#FF00FF",look:"silk"},{name:"Silk Burgundy",hex:"#800020",look:"silk"},{name:"Silk Peach",hex:"#FFE5B4",look:"silk"},
+            {name:"Matte Red",hex:"#FF0000",look:"matte"},{name:"Matte Brick",hex:"#CB4154",look:"matte"},{name:"Matte Pink",hex:"#FFC0CB",look:"matte"},
+            {name:"Matte Maroon",hex:"#800000",look:"matte"},{name:"Galaxy Red",hex:"#FF0000",look:"galaxy"},{name:"Sparkle Red",hex:"#8B0000",look:"galaxy"},
+            {name:"Glitter Pink",hex:"#FF69B4",look:"galaxy"},{name:"Galaxy Purple (Red)",hex:"#800080",look:"galaxy"},
+            {name:"Translucent Red",hex:"#FF0000",look:"translucent"},{name:"Neon Red",hex:"#FF3333",look:"plain"},{name:"Neon Pink",hex:"#FF10F0",look:"plain"},
+            {name:"Glow Red",hex:"#FF9999",look:"glow"},
+
+            // 5. PURPLE
+            {name:"Purple",hex:"#800080",look:"plain"},{name:"Violet",hex:"#EE82EE",look:"plain"},{name:"Lilac",hex:"#C8A2C8",look:"plain"},
+            {name:"Lavender",hex:"#E6E6FA",look:"plain"},{name:"Plum",hex:"#DDA0DD",look:"plain"},{name:"Eggplant",hex:"#614051",look:"plain"},
+            {name:"Silk Purple",hex:"#800080",look:"silk"},{name:"Silk Violet",hex:"#EE82EE",look:"silk"},{name:"Silk Lilac",hex:"#C8A2C8",look:"silk"},
+            {name:"Matte Purple",hex:"#800080",look:"matte"},{name:"Matte Lavender",hex:"#E6E6FA",look:"matte"},
+            {name:"Galaxy Purple",hex:"#800080",look:"galaxy"},{name:"Wizards Voodoo",hex:"#4B0082",look:"galaxy"},{name:"Sparkle Violet",hex:"#EE82EE",look:"galaxy"},
+
+            // 6. ORANGE
+            {name:"Orange",hex:"#FFA500",look:"plain"},{name:"Sunset Orange",hex:"#FD5E53",look:"plain"},{name:"Tangerine",hex:"#F28500",look:"plain"},
+            {name:"Pumpkin",hex:"#FF7518",look:"plain"},{name:"Apricot",hex:"#FBCEB1",look:"plain"},
+            {name:"Silk Orange",hex:"#FFA500",look:"silk"},{name:"Silk Copper-Orange",hex:"#B87333",look:"silk"},
+            {name:"Matte Orange",hex:"#FFA500",look:"matte"},{name:"Matte Terracotta",hex:"#E2725B",look:"matte"},
+            {name:"Neon Orange",hex:"#FF5F1F",look:"plain"},{name:"Translucent Orange",hex:"#FFA500",look:"translucent"},
+
+            // 7. WHITE & GREY
+            {name:"White",hex:"#FFFFFF",look:"plain"},{name:"Cold White",hex:"#F8F9FA",look:"plain"},{name:"Warm White",hex:"#FEF9E7",look:"plain"},
+            {name:"Natural",hex:"#E3E4DB",look:"plain"},{name:"Grey",hex:"#808080",look:"plain"},{name:"Light Grey",hex:"#D3D3D3",look:"plain"},
+            {name:"Dark Grey",hex:"#A9A9A9",look:"plain"},{name:"Silver",hex:"#C0C0C0",look:"metallic"},{name:"Anthracite",hex:"#36454F",look:"plain"},
+            {name:"Gunmetal",hex:"#2A3439",look:"metallic"},{name:"Slate Grey",hex:"#708090",look:"plain"},
+            {name:"Silk White",hex:"#FFFFFF",look:"silk"},{name:"Silk Silver",hex:"#C0C0C0",look:"silk"},{name:"Silk Chrome",hex:"#E8E8E8",look:"silk"},
+            {name:"Silk Pearl White",hex:"#F0F8FF",look:"silk"},{name:"Silk Grey",hex:"#808080",look:"silk"},{name:"Silk Gunmetal",hex:"#2A3439",look:"silk"},
+            {name:"Matte White",hex:"#F5F5F5",look:"matte"},{name:"Matte Grey",hex:"#808080",look:"matte"},{name:"Matte Ash Grey",hex:"#B2BEB5",look:"matte"},
+            {name:"Matte Charcoal",hex:"#36454F",look:"matte"},
+            {name:"Marble White",hex:"#FFFFFF",look:"stone"},{name:"Marble Grey",hex:"#808080",look:"stone"},{name:"Granite",hex:"#696969",look:"stone"},
+            {name:"Concrete",hex:"#D3D3D3",look:"stone"},{name:"Stone White",hex:"#F5F5DC",look:"stone"},{name:"Rock",hex:"#888C8D",look:"stone"},
+            {name:"Cement Grey",hex:"#808080",look:"stone"},
+            {name:"Galaxy Silver",hex:"#C0C0C0",look:"galaxy"},{name:"Twinkle Silver",hex:"#DCDCDC",look:"galaxy"},{name:"Galaxy Grey",hex:"#808080",look:"galaxy"},
+            {name:"Vertigo Grey",hex:"#3F3F46",look:"galaxy"},
+
+            // 8. BLACK
+            {name:"Black",hex:"#000000",look:"plain"},{name:"Jet Black",hex:"#0A0A0A",look:"plain"},{name:"Onyx Black",hex:"#353839",look:"plain"},
+            {name:"Silk Black",hex:"#27272A",look:"silk"},{name:"Matte Black",hex:"#111111",look:"matte"},
+            {name:"Galaxy Black",hex:"#09090B",look:"galaxy"},{name:"Starlight Black",hex:"#000000",look:"galaxy"},{name:"Sparkle Black",hex:"#1A1A1A",look:"galaxy"},
+            {name:"Carbon Black",hex:"#1C1C1C",look:"cf"},
+
+            // 9. BROWN & WOOD
+            {name:"Brown",hex:"#A52A2A",look:"plain"},{name:"Chocolate",hex:"#D2691E",look:"plain"},{name:"Coffee",hex:"#6F4E37",look:"plain"},
+            {name:"Mocha",hex:"#967969",look:"plain"},{name:"Beige",hex:"#F5F5DC",look:"plain"},{name:"Tan",hex:"#D2B48C",look:"plain"},
+            {name:"Sand",hex:"#C2B280",look:"plain"},{name:"Skin/Flesh",hex:"#FFCC99",look:"plain"},
+            {name:"Earth Brown",hex:"#4A3728",look:"plain"},{name:"Clay",hex:"#B66A50",look:"plain"},{name:"Terracotta",hex:"#E2725B",look:"plain"},
+            {name:"Desert Tan",hex:"#D2B48C",look:"plain"},{name:"Bone",hex:"#E3DAC9",look:"plain"},
+            {name:"Silk Brown",hex:"#A52A2A",look:"silk"},{name:"Silk Bronze",hex:"#CD7F32",look:"silk"},{name:"Silk Copper",hex:"#B87333",look:"silk"},
+            {name:"Wood",hex:"#DEB887",look:"wood"},{name:"Light Wood",hex:"#DEB887",look:"wood"},{name:"Birch",hex:"#F5F5DC",look:"wood"},
+            {name:"Pine",hex:"#FFE4C4",look:"wood"},{name:"Bamboo",hex:"#F0E68C",look:"wood"},{name:"Dark Wood",hex:"#3E2723",look:"wood"},
+            {name:"Walnut",hex:"#5D4037",look:"wood"},{name:"Ebony",hex:"#222021",look:"wood"},{name:"Cork",hex:"#A0522D",look:"wood"},
+            {name:"Coconut",hex:"#965A3E",look:"wood"},{name:"Olive Wood",hex:"#808000",look:"wood"},
+
+            // 10. METAL
+            {name:"Copper",hex:"#B87333",look:"metallic"},{name:"Bronze",hex:"#CD7F32",look:"metallic"},{name:"Brass",hex:"#B5A642",look:"metallic"},
+            {name:"Stainless Steel",hex:"#E0E0E0",look:"metallic"},{name:"Iron",hex:"#434B4D",look:"metallic"},{name:"Aluminium",hex:"#848789",look:"metallic"},
+            {name:"Titanium",hex:"#878681",look:"metallic"},
+
+            // 11. MULTICOLOR & SPECIAL
+            {name:"Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)"},
+            {name:"Silk Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(45deg, #ff0000, #ffff00, #0000ff)"},
+            {name:"Matte Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(45deg, #ff9a9e, #fad0c4, #fad0c4)"},
+            {name:"Pastel Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #ff9a9e, #fecfef, #a1c4fd)"},
+            {name:"Neon Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #ff00ff, #00ffff, #ffff00)"},
+            {name:"Forest Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #2d6a4f, #40916c, #52b788)"},
+            {name:"Ocean Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #03045e, #0077b6, #00b4d8)"},
+            {name:"Macaron Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #ffc3a0, #ffafbd, #ffc3a0)"},
+            {name:"Candy Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #ff9a9e, #fecfef, #a1c4fd)"},
+            {name:"Luminous Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #e0ffe0, #e0ffff, #ffe0e0)"},
+            {name:"Red-Blue",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, red, blue)"},
+            {name:"Blue-Green",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, blue, green)"},
+            {name:"Pink-Yellow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, pink, yellow)"},
+            {name:"Black-Red",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, black, red)"},
+            {name:"Gold-Silver",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, gold, silver)"},
+            {name:"Yellow-Blue",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, yellow, blue)"},
+            {name:"Purple-Green",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, purple, green)"},
+            {name:"Silk Blue-Green",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #0000FF, #008000)"},
+            {name:"Gold-Silver-Copper",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #FFD700, #C0C0C0, #B87333)"},
+            {name:"Red-Blue-Green",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, red, blue, green)"},
+            {name:"Red-Gold-Purple",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, red, gold, purple)"},
+            {name:"Vertigo Galaxy",hex:"#006400",look:"galaxy"},{name:"Burnt Titanium",hex:"#5a4fcf",look:"galaxy"},
+            {name:"Morning Glory",hex:"#6495ED",look:"plain"},{name:"Stardust",hex:"#F5F5DC",look:"galaxy"},
+            {name:"Cosmic",hex:"#483D8B",look:"galaxy"},{name:"Nebula",hex:"#483D8B",look:"galaxy"},{name:"Aurora",hex:"#90EE90",look:"plain"}
         ];
 
         let spools=[], shopItems=[], amsSlots=[null,null,null,null], activeId=null, activeCtx='Lager';
         let selCol="White", selHex="#FFFFFF", selLook="plain", selMat="PLA";
-        let sortMode='id', prodWeight=0, pendingBooking=null, activeAMSSlotIndex=null;
+        let sortMode='id', sortDir=1, prodWeight=0, pendingBooking=null, activeAMSSlotIndex=null;
         let touchstartX=0, touchendX=0, confirmCallback=null, pendingImportData=null, lastProdState={mat:"",brand:"",col:""};
 
         window.onload = function() {
@@ -332,7 +430,7 @@
         }
 
         /* --- LOGIC --- */
-        function getSpoolVisualHtml(s){ const v=getVisuals(s); return `<div class="spool-icon"><div class="spool-flange left"></div><div class="spool-body look-${v.look}" style="--fil-color: ${v.hex}"></div><div class="spool-flange right"></div></div>`; }
+        function getSpoolVisualHtml(s){ const v=getVisuals(s); return `<div class="spool-icon"><div class="spool-flange left"></div><div class="spool-body look-${v.look}" style="--fil-color: ${v.hex}; ${v.gradient ? 'background:'+v.gradient : ''}"></div><div class="spool-flange right"></div></div>`; }
         
         function getFilteredSpools() {
             const qRaw = document.getElementById('search-input').value.toLowerCase();
@@ -344,13 +442,18 @@
             });
             
             f.sort((a,b)=>{
-                if(sortMode==='id') return a.number-b.number;
-                if(sortMode==='mat') return a.material.localeCompare(b.material);
-                if(sortMode==='color') return a.color.localeCompare(b.color);
-                if(sortMode==='brand') return a.brand.localeCompare(b.brand);
-                if(sortMode==='amount') return getWeight(b) - getWeight(a); // Sort by remaining weight
-                if(sortMode==='date_new') return new Date(b.createdAt)-new Date(a.createdAt);
-                return b.level-a.level;
+                let valA, valB;
+                if(sortMode==='id') { valA=a.number; valB=b.number; }
+                else if(sortMode==='mat') { valA=a.material; valB=b.material; }
+                else if(sortMode==='color') { valA=a.color; valB=b.color; }
+                else if(sortMode==='brand') { valA=a.brand||''; valB=b.brand||''; }
+                else if(sortMode==='amount') { valA=getWeight(a); valB=getWeight(b); }
+                else if(sortMode==='date_new') { valA=new Date(a.createdAt).getTime(); valB=new Date(b.createdAt).getTime(); }
+                else { valA=a.level; valB=b.level; }
+
+                if (valA < valB) return -1 * sortDir;
+                if (valA > valB) return 1 * sortDir;
+                return 0;
             }); 
             return f;
         }
@@ -360,10 +463,10 @@
             const l=document.getElementById('spool-list'); l.innerHTML='';
             const f=getFilteredSpools();
             
-            // Show Active Sort Indicator
             const sortNames = {'id':'ID', 'mat':'Material', 'color':'Farbe', 'brand':'Marke', 'amount':'Menge', 'date_new':'Datum'};
             document.getElementById('sort-name').innerText = sortNames[sortMode] || 'ID';
-            document.getElementById('active-sort-indicator').classList.toggle('hidden', sortMode === 'id'); // Hide only if default
+            document.getElementById('sort-dir-arrow').innerText = sortDir === 1 ? '▲' : '▼';
+            document.getElementById('active-sort-indicator').classList.toggle('hidden', sortMode === 'id' && sortDir === 1); 
             
             document.getElementById('empty-state').classList.toggle('hidden',f.length>0||document.getElementById('search-input').value!=='');
             f.forEach(s=>{
@@ -372,10 +475,23 @@
                 let displayLevel = s.level;
                 if (s.level % 1 !== 0) displayLevel = s.level.toFixed(1);
 
-                l.innerHTML+=`<div onclick="openModal(${s.number},'Lager')" class="spool-card fade-in">${getSpoolVisualHtml(s)}<div class="flex-grow min-w-0"><div class="flex justify-between items-center mb-1"><span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">${s.material}</span><span class="font-mono font-bold text-white text-lg">#${s.number.toString().padStart(3,'0')}</span></div><div class="text-sm font-bold text-white truncate mb-2">${v.name}</div><div class="flex justify-between items-end mt-1"><span class="text-[10px] bg-zinc-800 px-2 py-0.5 rounded text-zinc-400 border border-white/5 max-w-[60px] truncate">${s.brand||'-'}</span><div class="text-right flex flex-col items-end"><span class="text-[10px] font-mono font-bold ${s.level<20?'text-red-500':'text-emerald-500'}">${w}g <span class="text-zinc-600">/ ${displayLevel}%</span></span><span class="text-[8px] text-zinc-600 font-mono leading-tight">${d}</span></div></div></div>${s.isCalibrated?'<div class="absolute top-2 left-2 text-indigo-400 z-20"><span class="text-[8px]">🎯</span></div>':''}${needsDrying(s)?'<div class="absolute top-2 right-2 text-blue-400 z-20"><i data-lucide="droplets" class="w-3 h-3"></i></div>':''}</div>`;
+                let statusBadge = '';
+                if(s.level === 100) statusBadge = '<span class="text-[9px] font-black text-emerald-500 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.5 rounded ml-2">NEU</span>';
+                else if(s.level < 15) statusBadge = '<span class="text-[9px] font-black text-orange-500 bg-orange-500/10 border border-orange-500/20 px-1.5 py-0.5 rounded ml-2">REST</span>';
+
+                l.innerHTML+=`<div onclick="openModal(${s.number},'Lager')" class="spool-card fade-in">${getSpoolVisualHtml(s)}<div class="flex-grow min-w-0"><div class="flex justify-between items-center mb-1"><div class="flex items-center"><span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">${s.material}</span>${statusBadge}</div><span class="font-mono font-bold text-white text-lg">#${s.number.toString().padStart(3,'0')}</span></div><div class="text-sm font-bold text-white truncate mb-2">${v.name}</div><div class="flex justify-between items-end mt-1"><span class="text-[10px] bg-zinc-800 px-2 py-0.5 rounded text-zinc-400 border border-white/5 max-w-[60px] truncate">${s.brand||'-'}</span><div class="text-right flex flex-col items-end"><span class="text-[10px] font-mono font-bold ${s.level<20?'text-red-500':'text-emerald-500'}">${w}g <span class="text-zinc-600">/ ${displayLevel}%</span></span><span class="text-[8px] text-zinc-600 font-mono leading-tight">${d}</span></div></div></div>${s.isCalibrated?'<div class="absolute top-2 left-2 text-indigo-400 z-20"><span class="text-[8px]">🎯</span></div>':''}${needsDrying(s)?'<div class="absolute top-2 right-2 text-blue-400 z-20"><i data-lucide="droplets" class="w-3 h-3"></i></div>':''}</div>`;
             });
         }
-        function getVisuals(s){return{name:s.color,hex:s.hex||'#FFF',look:s.look||'plain'};}
+        function getVisuals(s){
+            // Ensure gradient is passed if available
+            let match = ALL_COLORS.find(c => c.name === s.color);
+            return {
+                name:s.color,
+                hex:s.hex||'#FFF',
+                look:s.look||'plain',
+                gradient: match ? match.gradient : null
+            };
+        }
         function needsDrying(i){if(!HYGRO_MATS.includes(i.material))return false;if(!i.lastDried)return true;return(Date.now()-i.lastDried)>2592000000;}
         function isBackupOverdue(){const l=localStorage.getItem('fpool_last_backup');return!l||(Date.now()-l>1209600000);}
         function checkBackup(){if(isBackupOverdue())toast("Backup empfohlen!");}
@@ -396,10 +512,18 @@
 
                 const bubble = document.createElement('div');
                 bubble.className = `color-bubble look-${c.look} ${selCol === c.name ? 'active' : ''}`;
-                bubble.style.backgroundColor = c.hex;
+                
+                // Smart Background Handling
+                if(c.gradient) {
+                    bubble.style.background = c.gradient;
+                } else {
+                    bubble.style.backgroundColor = c.hex;
+                }
 
                 const label = document.createElement('span');
                 label.className = 'color-label';
+                // Shorten label for grid? Keep full name for now.
+                label.innerText = c.name.split(' ')[0]; // Just show first word in grid for neatness? Or full? Let's try full but truncated by css
                 label.innerText = c.name;
 
                 wrapper.appendChild(bubble);
@@ -421,22 +545,28 @@
             selLook = c.look;
             
             document.getElementById('input-color-name').value = c.name;
-            document.getElementById('color-preview-dot').style.backgroundColor = c.hex;
             document.getElementById('native-color-picker').value = c.hex;
+            
+            // Preview Dot logic
+            const dot = document.getElementById('color-preview-dot');
+            if(c.gradient) {
+                dot.style.background = c.gradient;
+            } else {
+                dot.style.background = c.hex;
+            }
             
             renderBubbleGrid(c.name); 
         }
 
         function updateFromNativePicker(hex) {
             selHex = hex;
-            document.getElementById('color-preview-dot').style.backgroundColor = hex;
+            document.getElementById('color-preview-dot').style.background = hex;
         }
 
         /* --- MODALS --- */
         function openModal(id, ctx) {
             activeId=id; activeCtx=ctx; toggleBodyScroll(true);
             
-            // DEFAULT / NEW ITEMS
             let i = (ctx === 'New') 
                 ? {number: id, material:'PLA', color:'', hex:'#FFFFFF', look:'plain', brand:'', level:100, capacity:1000, createdAt:new Date().toISOString(), isCalibrated:false, note:''} 
                 : (ctx === 'ShopNew')
@@ -445,7 +575,7 @@
 
             if(!i && ctx !== 'New' && ctx !== 'ShopNew') return;
             
-            // --- ID SELECTOR LOGIC ---
+            // ID Selector Logic
             const idSelect = document.getElementById('input-spool-id-select');
             const arrow = document.getElementById('id-select-arrow');
             idSelect.innerHTML = '';
@@ -453,42 +583,23 @@
             if (ctx === 'New') {
                 idSelect.disabled = false;
                 arrow.classList.remove('hidden');
-
-                // 1. Get Sorted Existing IDs
                 const existingIds = spools.map(s => s.number).sort((a,b) => a-b);
                 let maxId = 0;
                 if (existingIds.length > 0) maxId = existingIds[existingIds.length - 1];
-
-                // 2. Find all unused IDs from 1 to Max+1
                 let freeIds = [];
                 for (let j = 1; j <= maxId + 1; j++) {
-                    if (!existingIds.includes(j)) {
-                        freeIds.push(j);
-                    }
+                    if (!existingIds.includes(j)) freeIds.push(j);
                 }
-
-                // 3. Populate dropdown
                 freeIds.forEach(fid => {
                     const opt = document.createElement('option');
                     opt.value = fid;
-                    if (fid > maxId) {
-                        opt.text = `#${fid.toString().padStart(3,'0')} (Neu)`;
-                    } else {
-                        opt.text = `#${fid.toString().padStart(3,'0')} (Frei)`;
-                    }
+                    opt.text = (fid > maxId) ? `#${fid.toString().padStart(3,'0')} (Neu)` : `#${fid.toString().padStart(3,'0')} (Frei)`;
                     idSelect.add(opt);
                 });
-
-                // 4. Default Select: The Lowest Free ID (First in list)
-                if (freeIds.length > 0) {
-                    idSelect.value = freeIds[0];
-                }
-
+                if (freeIds.length > 0) idSelect.value = freeIds[0];
             } else {
-                // Existing Item or Shop Item
                 idSelect.disabled = true;
                 arrow.classList.add('hidden');
-                
                 let displayId = (ctx === 'Shop' || ctx === 'ShopNew') ? '---' : i.number;
                 const opt = document.createElement('option');
                 opt.value = displayId;
@@ -496,9 +607,7 @@
                 idSelect.add(opt);
             }
 
-
             document.getElementById('modal-date').innerText=(ctx==='Lager'&&i.createdAt)?"Erstellt: "+new Date(i.createdAt).toLocaleDateString('de-DE'):"";
-            
             const isL= (ctx==='Lager' || ctx==='New'); 
             document.getElementById('btn-quick-shop').classList.toggle('hidden',!isL);
             document.getElementById('level-section').style.display=isL?'block':'none';
@@ -512,8 +621,13 @@
             selCol=i.color || ''; selHex=i.hex||'#FFFFFF'; selLook=i.look||'plain'; selMat=i.material||'PLA';
             
             document.getElementById('input-color-name').value = selCol;
-            document.getElementById('color-preview-dot').style.backgroundColor = selHex;
             document.getElementById('native-color-picker').value = selHex;
+            
+            // Check for match to set gradient preview
+            const match = ALL_COLORS.find(c => c.name === selCol);
+            const dot = document.getElementById('color-preview-dot');
+            if(match && match.gradient) dot.style.background = match.gradient;
+            else dot.style.background = selHex;
             
             renderBubbleGrid(selCol); 
             
@@ -591,14 +705,11 @@
                     }
                 }
                 else if(activeCtx==='New'){
-                    // NEW ITEM LOGIC WITH SELECT ID
                     const selectedId = parseInt(document.getElementById('input-spool-id-select').value);
-                    
                     if (spools.find(s => s.number === selectedId)) {
                         alert(`Fehler: Nummer #${selectedId} ist doch schon belegt.`);
                         return;
                     }
-
                     const newSpool = {
                         number: selectedId,
                         ...d,
@@ -612,7 +723,6 @@
                 }
                 else if(activeCtx==='Shop'){shopItems[activeId]=d;renderShoppingList();}
                 else if(activeCtx==='ShopNew'){shopItems.push(d);renderShoppingList();toast("Zur Einkaufsliste!");}
-                
                 save();
                 closeModal();
             } catch(e) {
@@ -621,7 +731,6 @@
             }
         }
 
-        // Just opens modal, ID logic inside openModal
         function createNewSpool(){ openNewSpoolModal(); }
         function openNewSpoolModal(){ openModal(null, 'New'); }
 
@@ -629,18 +738,26 @@
         function setDryerDate(){const s=spools.find(x=>x.number===activeId);if(s){s.lastDried=Date.now();save();document.getElementById('dryer-status').innerText='Gerade eben';toast("Markiert!");}}
 
         /* --- SORTING --- */
-        function openSortMenu(){ 
-            document.getElementById('sort-overlay').classList.remove('overlay-hidden'); 
-            document.querySelectorAll('.sort-btn-row i').forEach(el=>el.classList.add('opacity-0'));
-            document.querySelectorAll('.sort-btn-row').forEach(el=>el.classList.remove('active'));
+        function openSortMenu(){ document.getElementById('sort-overlay').classList.remove('overlay-hidden'); updateSortMenuIcons(); }
+        function closeSortMenu(){ document.getElementById('sort-overlay').classList.add('overlay-hidden'); }
+        function setSortMode(m){ 
+            if(sortMode === m) sortDir = sortDir * -1; else { sortMode = m; if(m === 'amount' || m === 'date_new') sortDir = -1; else sortDir = 1; }
+            renderLager(); closeSortMenu();
+        }
+        function updateSortMenuIcons() {
+            document.querySelectorAll('.sort-btn-row').forEach(el => {
+                el.classList.remove('active');
+                const arrow = el.querySelector('.sort-arrow');
+                arrow.classList.add('hidden'); arrow.classList.remove('desc');
+            });
             const btn = document.getElementById(`sort-btn-${sortMode}`);
             if(btn) {
                 btn.classList.add('active');
-                btn.querySelector('i').classList.remove('opacity-0');
+                const arrow = btn.querySelector('.sort-arrow');
+                arrow.classList.remove('hidden');
+                if (sortDir === -1) arrow.classList.add('desc');
             }
         }
-        function closeSortMenu(){ document.getElementById('sort-overlay').classList.add('overlay-hidden'); }
-        function setSortMode(m){ sortMode=m; renderLager(); closeSortMenu(); }
 
         /* --- TOOLS / AMS / SETTINGS --- */
         function openTools(){toggleBodyScroll(true);document.getElementById('tools-overlay').classList.remove('overlay-hidden');renderToolHeader('Werkzeuge','closeTools()');
@@ -649,9 +766,56 @@
         }
         function openProductionTool(){renderToolHeader('Produktion','openTools()');const c=document.getElementById('tools-content');let ah=`<div class="ams-grid">`;[0,3,1,2].forEach(ai=>{const s=amsSlots[ai]?spools.find(x=>x.number===amsSlots[ai]):null;if(s){const v=getVisuals(s); const w=getWeight(s); ah+=`<div class="ams-slot filled" onclick="handleAMSSlotClick(${ai})" style="--ams-color:${v.hex}"><div class="ams-number">A${ai+1}</div><button onclick="event.stopPropagation();clearAMSSlot(${ai})" class="ams-del-btn"><i data-lucide="x" class="w-4 h-4"></i></button><div class="ams-fill-bg"></div><div class="ams-spool-visual">${getSpoolVisualHtml(s)}</div><div class="ams-overlay"></div><div class="ams-content"><div class="text-right"><span class="text-[10px] font-bold text-white bg-black/50 px-2 py-0.5 rounded-full backdrop-blur-sm border border-white/10">${w}g</span></div><div class="text-center"><div class="font-mono font-black text-white text-3xl opacity-20">#${s.number}</div></div><div><div class="text-[9px] font-black text-zinc-400 uppercase tracking-widest mb-0.5">${s.material}</div><div class="text-xs font-bold text-white truncate leading-tight mb-1">${v.name}</div><div class="text-[9px] text-zinc-300 bg-white/10 inline-block px-1.5 rounded">${s.brand||'-'}</div></div></div></div>`;}else{ah+=`<div class="ams-slot" onclick="openAMSPicker(${ai})"><div class="ams-number">A${ai+1}</div><i data-lucide="plus" class="text-zinc-600 w-8 h-8"></i></div>`;}});ah+=`</div>`;const m=[...new Set(spools.map(s=>s.material))].sort(),b=[...new Set(spools.map(s=>s.brand).filter(x=>x))].sort(),co=[...new Set(spools.map(s=>s.color))].sort();const o=a=>a.map(i=>`<option value="${i}">${i}</option>`).join('');c.innerHTML=ah+`<div class="glass-panel p-5 rounded-3xl mb-4 text-center border-t-0 shadow-xl"><div class="section-title mb-4 tracking-widest">Benötigte Menge</div><div class="mb-6"><div class="flex items-baseline justify-center gap-1"><span id="prod-display" class="font-mono font-black text-6xl text-white">${prodWeight}</span><span class="text-zinc-500 font-bold text-xl">g</span></div></div><div class="grid grid-cols-4 gap-2 mb-4"><button onclick="adjProd(10)" class="calc-btn">+10</button><button onclick="adjProd(50)" class="calc-btn">+50</button><button onclick="adjProd(100)" class="calc-btn">+100</button><button onclick="adjProd(0)" class="calc-btn bg-red-500/20 text-red-500"><i data-lucide="rotate-ccw" class="w-4 h-4 mx-auto"></i></button></div><div class="grid grid-cols-3 gap-2"><select id="prod-mat" onchange="updateProductionResults()" class="bg-zinc-900 text-[10px] font-bold text-zinc-300 p-2 rounded-lg border border-white/5 outline-none text-center"><option value="">Material</option>${o(m)}</select><select id="prod-brand" onchange="updateProductionResults()" class="bg-zinc-900 text-[10px] font-bold p-2 rounded-lg border border-white/5 outline-none text-center"><option value="">Marke</option>${o(b)}</select><select id="prod-col" onchange="updateProductionResults()" class="bg-zinc-900 text-[10px] font-bold p-2 rounded-lg border border-white/5 outline-none text-center"><option value="">Farbe</option>${o(co)}</select></div></div><div id="prod-results" class="space-y-2 pb-10"></div>`;if(lastProdState.mat)document.getElementById('prod-mat').value=lastProdState.mat;if(lastProdState.brand)document.getElementById('prod-brand').value=lastProdState.brand;if(lastProdState.col)document.getElementById('prod-col').value=lastProdState.col;updateProductionResults();if(window.lucide)lucide.createIcons();}
         function renderShoppingList(){renderToolHeader('Einkaufsliste','openTools()');const c=document.getElementById('tools-content');let h=`<div class="flex justify-end mb-4"><button onclick="openNewShopItemModal()" class="bg-emerald-600 px-4 py-2 rounded-lg text-white font-bold text-sm flex gap-2 items-center active:scale-95"><i data-lucide="plus"></i> Hinzufügen</button></div>`;if(shopItems.length===0)h+='<div class="text-zinc-500 italic text-center py-10">Alles erledigt.</div>';shopItems.forEach((i,x)=>{const v=getVisuals(i);h+=`<div onclick="openModal(${x},'Shop')" class="spool-card mini-card mb-2"><div style="transform:scale(0.7);transform-origin:left center;">${getSpoolVisualHtml(i)}</div><div class="ml-3 flex-grow min-w-0"><div class="flex justify-between items-center mb-0.5"><span class="text-[9px] font-black text-zinc-500 uppercase tracking-widest">${i.material}</span><span class="font-mono font-bold text-indigo-400 text-xs">SHOP</span></div><div class="text-xs font-bold text-white truncate mb-1">${v.name}</div><div class="flex justify-between items-center mt-1"><span class="text-[9px] bg-zinc-800 px-1.5 rounded text-zinc-400 border border-white/5">${i.brand||'-'}</span><div class="flex gap-3"><button onclick="event.stopPropagation();buyShopItem(${x})" class="text-emerald-500 bg-emerald-500/10 p-1.5 rounded-lg active:scale-90"><i data-lucide="check" class="w-4 h-4"></i></button><button onclick="event.stopPropagation();delShopItem(${x})" class="text-red-500 bg-red-500/10 p-1.5 rounded-lg active:scale-90"><i data-lucide="trash-2" class="w-4 h-4"></i></button></div></div></div></div>`;});c.innerHTML=h;if(window.lucide)lucide.createIcons();}
-        function openStatsMenu(){renderToolHeader('Statistik','openTools()');const c=document.getElementById('tools-content');const t=spools.length,cal=spools.filter(s=>s.isCalibrated).length,d=spools.filter(s=>!needsDrying(s)&&HYGRO_MATS.includes(s.material)).length,ht=spools.filter(s=>HYGRO_MATS.includes(s.material)).length;let w=0;spools.forEach(s=>w+=getWeight(s));c.innerHTML=`<div class="grid grid-cols-2 gap-3 mb-6"><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title">Gesamt</div><div class="text-3xl font-black text-white">${t}</div><div class="text-[10px] text-zinc-400">Spulen</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title">Masse</div><div class="text-3xl font-black text-white">${(w/1000).toFixed(1)}</div><div class="text-[10px] text-zinc-400">kg (ca.)</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-emerald-500">Kalibriert</div><div class="text-3xl font-black text-white">${cal}</div><div class="text-[10px] text-zinc-400">${Math.round((cal/t||0)*100)}%</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-blue-500">Trocken</div><div class="text-3xl font-black text-white">${d}</div><div class="text-[10px] text-zinc-400">${Math.round((d/ht||0)*100)}% hygro</div></div></div>`;}
+        function openStatsMenu(){
+            renderToolHeader('Statistik','openTools()');
+            const c=document.getElementById('tools-content');
+            const t=spools.length;
+            const cal=spools.filter(s=>s.isCalibrated).length;
+            const d=spools.filter(s=>!needsDrying(s)&&HYGRO_MATS.includes(s.material)).length;
+            const ht=spools.filter(s=>HYGRO_MATS.includes(s.material)).length;
+            let w=0;
+            const matCount = {};
+            const brandCount = {};
+            let monoWeight = 0;
+            let colorWeight = 0;
+            let oldestSpool = null;
+            let oldestDate = new Date();
+
+            spools.forEach(s=> {
+                const weight = getWeight(s);
+                w+=weight;
+                if(s.material) matCount[s.material] = (matCount[s.material] || 0) + 1;
+                const b = s.brand || 'Unbekannt';
+                brandCount[b] = (brandCount[b] || 0) + 1;
+                const col = (s.color || '').toLowerCase();
+                if(col.includes('white') || col.includes('black') || col.includes('grey') || col.includes('gray') || col.includes('silver') || col.includes('clear') || col.includes('bone') || col.includes('marble') || col.includes('transparent')) {
+                    monoWeight += weight;
+                } else {
+                    colorWeight += weight;
+                }
+                const cDate = new Date(s.createdAt);
+                if(cDate < oldestDate) {
+                    oldestDate = cDate;
+                    oldestSpool = s;
+                }
+            });
+            
+            const sortedMats = Object.entries(matCount).sort((a,b) => b[1] - a[1]).slice(0, 3);
+            let topMatsHtml = sortedMats.map(([mat, count]) => `<div class="flex justify-between text-xs text-zinc-400 mb-1"><span>${mat}</span><span class="text-white font-bold">${count}</span></div>`).join('') || '<span class="text-xs text-zinc-500">-</span>';
+            const sortedBrands = Object.entries(brandCount).sort((a,b) => b[1] - a[1]).slice(0, 3);
+            let topBrandsHtml = sortedBrands.map(([br, count]) => `<div class="flex justify-between text-xs text-zinc-400 mb-1"><span>${br}</span><span class="text-white font-bold">${count}</span></div>`).join('') || '<span class="text-xs text-zinc-500">-</span>';
+            let shelfLifeHtml = '<span class="text-xs text-zinc-500">Keine Daten</span>';
+            if(oldestSpool) {
+                const days = Math.floor((Date.now() - new Date(oldestSpool.createdAt)) / (1000 * 60 * 60 * 24));
+                shelfLifeHtml = `<div class="text-3xl font-black text-white">${days}</div><div class="text-[10px] text-zinc-400">Tage (ID #${oldestSpool.number})</div>`;
+            }
+            const totalCW = monoWeight + colorWeight;
+            const monoPct = totalCW > 0 ? (monoWeight / totalCW) * 100 : 0;
+
+            c.innerHTML=`<div class="grid grid-cols-2 gap-3 mb-4"><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title">Gesamt</div><div class="text-3xl font-black text-white">${t}</div><div class="text-[10px] text-zinc-400">Spulen</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title">Masse</div><div class="text-3xl font-black text-white">${(w/1000).toFixed(1)}</div><div class="text-[10px] text-zinc-400">kg (ca.)</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-emerald-500">Kalibriert</div><div class="text-3xl font-black text-white">${cal}</div><div class="text-[10px] text-zinc-400">${Math.round((cal/t||0)*100)}%</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-blue-500">Trocken</div><div class="text-3xl font-black text-white">${d}</div><div class="text-[10px] text-zinc-400">${Math.round((d/ht||0)*100)}% hygro</div></div></div><div class="grid grid-cols-2 gap-3 mb-4"><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-indigo-400">Top Materialien</div><div class="mt-2">${topMatsHtml}</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-orange-400">Top Marken</div><div class="mt-2">${topBrandsHtml}</div></div></div><div class="grid grid-cols-2 gap-3 mb-4"><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-red-500">Älteste Spule</div><div class="mt-1">${shelfLifeHtml}</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5 flex flex-col justify-center"><div class="section-title mb-2">Farbgruppen</div><div class="w-full h-4 bg-zinc-800 rounded-full overflow-hidden flex"><div style="width:${monoPct}%" class="bg-zinc-500 h-full"></div><div style="width:${100-monoPct}%" class="bg-indigo-500 h-full"></div></div><div class="flex justify-between text-[9px] font-bold mt-1 text-zinc-400"><span>Mono ${(w > 0 ? (monoWeight/1000).toFixed(1) : 0)}kg</span><span>Bunt ${(w > 0 ? (colorWeight/1000).toFixed(1) : 0)}kg</span></div></div></div>`;
+        }
         
-        function openSettings(){toggleBodyScroll(true);document.getElementById('settings-overlay').classList.remove('overlay-hidden');document.getElementById('settings-content').innerHTML=`<div><div class="section-title">Daten</div><button onclick="exportData()" class="glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full mb-3 active:scale-95"><div class="bg-indigo-500/20 p-2 rounded-lg text-indigo-500"><i data-lucide="download"></i></div><span>Backup erstellen</span></button><div class="relative glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full active:scale-95"><div class="bg-emerald-500/20 p-2 rounded-lg text-emerald-500"><i data-lucide="upload"></i></div><span>Backup einspielen</span><input type="file" accept=".json" onchange="importData(event)" class="absolute inset-0 opacity-0 cursor-pointer"></div></div><div><div class="section-title text-red-500/80">Zone</div><button onclick="performReset()" class="p-4 rounded-xl bg-red-900/10 text-red-500 font-bold border border-red-500/20 flex gap-3 items-center w-full active:scale-95"><div class="bg-red-500/20 p-2 rounded-lg"><i data-lucide="alert-triangle"></i></div><span>Zurücksetzen</span></button></div><div class="text-center text-[10px] text-zinc-600 font-mono pt-4">Filament Pool v9.7<br>MN.CONCEPTS</div>`;if(window.lucide)lucide.createIcons();}
+        function openSettings(){toggleBodyScroll(true);document.getElementById('settings-overlay').classList.remove('overlay-hidden');document.getElementById('settings-content').innerHTML=`<div><div class="section-title">Daten</div><button onclick="exportData()" class="glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full mb-3 active:scale-95"><div class="bg-indigo-500/20 p-2 rounded-lg text-indigo-500"><i data-lucide="download"></i></div><span>Backup erstellen</span></button><div class="relative glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full active:scale-95"><div class="bg-emerald-500/20 p-2 rounded-lg text-emerald-500"><i data-lucide="upload"></i></div><span>Backup einspielen</span><input type="file" accept=".json" onchange="importData(event)" class="absolute inset-0 opacity-0 cursor-pointer"></div></div><div><div class="section-title text-red-500/80">Zone</div><button onclick="performReset()" class="p-4 rounded-xl bg-red-900/10 text-red-500 font-bold border border-red-500/20 flex gap-3 items-center w-full active:scale-95"><div class="bg-red-500/20 p-2 rounded-lg"><i data-lucide="alert-triangle"></i></div><span>Zurücksetzen</span></button></div><div class="text-center text-[10px] text-zinc-600 font-mono pt-4">Filament Pool v10.2<br>MN.CONCEPTS</div>`;if(window.lucide)lucide.createIcons();}
         function closeSettings(){toggleBodyScroll(false);document.getElementById('settings-overlay').classList.add('overlay-hidden');}
         function closeTools(){toggleBodyScroll(false);document.getElementById('tools-overlay').classList.add('overlay-hidden');}
         function renderToolHeader(t,b){document.getElementById('tools-header').innerHTML=`<div class="flex items-center gap-3"><button onclick="${b}" class="p-2 bg-zinc-800 rounded-full text-zinc-400"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><h2 class="text-xl font-bold text-white">${t}</h2></div>`;if(window.lucide)lucide.createIcons();}
@@ -659,7 +823,7 @@
         /* --- AMS HELPERS --- */
         function handleAMSSlotClick(i){if(prodWeight>0&&amsSlots[i])requestBooking(amsSlots[i],prodWeight);}
         function clearAMSSlot(i){openCustomConfirm("Entfernen","Löschen?",()=>{amsSlots[i]=null;save();renderProductionTool();});}
-        function openAMSPicker(i){activeAMSSlotIndex=i;document.getElementById('ams-picker-overlay').classList.remove('overlay-hidden');const l=document.getElementById('ams-picker-list');l.innerHTML='';[...spools].sort((a,b)=>a.number-b.number).forEach(s=>{if(!amsSlots.includes(s.number)){const v=getVisuals(s);l.innerHTML+=`<div onclick="assignSpoolToAMS(${s.number})" class="flex items-center gap-3 p-3 bg-zinc-900 border border-white/5 rounded-xl cursor-pointer active:bg-zinc-800"><div class="font-mono font-bold text-zinc-500 w-8">#${s.number}</div><div class="w-3 h-3 rounded-full" style="background-color:${v.hex}"></div><div class="flex-grow"><div class="text-xs font-bold text-white">${v.name}</div><div class="text-[10px] text-zinc-500">${s.material}</div></div><div class="text-xs font-mono text-emerald-500">${getWeight(s)}g</div></div>`;}});if(l.innerHTML==='')l.innerHTML='<div class="text-zinc-500 text-center text-sm p-4">Keine freien Spulen.</div>';}
+        function openAMSPicker(i){activeAMSSlotIndex=i;document.getElementById('ams-picker-overlay').classList.remove('overlay-hidden');const l=document.getElementById('ams-picker-list');l.innerHTML='';[...spools].sort((a,b)=>a.number-b.number).forEach(s=>{if(!amsSlots.includes(s.number)){const v=getVisuals(s);l.innerHTML+=`<div onclick="assignSpoolToAMS(${s.number})" class="flex items-center gap-3 p-3 bg-zinc-900 border border-white/5 rounded-xl cursor-pointer active:bg-zinc-800"><div class="font-mono font-bold text-zinc-500 w-8">#${s.number}</div><div class="w-3 h-3 rounded-full" style="background:${v.gradient||v.hex}"></div><div class="flex-grow"><div class="text-xs font-bold text-white">${v.name}</div><div class="text-[10px] text-zinc-500">${s.material}</div></div><div class="text-xs font-mono text-emerald-500">${getWeight(s)}g</div></div>`;}});if(l.innerHTML==='')l.innerHTML='<div class="text-zinc-500 text-center text-sm p-4">Keine freien Spulen.</div>';}
         function closeAMSPicker(){document.getElementById('ams-picker-overlay').classList.add('overlay-hidden');}
         function assignSpoolToAMS(id){amsSlots[activeAMSSlotIndex]=id;save();closeAMSPicker();renderProductionTool();}
         function adjProd(a){prodWeight=a===0?0:prodWeight+a;document.getElementById('prod-display').innerText=prodWeight;updateProductionResults();}
@@ -673,10 +837,7 @@
                 // USE FLOAT FOR PRECISION
                 const cap = s.capacity || 1000;
                 const percentUsed = (g / cap) * 100;
-                
-                // FIXED: REMOVED Math.round to allow decimal percentages (e.g. 0.5%)
                 s.level = Math.max(0, s.level - percentUsed);
-                
                 save();
                 toast(`-${g}g verbucht!`);
                 renderProductionTool();
@@ -690,7 +851,6 @@
         function openCustomConfirm(t,m,fn){document.getElementById('confirm-title').innerText=t;document.getElementById('confirm-msg').innerText=m;confirmCallback=fn;document.getElementById('confirm-overlay').classList.remove('hidden');}
         function closeConfirm(){document.getElementById('confirm-overlay').classList.add('hidden');confirmCallback=null;}
         function toast(m){const t=document.getElementById('toast');t.innerText=m;t.style.opacity='1';t.style.transform='translate(-50%,0)';setTimeout(()=>{t.style.opacity='0';t.style.transform='translate(-50%,-20px)';},2000);}
-        // function toggleSort() REMOVED
         function openDeleteDialog(){if(activeCtx!=='Lager')return;document.getElementById('delete-overlay').classList.remove('hidden');}
         function closeDeleteDialog(){document.getElementById('delete-overlay').classList.add('hidden');}
         function confirmDeletion(s){if(s)copyToShop();spools=spools.filter(x=>x.number!==activeId);amsSlots=amsSlots.map(i=>i===activeId?null:i);save();closeDeleteDialog();closeModal();toast(s?"Verschoben & Gelöscht":"Gelöscht");}
@@ -703,5 +863,3 @@
     </script>
 </body>
 </html>
-
-
