@@ -7,10 +7,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Filament">
     
-    <title>Filament Pool v10.4</title>
+    <title>Filament Pool v10.4 (Cloud Sync)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Firebase Compat Libraries -->
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-app-compat.js" crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-auth-compat.js" crossorigin="anonymous"></script>
+    <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js" crossorigin="anonymous"></script>
     
     <style>
         /* --- CORE --- */
@@ -19,12 +24,9 @@
         body.no-scroll { position: fixed; overflow: hidden; width: 100%; height: 100%; }
 
         /* iOS Safe Area Fixes */
-        /* Standard padding for the main list */
         .safe-top { padding-top: max(env(safe-area-inset-top), 20px); }
         .safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 20px); }
         
-        /* INCREASED PADDING FOR OVERLAYS/MODALS */
-        /* This pushes the header down significantly to avoid the notch/island */
         .safe-top-overlay { padding-top: calc(env(safe-area-inset-top) + 60px) !important; }
 
         .fade-in { animation: fadeIn 0.3s ease-out; }
@@ -137,7 +139,14 @@
     <!-- MAIN APP -->
     <div id="app" class="w-full max-w-md mx-auto p-4 flex flex-col min-h-screen opacity-0 transition-opacity duration-500 relative z-10 pb-24">
         <div class="flex items-center justify-between mb-6 pt-2">
-            <div><div class="flex items-center gap-2"><i data-lucide="disc" class="text-indigo-500 w-6 h-6"></i><h1 class="text-2xl font-black tracking-tight text-white">Lager</h1></div><div id="mini-dashboard" class="text-xs text-zinc-500 font-medium pl-8 mt-1">Lade...</div></div>
+            <div>
+                <div class="flex items-center gap-2">
+                    <i data-lucide="disc" class="text-indigo-500 w-6 h-6"></i>
+                    <h1 class="text-2xl font-black tracking-tight text-white">Lager</h1>
+                    <div id="sync-dot" class="w-2.5 h-2.5 rounded-full bg-red-500 ml-1 transition-all duration-300 shadow-sm" title="Status"></div>
+                </div>
+                <div id="mini-dashboard" class="text-xs text-zinc-500 font-medium pl-8 mt-1">Lade...</div>
+            </div>
             <div class="flex gap-2">
                 <button onclick="openTools()" class="p-3 bg-zinc-800 rounded-xl text-indigo-400 active:scale-95 transition-transform"><i data-lucide="layout-grid" class="w-5 h-5"></i></button>
                 <button onclick="openSettings()" class="relative p-3 bg-zinc-800 rounded-xl text-zinc-400 active:scale-95 transition-transform"><i data-lucide="settings-2" class="w-5 h-5"></i><div id="settings-badge" class="hidden absolute top-0 right-0 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-[#09090b]"></div></button>
@@ -291,6 +300,19 @@
     <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-zinc-800 text-white px-6 py-3 rounded-full shadow-2xl z-[500] transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none font-bold text-sm flex gap-2 border border-white/10"></div>
 
     <script>
+        // =========================================================================
+        // FIREBASE CONFIGURATION FÜR CLOUD SYNC
+        // =========================================================================
+        const MY_CONFIG = {
+            apiKey: "AIzaSyBmhtGvkbvFmA7gOX02kW7ZWCA3VrEPQS0",
+            authDomain: "belohnung-6be28.firebaseapp.com",
+            projectId: "belohnung-6be28",
+            storageBucket: "belohnung-6be28.firebasestorage.app",
+            messagingSenderId: "438643009599",
+            appId: "1:438643009599:web:c91d720794a5cbd1dfb08a"
+        };
+        let auth, db, user, firebaseReady = false;
+
         const BRANDS=["Bambu Lab","Prusa","eSun","Sunlu","Polymaker","Elegoo","Spectrum","Extrudr","Das Filament","FIBERLOGY","FormFutura","Andere"];
         const MATS=["PLA","PETG","ABS","ASA","TPU","PC","PA","Wood","Carbon"];
         const HYGRO_MATS=["PETG","ABS","ASA","TPU","PC","PA","Carbon"];
@@ -430,15 +452,117 @@
         let sortMode='id', sortDir=1, prodWeight=0, pendingBooking=null, activeAMSSlotIndex=null;
         let touchstartX=0, touchendX=0, confirmCallback=null, pendingImportData=null, lastProdState={mat:"",brand:"",col:""};
 
+        // UI Helpers
+        function setStatus(statusType) {
+            const dot = document.getElementById('sync-dot');
+            if(!dot) return;
+            if(statusType === 'online') {
+                dot.style.background = '#10b981'; dot.style.boxShadow = '0 0 8px #10b981'; dot.title = "Online";
+            } else if(statusType === 'connecting') {
+                dot.style.background = '#f59e0b'; dot.style.boxShadow = '0 0 8px #f59e0b'; dot.title = "Verbindet...";
+            } else {
+                dot.style.background = '#ef4444'; dot.style.boxShadow = '0 0 8px #ef4444'; dot.title = "Offline";
+            }
+        }
+
+        // FIREBASE INITIALISIERUNG
+        async function initSync() {
+            setStatus('connecting');
+            const isSandbox = typeof __firebase_config !== 'undefined' && __firebase_config;
+            const config = isSandbox ? JSON.parse(__firebase_config) : MY_CONFIG;
+            const appId = typeof __app_id !== 'undefined' ? __app_id : config.projectId;
+            
+            try {
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(config);
+                }
+                db = firebase.firestore();
+
+                const startFirestore = () => {
+                    if (firebaseReady) return;
+                    firebaseReady = true;
+                    const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('sync').doc('state');
+                    
+                    docRef.onSnapshot((docSnap) => {
+                        setStatus('online');
+                        if (docSnap.exists) {
+                            const data = docSnap.data();
+                            spools = data.spools || [];
+                            shopItems = data.shopItems || [];
+                            amsSlots = data.amsSlots || [null,null,null,null];
+                            
+                            // Aktualisiere auch direkt das lokale Backup
+                            localStorage.setItem('fpool_inv',JSON.stringify(spools));
+                            localStorage.setItem('fpool_shop',JSON.stringify(shopItems));
+                            localStorage.setItem('fpool_ams',JSON.stringify(amsSlots));
+                            
+                            render();
+                        } else {
+                            // Wenn noch keine Daten in der DB sind, speichere die lokalen
+                            docRef.set({ spools, shopItems, amsSlots });
+                            render();
+                        }
+                    }, (err) => {
+                        console.error("Firestore Error:", err);
+                        setStatus('offline');
+                    });
+                };
+
+                if (isSandbox) {
+                    auth = firebase.auth();
+                    const initAuth = async () => {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            return await auth.signInWithCustomToken(__initial_auth_token);
+                        } else {
+                            return await auth.signInAnonymously();
+                        }
+                    };
+
+                    await initAuth().catch(e => console.warn("Auth Error:", e));
+                    
+                    auth.onAuthStateChanged((u) => {
+                        user = u;
+                        if (user) {
+                            startFirestore();
+                        }
+                    });
+                } else {
+                    // Außerhalb der Sandbox greifen wir direkt auf die Testdatenbank zu
+                    startFirestore();
+                }
+
+            } catch (e) {
+                console.error("Firebase Init Error:", e);
+                setStatus('offline');
+            }
+        }
+
+        async function syncToCloud() {
+            const isSandbox = typeof __firebase_config !== 'undefined' && __firebase_config;
+            if (!firebaseReady || (isSandbox && !user)) return;
+            
+            const appId = typeof __app_id !== 'undefined' ? __app_id : MY_CONFIG.projectId;
+            try {
+                const docRef = db.collection('artifacts').doc(appId).collection('public').doc('data').collection('sync').doc('state');
+                await docRef.set({ spools, shopItems, amsSlots });
+            } catch (e) {
+                console.error("Sync Save Error:", e);
+                setStatus('offline');
+            }
+        }
+
         window.onload = function() {
             setTimeout(()=>{document.getElementById('splash').style.display='none';document.getElementById('app').style.opacity='1';},1500);
             try {
+                // Lade zuerst die lokalen Backups
                 spools=JSON.parse(localStorage.getItem('fpool_inv')||'[]');
                 shopItems=JSON.parse(localStorage.getItem('fpool_shop')||'[]');
                 const sAMS=JSON.parse(localStorage.getItem('fpool_ams')); if(sAMS) amsSlots=sAMS;
                 spools.forEach(s => { if(!s.capacity) s.capacity = 1000; });
             } catch(e){spools=[];}
+            
             render(); checkBackup(); setupSwipe(); setupCustomConfirm();
+            initSync(); // Starte die Firebase-Synchronisation
         };
 
         function toggleBodyScroll(lock) { document.body.classList.toggle('no-scroll', lock); }
@@ -447,8 +571,10 @@
             localStorage.setItem('fpool_inv',JSON.stringify(spools));
             localStorage.setItem('fpool_shop',JSON.stringify(shopItems));
             localStorage.setItem('fpool_ams',JSON.stringify(amsSlots));
+            syncToCloud(); // Synchronisiere jede Änderung sofort mit Firebase
             render();
         }
+        
         function render() {
             renderLager(); renderStatsMini();
             document.getElementById('settings-badge').classList.toggle('hidden',!isBackupOverdue());
@@ -509,7 +635,6 @@
             });
         }
         function getVisuals(s){
-            // Ensure gradient is passed if available
             let match = ALL_COLORS.find(c => c.name === s.color);
             return {
                 name:s.color,
@@ -539,7 +664,6 @@
                 const bubble = document.createElement('div');
                 bubble.className = `color-bubble look-${c.look} ${selCol === c.name ? 'active' : ''}`;
                 
-                // Smart Background Handling
                 if(c.gradient) {
                     bubble.style.background = c.gradient;
                 } else {
@@ -548,8 +672,6 @@
 
                 const label = document.createElement('span');
                 label.className = 'color-label';
-                // Shorten label for grid? Keep full name for now.
-                label.innerText = c.name.split(' ')[0]; // Just show first word in grid for neatness? Or full? Let's try full but truncated by css
                 label.innerText = c.name;
 
                 wrapper.appendChild(bubble);
@@ -573,7 +695,6 @@
             document.getElementById('input-color-name').value = c.name;
             document.getElementById('native-color-picker').value = c.hex;
             
-            // Preview Dot logic
             const dot = document.getElementById('color-preview-dot');
             if(c.gradient) {
                 dot.style.background = c.gradient;
@@ -601,7 +722,6 @@
 
             if(!i && ctx !== 'New' && ctx !== 'ShopNew') return;
             
-            // ID Selector Logic
             const idSelect = document.getElementById('input-spool-id-select');
             const arrow = document.getElementById('id-select-arrow');
             idSelect.innerHTML = '';
@@ -649,7 +769,6 @@
             document.getElementById('input-color-name').value = selCol;
             document.getElementById('native-color-picker').value = selHex;
             
-            // Check for match to set gradient preview
             const match = ALL_COLORS.find(c => c.name === selCol);
             const dot = document.getElementById('color-preview-dot');
             if(match && match.gradient) dot.style.background = match.gradient;
@@ -841,7 +960,7 @@
             c.innerHTML=`<div class="grid grid-cols-2 gap-3 mb-4"><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title">Gesamt</div><div class="text-3xl font-black text-white">${t}</div><div class="text-[10px] text-zinc-400">Spulen</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title">Masse</div><div class="text-3xl font-black text-white">${(w/1000).toFixed(1)}</div><div class="text-[10px] text-zinc-400">kg (ca.)</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-emerald-500">Kalibriert</div><div class="text-3xl font-black text-white">${cal}</div><div class="text-[10px] text-zinc-400">${Math.round((cal/t||0)*100)}%</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-blue-500">Trocken</div><div class="text-3xl font-black text-white">${d}</div><div class="text-[10px] text-zinc-400">${Math.round((d/ht||0)*100)}% hygro</div></div></div><div class="grid grid-cols-2 gap-3 mb-4"><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-indigo-400">Top Materialien</div><div class="mt-2">${topMatsHtml}</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-orange-400">Top Marken</div><div class="mt-2">${topBrandsHtml}</div></div></div><div class="grid grid-cols-2 gap-3 mb-4"><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-red-500">Älteste Spule</div><div class="mt-1">${shelfLifeHtml}</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5 flex flex-col justify-center"><div class="section-title mb-2">Farbgruppen</div><div class="w-full h-4 bg-zinc-800 rounded-full overflow-hidden flex"><div style="width:${monoPct}%" class="bg-zinc-500 h-full"></div><div style="width:${100-monoPct}%" class="bg-indigo-500 h-full"></div></div><div class="flex justify-between text-[9px] font-bold mt-1 text-zinc-400"><span>Mono ${(w > 0 ? (monoWeight/1000).toFixed(1) : 0)}kg</span><span>Bunt ${(w > 0 ? (colorWeight/1000).toFixed(1) : 0)}kg</span></div></div></div>`;
         }
         
-        function openSettings(){toggleBodyScroll(true);document.getElementById('settings-overlay').classList.remove('overlay-hidden');document.getElementById('settings-content').innerHTML=`<div><div class="section-title">Daten</div><button onclick="exportData()" class="glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full mb-3 active:scale-95"><div class="bg-indigo-500/20 p-2 rounded-lg text-indigo-500"><i data-lucide="download"></i></div><span>Backup erstellen</span></button><div class="relative glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full active:scale-95"><div class="bg-emerald-500/20 p-2 rounded-lg text-emerald-500"><i data-lucide="upload"></i></div><span>Backup einspielen</span><input type="file" accept=".json" onchange="importData(event)" class="absolute inset-0 opacity-0 cursor-pointer"></div></div><div><div class="section-title text-red-500/80">Zone</div><button onclick="performReset()" class="p-4 rounded-xl bg-red-900/10 text-red-500 font-bold border border-red-500/20 flex gap-3 items-center w-full active:scale-95"><div class="bg-red-500/20 p-2 rounded-lg"><i data-lucide="alert-triangle"></i></div><span>Zurücksetzen</span></button></div><div class="text-center text-[10px] text-zinc-600 font-mono pt-4">Filament Pool v10.2<br>MN.CONCEPTS</div>`;if(window.lucide)lucide.createIcons();}
+        function openSettings(){toggleBodyScroll(true);document.getElementById('settings-overlay').classList.remove('overlay-hidden');document.getElementById('settings-content').innerHTML=`<div><div class="section-title">Daten</div><button onclick="exportData()" class="glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full mb-3 active:scale-95"><div class="bg-indigo-500/20 p-2 rounded-lg text-indigo-500"><i data-lucide="download"></i></div><span>Backup erstellen</span></button><div class="relative glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full active:scale-95"><div class="bg-emerald-500/20 p-2 rounded-lg text-emerald-500"><i data-lucide="upload"></i></div><span>Backup einspielen</span><input type="file" accept=".json" onchange="importData(event)" class="absolute inset-0 opacity-0 cursor-pointer"></div></div><div><div class="section-title text-red-500/80">Zone</div><button onclick="performReset()" class="p-4 rounded-xl bg-red-900/10 text-red-500 font-bold border border-red-500/20 flex gap-3 items-center w-full active:scale-95"><div class="bg-red-500/20 p-2 rounded-lg"><i data-lucide="alert-triangle"></i></div><span>Zurücksetzen</span></button></div><div class="text-center text-[10px] text-zinc-600 font-mono pt-4">Filament Pool v10.4 (Cloud Sync)<br>MN.CONCEPTS</div>`;if(window.lucide)lucide.createIcons();}
         function closeSettings(){toggleBodyScroll(false);document.getElementById('settings-overlay').classList.add('overlay-hidden');}
         function closeTools(){toggleBodyScroll(false);document.getElementById('tools-overlay').classList.add('overlay-hidden');}
         function renderToolHeader(t,b){document.getElementById('tools-header').innerHTML=`<div class="flex items-center gap-3"><button onclick="${b}" class="p-2 bg-zinc-800 rounded-full text-zinc-400"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><h2 class="text-xl font-bold text-white">${t}</h2></div>`;if(window.lucide)lucide.createIcons();}
@@ -889,5 +1008,3 @@
     </script>
 </body>
 </html>
-
-
