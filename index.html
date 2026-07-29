@@ -135,6 +135,17 @@
         #picker-canvas {
             touch-action: none; /* Verhindert Scrollen beim Ziehen über das Canvas */
         }
+        
+        /* Crop UI Styles */
+        .crop-mode-active #btn-picker-color { display: none; }
+        .crop-mode-active #btn-picker-photo-text { display: none; }
+        .crop-mode-active #btn-crop-cancel { display: flex; }
+        .crop-mode-active #btn-crop-confirm { display: flex; }
+        .crop-mode-active #picked-colors-container { display: none; }
+        .crop-mode-active #picker-live-preview-container { display: none; }
+        .crop-mode-active .picker-hint { display: none; }
+        
+        #btn-crop-cancel, #btn-crop-confirm { display: none; }
     </style>
 </head>
 <body class="safe-top safe-bottom"> 
@@ -365,21 +376,27 @@
     <!-- INTERAKTIVER FOTO PICKER -->
     <div id="photo-picker-overlay" class="fixed inset-0 bg-black/95 z-[600] hidden flex flex-col backdrop-blur-md">
         <div class="p-4 safe-top-overlay flex justify-between items-center bg-zinc-900 border-b border-white/10 flex-shrink-0">
-            <h2 class="font-bold text-white text-lg">Farben picken</h2>
+            <h2 class="font-bold text-white text-lg" id="picker-title">Farben picken</h2>
             <button onclick="closePhotoPicker()" class="p-2 bg-zinc-800 rounded-full text-zinc-400 active:scale-95"><i data-lucide="x"></i></button>
         </div>
         
         <!-- Canvas Area -->
         <div class="flex-grow flex items-center justify-center overflow-hidden p-4 relative" id="picker-canvas-container">
-            <!-- WICHTIG: onpointerdown ersetzt onclick & ontouchstart, um doppeltes Feuern zu verhindern -->
-            <canvas id="picker-canvas" class="max-w-full max-h-full rounded-2xl shadow-2xl cursor-crosshair border border-white/10" onpointerdown="handlePickerTap(event)"></canvas>
-            <div class="absolute top-6 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs font-bold tracking-widest uppercase px-4 py-2 rounded-full pointer-events-none backdrop-blur-sm border border-white/10 shadow-lg">Tippe auf das Bild</div>
+            <!-- WICHTIG: pointer Events für Drag & Drop und Crop -->
+            <canvas id="picker-canvas" class="max-w-full max-h-full rounded-2xl shadow-2xl cursor-crosshair border border-white/10" 
+                    onpointerdown="handlePointerDown(event)" 
+                    onpointermove="handlePointerMove(event)" 
+                    onpointerup="handlePointerUp(event)" 
+                    onpointercancel="handlePointerUp(event)"
+                    onpointerout="handlePointerUp(event)"></canvas>
+            <div class="picker-hint absolute top-6 left-1/2 -translate-x-1/2 bg-black/60 text-white text-xs font-bold tracking-widest uppercase px-4 py-2 rounded-full pointer-events-none backdrop-blur-sm border border-white/10 shadow-lg transition-opacity duration-300">Tippe auf das Bild</div>
+            <div id="crop-hint" class="hidden absolute top-6 left-1/2 -translate-x-1/2 bg-indigo-600/80 text-white text-xs font-bold tracking-widest uppercase px-4 py-2 rounded-full pointer-events-none backdrop-blur-sm border border-white/10 shadow-lg">Zuschneiden</div>
         </div>
         
         <!-- Picked Colors & Actions -->
-        <div class="bg-[#09090b] border-t border-white/10 p-5 safe-bottom flex flex-col gap-4 flex-shrink-0">
+        <div class="bg-[#09090b] border-t border-white/10 p-5 safe-bottom flex flex-col gap-4 flex-shrink-0" id="picker-controls-wrapper">
             
-            <div class="flex justify-between items-center bg-zinc-900/50 p-3 rounded-xl border border-white/5">
+            <div id="picker-live-preview-container" class="flex justify-between items-center bg-zinc-900/50 p-3 rounded-xl border border-white/5">
                 <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Ergebnis Vorschau</span>
                 <div id="picker-live-preview" class="w-20 h-6 rounded shadow-inner border border-white/20 bg-zinc-800 transition-all duration-300"></div>
             </div>
@@ -388,12 +405,20 @@
                 <!-- Bubbles werden hier generiert -->
             </div>
             
-            <div class="grid grid-cols-2 gap-3">
+            <div class="grid grid-cols-2 gap-3" id="picker-main-actions">
                 <button id="btn-picker-color" onclick="applyPickedColor()" class="bg-indigo-600 text-white font-bold py-4 rounded-xl active:scale-95 transition-all flex flex-col items-center justify-center opacity-50" disabled>
                     <span class="text-sm" id="btn-picker-color-text">Wähle Farbe</span>
                 </button>
-                <button onclick="applyPickedPhoto()" class="bg-zinc-800 text-white font-bold py-4 rounded-xl active:scale-95 border border-white/10 flex flex-col items-center justify-center">
+                <button id="btn-picker-photo-text" onclick="activateCropMode()" class="bg-zinc-800 text-white font-bold py-4 rounded-xl active:scale-95 border border-white/10 flex flex-col items-center justify-center">
                     <span class="text-sm">Als Foto-Textur</span>
+                </button>
+                
+                <!-- Crop Mode Actions -->
+                <button id="btn-crop-cancel" onclick="cancelCropMode()" class="bg-zinc-800 text-white font-bold py-4 rounded-xl active:scale-95 flex-col items-center justify-center border border-white/10">
+                    <span class="text-sm text-zinc-400">Abbrechen</span>
+                </button>
+                <button id="btn-crop-confirm" onclick="applyCroppedPhoto()" class="bg-emerald-600 text-white font-bold py-4 rounded-xl active:scale-95 flex-col items-center justify-center">
+                    <span class="text-sm">Zuschneiden & Speichern</span>
                 </button>
             </div>
         </div>
@@ -499,6 +524,17 @@
         let pickerSourceCanvas = null;
         let pickerThumbnail = null;
         let pickedPoints = [];
+        let isDraggingPoint = false;
+        let draggedPointIndex = -1;
+        
+        // Crop Globals
+        let isCropMode = false;
+        let cropRect = { x: 0, y: 0, w: 100, h: 100 };
+        let isDraggingCrop = false;
+        let isResizingCrop = false;
+        let resizeHandle = ''; // 'nw', 'ne', 'sw', 'se'
+        let dragStartX = 0, dragStartY = 0;
+        let cropStartRect = null;
         
         // Search Debounce Timer
         let searchTimeout = null;
@@ -723,8 +759,8 @@
             }
             
             renderBubbleGrid(c.name); 
-            // Automatisch weiter, aber nicht blockierend
-            setTimeout(() => wizNext(false), 200);
+            // Automatisch weiter entfernt auf Wunsch des Benutzers
+            // setTimeout(() => wizNext(false), 200);
         }
 
         function updateFromNativePicker(hex) {
@@ -754,7 +790,7 @@
                 reader.onload = (e) => { img.src = e.target.result; };
 
                 img.onload = () => {
-                    const MAX_SIZE = 800; // Reduzierte Größe für schnelleres Processing
+                    const MAX_SIZE = 1000; // Etwas größer für besseren Crop
                     let width = img.width;
                     let height = img.height;
                     
@@ -766,18 +802,6 @@
                     pickerSourceCanvas.width = width; pickerSourceCanvas.height = height;
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    // Thumbnail erstellen
-                    const thumbCanvas = document.createElement('canvas');
-                    const THUMB_SIZE = 128; // Kleineres Thumbnail spart massiv Zeit bei base64 encoding
-                    let tWidth = width; let tHeight = height;
-                    if (tWidth > tHeight) { if (tWidth > THUMB_SIZE) { tHeight *= THUMB_SIZE / tWidth; tWidth = THUMB_SIZE; } }
-                    else { if (tHeight > THUMB_SIZE) { tWidth *= THUMB_SIZE / tHeight; tHeight = THUMB_SIZE; } }
-                    thumbCanvas.width = tWidth; thumbCanvas.height = tHeight;
-                    thumbCanvas.getContext('2d').drawImage(img, 0, 0, tWidth, tHeight);
-                    
-                    // Niedrigere Qualität für Thumbnail reicht aus und ist viel schneller
-                    pickerThumbnail = thumbCanvas.toDataURL('image/jpeg', 0.5); 
-
                     openPhotoPicker();
                     event.target.value = ""; 
                 };
@@ -787,8 +811,16 @@
 
         function openPhotoPicker() {
             pickedPoints = [];
+            isCropMode = false;
+            document.getElementById('picker-controls-wrapper').classList.remove('crop-mode-active');
+            document.getElementById('picker-title').innerText = "Farben picken";
+            document.getElementById('crop-hint').classList.add('hidden');
+            document.querySelector('.picker-hint').classList.remove('hidden');
             document.getElementById('photo-picker-overlay').classList.remove('hidden');
             
+            // Initiale Crop-Box in der Mitte
+            cropRect = { x: 0.25, y: 0.25, w: 0.5, h: 0.5 }; 
+
             // RequestAnimationFrame ist sicherer als setTimeout für UI Renderings
             requestAnimationFrame(() => { 
                 drawPicker(); 
@@ -796,7 +828,10 @@
             });
         }
 
-        function closePhotoPicker() { document.getElementById('photo-picker-overlay').classList.add('hidden'); }
+        function closePhotoPicker() { 
+            document.getElementById('photo-picker-overlay').classList.add('hidden'); 
+            isCropMode = false;
+        }
 
         function drawPicker() {
             const canvas = document.getElementById('picker-canvas');
@@ -811,62 +846,300 @@
             const ctx = canvas.getContext('2d', { willReadFrequently: true });
             ctx.drawImage(pickerSourceCanvas, 0, 0, canvas.width, canvas.height);
 
-            pickedPoints.forEach(p => {
-                const drawX = p.pctX * canvas.width;
-                const drawY = p.pctY * canvas.height;
+            if (isCropMode) {
+                // Dim background
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
+                const cx = cropRect.x * canvas.width;
+                const cy = cropRect.y * canvas.height;
+                const cw = cropRect.w * canvas.width;
+                const ch = cropRect.h * canvas.height;
+
+                // Clear the crop area to reveal the image
+                ctx.save();
                 ctx.beginPath();
-                ctx.arc(drawX, drawY, 14, 0, 2 * Math.PI);
-                ctx.lineWidth = 4;
-                ctx.strokeStyle = '#fff';
-                ctx.stroke();
+                ctx.rect(cx, cy, cw, ch);
+                ctx.clip();
+                ctx.drawImage(pickerSourceCanvas, 0, 0, canvas.width, canvas.height);
+                ctx.restore();
+
+                // Draw crop box border
+                ctx.strokeStyle = '#818cf8';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(cx, cy, cw, ch);
+
+                // Draw handles
+                const handleSize = 12;
+                ctx.fillStyle = '#fff';
+                // NW
+                ctx.fillRect(cx - handleSize/2, cy - handleSize/2, handleSize, handleSize);
+                // NE
+                ctx.fillRect(cx + cw - handleSize/2, cy - handleSize/2, handleSize, handleSize);
+                // SW
+                ctx.fillRect(cx - handleSize/2, cy + ch - handleSize/2, handleSize, handleSize);
+                // SE
+                ctx.fillRect(cx + cw - handleSize/2, cy + ch - handleSize/2, handleSize, handleSize);
                 
-                ctx.beginPath();
-                ctx.arc(drawX, drawY, 14, 0, 2 * Math.PI);
-                ctx.fillStyle = p.hex;
-                ctx.fill();
-                
-                ctx.beginPath();
-                ctx.arc(drawX, drawY, 16, 0, 2 * Math.PI);
+                // Draw grid inside crop box
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
                 ctx.lineWidth = 1;
-                ctx.strokeStyle = '#000';
+                ctx.beginPath();
+                ctx.moveTo(cx + cw/3, cy); ctx.lineTo(cx + cw/3, cy + ch);
+                ctx.moveTo(cx + 2*cw/3, cy); ctx.lineTo(cx + 2*cw/3, cy + ch);
+                ctx.moveTo(cx, cy + ch/3); ctx.lineTo(cx + cw, cy + ch/3);
+                ctx.moveTo(cx, cy + 2*ch/3); ctx.lineTo(cx + cw, cy + 2*ch/3);
                 ctx.stroke();
-            });
+
+            } else {
+                pickedPoints.forEach((p, index) => {
+                    const drawX = p.pctX * canvas.width;
+                    const drawY = p.pctY * canvas.height;
+                    
+                    const isDraggingThis = (isDraggingPoint && draggedPointIndex === index);
+                    const radius = isDraggingThis ? 18 : 14;
+                    
+                    ctx.beginPath();
+                    ctx.arc(drawX, drawY, radius, 0, 2 * Math.PI);
+                    ctx.lineWidth = 4;
+                    ctx.strokeStyle = isDraggingThis ? '#818cf8' : '#fff';
+                    ctx.stroke();
+                    
+                    ctx.beginPath();
+                    ctx.arc(drawX, drawY, radius, 0, 2 * Math.PI);
+                    ctx.fillStyle = p.hex;
+                    ctx.fill();
+                    
+                    ctx.beginPath();
+                    ctx.arc(drawX, drawY, radius + 2, 0, 2 * Math.PI);
+                    ctx.lineWidth = 1;
+                    ctx.strokeStyle = '#000';
+                    ctx.stroke();
+                });
+            }
         }
 
-        function handlePickerTap(e) {
-            // Verhindert Scrollen oder Ghost-Clicks
+        // Pointer Event Handlers für Drag & Drop und Crop
+        function handlePointerDown(e) {
             e.preventDefault(); 
-            
             const canvas = document.getElementById('picker-canvas');
             const rect = canvas.getBoundingClientRect();
-            
-            // PointerEvents (onpointerdown) abstrahieren Maus und Touch.
-            // Keine Unterscheidung (e.touches) mehr nötig!
-            let clientX = e.clientX;
-            let clientY = e.clientY;
-            
-            let x = clientX - rect.left;
-            let y = clientY - rect.top;
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
             
             if (x < 0 || y < 0 || x >= canvas.width || y >= canvas.height) return;
+            
+            document.querySelector('.picker-hint').style.opacity = '0';
 
+            if (isCropMode) {
+                const cx = cropRect.x * canvas.width;
+                const cy = cropRect.y * canvas.height;
+                const cw = cropRect.w * canvas.width;
+                const ch = cropRect.h * canvas.height;
+                const hitZone = 20;
+
+                dragStartX = x;
+                dragStartY = y;
+                cropStartRect = { ...cropRect };
+
+                // Check Handles (Top-Left, Top-Right, Bottom-Left, Bottom-Right)
+                if (Math.abs(x - cx) < hitZone && Math.abs(y - cy) < hitZone) { isResizingCrop = true; resizeHandle = 'nw'; }
+                else if (Math.abs(x - (cx + cw)) < hitZone && Math.abs(y - cy) < hitZone) { isResizingCrop = true; resizeHandle = 'ne'; }
+                else if (Math.abs(x - cx) < hitZone && Math.abs(y - (cy + ch)) < hitZone) { isResizingCrop = true; resizeHandle = 'sw'; }
+                else if (Math.abs(x - (cx + cw)) < hitZone && Math.abs(y - (cy + ch)) < hitZone) { isResizingCrop = true; resizeHandle = 'se'; }
+                // Check inside box for dragging
+                else if (x > cx && x < cx + cw && y > cy && y < cy + ch) {
+                    isDraggingCrop = true;
+                }
+            } else {
+                // Picking Mode
+                // Prüfen ob ein existierender Punkt berührt wurde
+                let hitIndex = -1;
+                const hitRadius = 25; // Etwas größerer Hit-Bereich für Touch
+                
+                for(let i = pickedPoints.length - 1; i >= 0; i--) {
+                    const pX = pickedPoints[i].pctX * canvas.width;
+                    const pY = pickedPoints[i].pctY * canvas.height;
+                    const dist = Math.sqrt(Math.pow(x - pX, 2) + Math.pow(y - pY, 2));
+                    if(dist <= hitRadius) {
+                        hitIndex = i;
+                        break;
+                    }
+                }
+                
+                if (hitIndex !== -1) {
+                    isDraggingPoint = true;
+                    draggedPointIndex = hitIndex;
+                    canvas.setPointerCapture(e.pointerId);
+                } else {
+                    // Neuen Punkt hinzufügen
+                    addOrUpdatePoint(x, y);
+                }
+                drawPicker();
+            }
+        }
+
+        function handlePointerMove(e) {
+            e.preventDefault();
+            const canvas = document.getElementById('picker-canvas');
+            const rect = canvas.getBoundingClientRect();
+            let x = e.clientX - rect.left;
+            let y = e.clientY - rect.top;
+            
+            // Constrain to canvas
+            x = Math.max(0, Math.min(x, canvas.width));
+            y = Math.max(0, Math.min(y, canvas.height));
+
+            if (isCropMode) {
+                const pctX = x / canvas.width;
+                const pctY = y / canvas.height;
+                const dx = pctX - (dragStartX / canvas.width);
+                const dy = pctY - (dragStartY / canvas.height);
+
+                if (isDraggingCrop) {
+                    let newX = cropStartRect.x + dx;
+                    let newY = cropStartRect.y + dy;
+                    
+                    // Constrain bounds
+                    newX = Math.max(0, Math.min(newX, 1 - cropStartRect.w));
+                    newY = Math.max(0, Math.min(newY, 1 - cropStartRect.h));
+                    
+                    cropRect.x = newX;
+                    cropRect.y = newY;
+                    requestAnimationFrame(drawPicker);
+                } else if (isResizingCrop) {
+                    let minSize = 0.1;
+                    
+                    if (resizeHandle === 'se') {
+                        cropRect.w = Math.max(minSize, Math.min(cropStartRect.w + dx, 1 - cropStartRect.x));
+                        cropRect.h = Math.max(minSize, Math.min(cropStartRect.h + dy, 1 - cropStartRect.y));
+                    } else if (resizeHandle === 'ne') {
+                        let newY = cropStartRect.y + dy;
+                        let newH = cropStartRect.h - dy;
+                        if (newH >= minSize && newY >= 0) { cropRect.y = newY; cropRect.h = newH; }
+                        cropRect.w = Math.max(minSize, Math.min(cropStartRect.w + dx, 1 - cropStartRect.x));
+                    } else if (resizeHandle === 'sw') {
+                        let newX = cropStartRect.x + dx;
+                        let newW = cropStartRect.w - dx;
+                        if (newW >= minSize && newX >= 0) { cropRect.x = newX; cropRect.w = newW; }
+                        cropRect.h = Math.max(minSize, Math.min(cropStartRect.h + dy, 1 - cropStartRect.y));
+                    } else if (resizeHandle === 'nw') {
+                        let newX = cropStartRect.x + dx;
+                        let newW = cropStartRect.w - dx;
+                        if (newW >= minSize && newX >= 0) { cropRect.x = newX; cropRect.w = newW; }
+                        
+                        let newY = cropStartRect.y + dy;
+                        let newH = cropStartRect.h - dy;
+                        if (newH >= minSize && newY >= 0) { cropRect.y = newY; cropRect.h = newH; }
+                    }
+                    
+                    requestAnimationFrame(drawPicker);
+                }
+            } else if (isDraggingPoint) {
+                // Punkt verschieben und Farbe live updaten
+                addOrUpdatePoint(x, y, draggedPointIndex);
+            }
+        }
+
+        function handlePointerUp(e) {
+            e.preventDefault();
+            const canvas = document.getElementById('picker-canvas');
+            canvas.releasePointerCapture(e.pointerId);
+            
+            isDraggingPoint = false;
+            draggedPointIndex = -1;
+            
+            isDraggingCrop = false;
+            isResizingCrop = false;
+            
+            requestAnimationFrame(drawPicker);
+        }
+
+        function addOrUpdatePoint(x, y, updateIndex = -1) {
+            const canvas = document.getElementById('picker-canvas');
             const ctx = canvas.getContext('2d', { willReadFrequently: true });
             const pixel = ctx.getImageData(x, y, 1, 1).data;
             const hex = "#" + (1 << 24 | pixel[0] << 16 | pixel[1] << 8 | pixel[2]).toString(16).slice(1).toUpperCase();
             
-            pickedPoints.push({
+            const newPoint = {
                 pctX: x / canvas.width, 
                 pctY: y / canvas.height, 
                 hex: hex,
                 r: pixel[0], g: pixel[1], b: pixel[2]
-            });
+            };
             
-            // Zeichnen in den nächsten Animationsframe verlegen, damit UI flüssig bleibt
+            if (updateIndex !== -1 && updateIndex < pickedPoints.length) {
+                pickedPoints[updateIndex] = newPoint;
+            } else {
+                pickedPoints.push(newPoint);
+            }
+            
             requestAnimationFrame(() => {
                 drawPicker();
                 updatePickedColorsUI();
             });
+        }
+        
+        // --- CROP MODE FUNCTIONS ---
+        
+        function activateCropMode() {
+            if(!pickerSourceCanvas) return;
+            isCropMode = true;
+            document.getElementById('picker-controls-wrapper').classList.add('crop-mode-active');
+            document.getElementById('picker-title').innerText = "Bild zuschneiden";
+            document.getElementById('crop-hint').classList.remove('hidden');
+            drawPicker();
+        }
+        
+        function cancelCropMode() {
+            isCropMode = false;
+            document.getElementById('picker-controls-wrapper').classList.remove('crop-mode-active');
+            document.getElementById('picker-title').innerText = "Farben picken";
+            document.getElementById('crop-hint').classList.add('hidden');
+            drawPicker();
+        }
+
+        function applyCroppedPhoto() {
+            if(!pickerSourceCanvas) return;
+            
+            // Berechne reale Pixel-Koordinaten des Crops auf dem Originalbild
+            const sx = cropRect.x * pickerSourceCanvas.width;
+            const sy = cropRect.y * pickerSourceCanvas.height;
+            const sw = cropRect.w * pickerSourceCanvas.width;
+            const sh = cropRect.h * pickerSourceCanvas.height;
+            
+            // Erstelle Thumbnail aus dem zugeschnittenen Bereich
+            const thumbCanvas = document.createElement('canvas');
+            const THUMB_SIZE = 256;
+            
+            // Behalte Aspect Ratio des Crops bei
+            let tWidth = THUMB_SIZE;
+            let tHeight = THUMB_SIZE;
+            if (sw > sh) {
+                tHeight = THUMB_SIZE * (sh / sw);
+            } else {
+                tWidth = THUMB_SIZE * (sw / sh);
+            }
+            
+            thumbCanvas.width = tWidth;
+            thumbCanvas.height = tHeight;
+            const ctx = thumbCanvas.getContext('2d');
+            
+            ctx.drawImage(pickerSourceCanvas, sx, sy, sw, sh, 0, 0, tWidth, tHeight);
+            
+            pickerThumbnail = thumbCanvas.toDataURL('image/jpeg', 0.6);
+            
+            // Setze Werte für Spule
+            selHex = '#888888'; // Fallback
+            selGradient = null;
+            selLook = 'photo';
+            selCol = "Foto-Textur";
+            selImage = pickerThumbnail;
+            
+            updateWizardColorPreview();
+            closePhotoPicker();
+            toast("Textur zugeschnitten!");
+            // Kein automatisches wizNext() auf Wunsch des Nutzers
         }
 
         function updatePickedColorsUI() {
@@ -917,6 +1190,7 @@
             if (pickedPoints.length === 0) return;
             
             if (pickedPoints.length === 1) {
+                // UNI COLOR
                 const p = pickedPoints[0];
                 selHex = p.hex; selGradient = null; selImage = null;
                 
@@ -933,31 +1207,29 @@
                 selCol = "Cam: " + closestName;
                 selLook = closestLook;
             } else {
-                selHex = pickedPoints[0].hex; 
+                // MULTI COLOR (Gradient)
+                selHex = pickedPoints[0].hex; // Hauptfarbe für Fallbacks
                 const hexList = pickedPoints.map(p => p.hex).join(', ');
                 selGradient = `linear-gradient(90deg, ${hexList})`;
-                selCol = "Multi-Color";
-                selLook = 'rainbow'; 
+                
+                // Behalte den Namen "Multi-Color" bei, wenn es neu ist,
+                // ABER überschreibe nicht, wenn der Nutzer ihn schon geändert hat
+                // und die neue Farbanzahl noch multi ist.
+                const currentName = document.getElementById('input-color-name').value;
+                if(!currentName || currentName.startsWith("Cam: ") || currentName === "Foto-Textur" || currentName === "") {
+                    selCol = "Multi-Color";
+                } else {
+                    selCol = currentName; 
+                }
+                
+                selLook = 'rainbow'; // Erlaubt Gradients
                 selImage = null;
             }
             
             updateWizardColorPreview();
             closePhotoPicker();
             toast("Farbe übernommen!");
-            setTimeout(() => wizNext(false), 200);
-        }
-
-        function applyPickedPhoto() {
-            selHex = pickedPoints.length > 0 ? pickedPoints[0].hex : '#888888';
-            selGradient = null;
-            selLook = 'photo';
-            selCol = "Foto-Textur";
-            selImage = pickerThumbnail;
-            
-            updateWizardColorPreview();
-            closePhotoPicker();
-            toast("Foto übernommen!");
-            setTimeout(() => wizNext(false), 200);
+            // Kein automatisches wizNext() hier, damit User den Namen editieren kann
         }
 
         function updateWizardColorPreview() {
