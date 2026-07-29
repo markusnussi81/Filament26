@@ -365,6 +365,13 @@
         
         <!-- Picked Colors & Actions -->
         <div class="bg-[#09090b] border-t border-white/10 p-5 safe-bottom flex flex-col gap-4 flex-shrink-0">
+            
+            <!-- NEU: LIVE VORSCHAU -->
+            <div class="flex justify-between items-center bg-zinc-900/50 p-3 rounded-xl border border-white/5">
+                <span class="text-xs font-bold text-zinc-400 uppercase tracking-widest">Ergebnis Vorschau</span>
+                <div id="picker-live-preview" class="w-20 h-6 rounded shadow-inner border border-white/20 bg-zinc-800 transition-all duration-300"></div>
+            </div>
+
             <div class="flex gap-3 items-center min-h-[48px] overflow-x-auto pb-2" id="picked-colors-container">
                 <!-- Bubbles werden hier generiert -->
             </div>
@@ -826,7 +833,17 @@
                 container.innerHTML += `<div class="relative w-10 h-10 flex-shrink-0 rounded-full border-2 border-white cursor-pointer shadow-lg" style="background-color:${p.hex}" onclick="removePickedPoint(${idx})"><div class="absolute -top-1 -right-1 bg-red-500 text-white w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold shadow">✕</div></div>`;
             });
 
-            if(pickedPoints.length === 0) container.innerHTML = '<div class="text-zinc-500 text-sm font-bold w-full text-center py-2">Noch keine Farbe gepickt.</div>';
+            // LIVE PREVIEW UPDATE LOGIK
+            const previewEl = document.getElementById('picker-live-preview');
+            if (pickedPoints.length === 0) {
+                container.innerHTML = '<div class="text-zinc-500 text-sm font-bold w-full text-center py-2">Noch keine Farbe gepickt.</div>';
+                previewEl.style.background = '#27272a'; // Standard Grau, wenn leer
+            } else if (pickedPoints.length === 1) {
+                previewEl.style.background = pickedPoints[0].hex; // Einzelne Farbe
+            } else {
+                const hexList = pickedPoints.map(p => p.hex).join(', ');
+                previewEl.style.background = `linear-gradient(90deg, ${hexList})`; // Multicolor Verlauf
+            }
             
             const btnColor = document.getElementById('btn-picker-color');
             const btnText = document.getElementById('btn-picker-color-text');
