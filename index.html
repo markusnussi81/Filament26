@@ -248,7 +248,13 @@
                             <div class="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border border-white/20 shadow-sm" id="color-preview-dot" style="background-color: #fff;"></div>
                         </div>
                         <div class="relative w-12 flex-shrink-0">
-                            <div class="w-full h-full bg-zinc-800 rounded-xl border border-zinc-700 flex items-center justify-center cursor-pointer relative">
+                            <div class="w-full h-full bg-zinc-800 rounded-xl border border-zinc-700 flex items-center justify-center cursor-pointer relative active:scale-95 transition-transform" onclick="document.getElementById('camera-input').click()">
+                                <i data-lucide="camera" class="w-5 h-5 text-zinc-400 pointer-events-none"></i>
+                                <input type="file" id="camera-input" accept="image/*" class="hidden" onchange="handleCameraCapture(event)">
+                            </div>
+                        </div>
+                        <div class="relative w-12 flex-shrink-0">
+                            <div class="w-full h-full bg-zinc-800 rounded-xl border border-zinc-700 flex items-center justify-center cursor-pointer relative active:scale-95 transition-transform">
                                 <i data-lucide="droplet" class="w-5 h-5 text-zinc-400 pointer-events-none"></i>
                                 <input type="color" id="native-color-picker" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" oninput="updateFromNativePicker(this.value)" style="padding:0; margin:0; border:none;">
                             </div>
@@ -695,6 +701,74 @@
         function updateFromNativePicker(hex) {
             selHex = hex;
             document.getElementById('color-preview-dot').style.background = hex;
+        }
+
+        function colorDistance(r1, g1, b1, r2, g2, b2) {
+            return Math.sqrt(Math.pow(r2 - r1, 2) + Math.pow(g2 - g1, 2) + Math.pow(b2 - b1, 2));
+        }
+
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : {r: 0, g: 0, b: 0};
+        }
+
+        function handleCameraCapture(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            toast("Analysiere Farbe...");
+            const img = new Image();
+            const reader = new FileReader();
+
+            reader.onload = (e) => { img.src = e.target.result; };
+
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 50; canvas.height = 50;
+                ctx.drawImage(img, 0, 0, 50, 50);
+                
+                // Wir lesen die durchschnittliche Farbe aus der Mitte des Bildes aus (20x20 Block)
+                const imgData = ctx.getImageData(15, 15, 20, 20);
+                const data = imgData.data;
+                let r = 0, g = 0, b = 0;
+                const count = data.length / 4;
+                
+                for (let i = 0; i < data.length; i += 4) {
+                    r += data[i]; g += data[i+1]; b += data[i+2];
+                }
+                
+                r = Math.floor(r / count); g = Math.floor(g / count); b = Math.floor(b / count);
+                const hex = "#" + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1).toUpperCase();
+                
+                let closestName = "Custom";
+                let closestLook = "plain";
+                let minDist = Infinity;
+                
+                // Nächste Farbe aus der Datenbank anhand RGB-Distanz finden
+                ALL_COLORS.forEach(c => {
+                    if (c.hex && !c.gradient) {
+                        const cRgb = hexToRgb(c.hex);
+                        const dist = colorDistance(r, g, b, cRgb.r, cRgb.g, cRgb.b);
+                        if (dist < minDist) {
+                            minDist = dist; closestName = c.name; closestLook = c.look;
+                        }
+                    }
+                });
+
+                selHex = hex;
+                selCol = "Cam: " + closestName;
+                selLook = closestLook;
+
+                document.getElementById('native-color-picker').value = hex;
+                document.getElementById('input-color-name').value = selCol;
+                document.getElementById('color-preview-dot').style.background = hex;
+                
+                renderBubbleGrid(closestName);
+                toast("Farbe erkannt!");
+                event.target.value = ""; 
+            };
+            reader.readAsDataURL(file);
         }
 
         /* */
