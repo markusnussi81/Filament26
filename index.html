@@ -7,7 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Filament">
     
-    <title>Filament Pool v10.10 (Cloud Sync)</title>
+    <title>Filament Pool v10.20 (Wizard UX)</title>
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -18,6 +18,7 @@
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js" crossorigin="anonymous"></script>
     
     <style>
+        /* */
         /* --- CORE --- */
         :root { --app-bg: #09090b; --card-bg: #18181b; }
         body { background-color: var(--app-bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #e4e4e7; width: 100vw; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
@@ -35,6 +36,7 @@
         .glass-panel { background: #18181b; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column; }
         .section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #71717a; margin-bottom: 8px; }
         
+        /* */
         /* Lists */
         .spool-card { background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 16px; display: flex; align-items: center; padding: 12px; gap: 12px; position: relative; overflow: hidden; transition: transform 0.1s, background 0.2s; cursor: pointer; touch-action: manipulation; z-index: 10; }
         .spool-card:active { transform: scale(0.98); background: #27272a; }
@@ -56,6 +58,7 @@
         .look-stone .spool-body { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.4'/%3E%3C/svg%3E"), linear-gradient(0deg, rgba(0,0,0,0.4) 0%, transparent 50%, rgba(0,0,0,0.4) 100%); }
         .look-rainbow .spool-body { background: var(--fil-gradient); opacity: 0.9; }
 
+        /* */
         /* Inputs */
         input, select, textarea { font-size: 16px !important; background: #27272a; color: white; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); outline: none; }
         input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; background: #27272a; border-radius: 99px; border: none; }
@@ -74,6 +77,7 @@
         .color-bubble.look-galaxy { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.4) 0px, rgba(255,255,255,0.4) 1px, transparent 1px, transparent 8px); }
         .color-bubble.look-stone { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.4'/%3E%3C/svg%3E"); }
 
+        /* */
         /* AMS */
         .ams-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px; width: 100%; margin: 0 auto 24px auto; position: relative; }
         .ams-grid::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: #27272a; border: 4px solid #09090b; border-radius: 50%; z-index: 20; box-shadow: 0 0 10px rgba(0,0,0,0.8); pointer-events: none; }
@@ -100,6 +104,7 @@
         .calc-btn { background: #27272a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; font-weight: bold; color: white; transition: 0.1s; }
         .calc-btn:active { background: #3f3f46; transform: scale(0.95); }
         
+        /* */
         .sort-btn-row { width: 100%; text-align: left; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: bold; color: #a1a1aa; display: flex; justify-content: space-between; align-items: center; }
         .sort-btn-row.active { color: #818cf8; }
         .sort-btn-row:last-child { border-bottom: none; }
@@ -121,15 +126,28 @@
         .id-select:disabled { border: none; padding-right: 0; opacity: 1; color: white; }
         .id-select option { background: #18181b; color: white; font-size: 1rem; font-family: sans-serif; }
         .id-select-arrow { pointer-events: none; position: absolute; right: 0; top: 50%; transform: translateY(-50%); width: 16px; height: 16px; color: rgba(255,255,255,0.4); }
+
+        /* Wizard Specifics */
+        .wizard-step { animation: fadeSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        @keyframes fadeSlideIn { 
+            from { opacity: 0; transform: translateX(15px); } 
+            to { opacity: 1; transform: translateX(0); } 
+        }
+        .wizard-step.hidden { display: none !important; }
+        
+        /* Layout fix for color picker inside wizard */
+        #step-color { display: flex; flex-direction: column; height: 100%; }
+        #color-bubbles-container { flex-grow: 1; overflow-y: auto; padding-bottom: 20px;}
     </style>
 </head>
 <body class="safe-top safe-bottom">
 
+    <!-- -->
     <!-- SPLASH -->
     <div id="splash" class="fixed inset-0 bg-[#09090b] z-[9999] flex flex-col items-center justify-center transition-opacity duration-500">
         <div class="mb-4 text-indigo-500"><i data-lucide="disc" class="w-16 h-16"></i></div>
         <h1 class="text-3xl font-black tracking-tighter logo-gradient">FILAMENT</h1>
-        <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">MN.CONCEPTS v10.10</p>
+        <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">MN.CONCEPTS v10.20</p>
     </div>
 
     <!-- MAIN APP -->
@@ -167,6 +185,7 @@
         <div id="empty-state" class="hidden text-center py-10 text-zinc-600 text-sm">Lager ist leer.</div>
     </div>
 
+    <!-- -->
     <!-- SORT OVERLAY -->
     <div id="sort-overlay" class="overlay-base overlay-hidden bg-black/80 backdrop-blur-sm" onclick="closeSortMenu()">
         <div class="absolute bottom-0 left-0 right-0 w-full max-w-md mx-auto bg-[#18181b] rounded-t-3xl border-t border-white/10 p-2 safe-bottom" onclick="event.stopPropagation()">
@@ -181,36 +200,51 @@
         </div>
     </div>
 
-    <!-- EDITOR MODAL -->
+    <!-- WIZARD EDITOR MODAL -->
     <div id="modal-overlay" class="overlay-base overlay-hidden bg-black/50 backdrop-blur-sm">
         <div id="modal-content" class="modal-slide w-full max-w-md mx-auto bg-[#09090b] h-full flex flex-col safe-top-overlay safe-bottom px-5 pb-5 shadow-2xl">
+            
+            <!-- Header (ID always visible) -->
             <div class="flex justify-between items-center mb-4 flex-shrink-0">
                 <div>
-                    <div class="section-title">Bearbeiten</div>
+                    <div class="section-title" id="modal-title-text">Erfassen</div>
                     <div class="id-select-wrapper">
-                        <!-- ID SELECT (Replaces input) -->
                         <select id="input-spool-id-select" class="id-select" disabled></select>
                         <i data-lucide="chevron-down" id="id-select-arrow" class="id-select-arrow hidden"></i>
                     </div>
                 </div>
-                <div class="text-right">
+                <div class="text-right flex flex-col items-end">
                     <div id="modal-date" class="text-[10px] text-zinc-500 font-mono font-bold mb-1"></div>
                     <button onclick="closeModal()" class="p-2 bg-zinc-800 rounded-full text-zinc-400"><i data-lucide="x"></i></button>
                 </div>
             </div>
             
-            <div class="scroll-container space-y-6" id="editor-scroll-area">
-                <div id="level-section" class="bg-zinc-900/50 p-4 rounded-2xl border border-white/5">
-                    <div class="flex justify-between text-xs text-zinc-400 font-bold mb-3"><span>0%</span> <span id="level-display" class="text-indigo-400">100%</span> <span>100%</span></div>
-                    <input type="range" id="input-level" min="0" max="100" step="0.5" oninput="updateLevelDisplay(this.value)">
+            <!-- Progress Bar -->
+            <div class="w-full h-1 bg-zinc-800 mb-6 rounded-full overflow-hidden flex-shrink-0">
+                <div id="wizard-progress" class="h-full bg-indigo-500 transition-all duration-300" style="width: 0%"></div>
+            </div>
+            
+            <!-- Main Content Area -->
+            <div class="flex-grow flex flex-col relative overflow-hidden pb-4" id="wizard-container">
+                
+                <!-- STEP 1: MATERIAL -->
+                <div id="step-material" class="wizard-step flex-grow flex flex-col hidden">
+                    <h3 class="text-xl font-bold text-white mb-4">Welches Material?</h3>
+                    <div class="grid grid-cols-4 gap-2" id="material-grid"></div>
                 </div>
 
-                <!-- HYBRID COLOR PICKER -->
-                <div>
-                    <label class="section-title block mb-2">Farbe</label>
+                <!-- STEP 2: BRAND -->
+                <div id="step-brand" class="wizard-step flex-grow flex flex-col hidden">
+                    <h3 class="text-xl font-bold text-white mb-4">Welche Marke?</h3>
+                    <select id="input-brand" onchange="wizNext(false)" class="w-full p-4 text-lg bg-zinc-900 border border-zinc-800 rounded-xl text-white outline-none font-bold"></select>
+                </div>
+
+                <!-- STEP 3: COLOR -->
+                <div id="step-color" class="wizard-step flex-grow flex flex-col hidden">
+                    <h3 class="text-xl font-bold text-white mb-4">Welche Farbe?</h3>
                     <div class="flex gap-2 mb-3">
                         <div class="relative flex-grow">
-                            <input type="text" id="input-color-name" oninput="filterColorBubbles(this.value)" placeholder="Farbe eingeben (z.B. 'Rot' oder 'Silk')..." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3.5 pl-12 text-white outline-none font-bold">
+                            <input type="text" id="input-color-name" oninput="filterColorBubbles(this.value)" placeholder="Farbe (z.B. Rot)..." class="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3.5 pl-12 text-white outline-none font-bold">
                             <div class="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border border-white/20 shadow-sm" id="color-preview-dot" style="background-color: #fff;"></div>
                         </div>
                         <div class="relative w-12 flex-shrink-0">
@@ -220,49 +254,84 @@
                             </div>
                         </div>
                     </div>
-                    <div class="bg-zinc-900/30 p-3 rounded-2xl border border-white/5">
-                        <div id="color-bubbles-container" class="flex flex-wrap gap-2 max-h-48 overflow-y-auto"></div>
+                    <div class="bg-zinc-900/30 p-3 rounded-2xl border border-white/5 flex-grow overflow-hidden flex flex-col">
+                        <div id="color-bubbles-container" class="flex flex-wrap gap-2 overflow-y-auto flex-grow items-start content-start pb-4"></div>
                     </div>
                 </div>
 
-                <!-- CAPACITY SELECTOR -->
-                <div id="capacity-section" class="grid grid-cols-2 gap-3">
-                     <div>
-                        <label class="section-title block mb-2">Gewicht (Voll)</label>
-                        <select id="input-capacity" class="w-full p-3.5 bg-zinc-900 border border-zinc-800 rounded-xl text-white outline-none font-bold text-sm">
-                            <option value="250">250g (Sample)</option>
-                            <option value="500">500g (Small)</option>
-                            <option value="750">750g (Medium)</option>
-                            <option value="1000" selected>1000g (Standard)</option>
-                            <option value="2000">2000g (Big)</option>
-                            <option value="3000">3000g (Industrial)</option>
-                        </select>
-                    </div>
-                    <div id="calib-section" class="bg-zinc-900/50 p-3 rounded-2xl border border-white/5 flex flex-col justify-between">
-                         <div class="section-title" style="margin-bottom:0">Kalibriert</div>
-                         <div class="flex justify-between items-center mt-2"><span class="text-xs text-zinc-300">Status</span><div class="relative inline-block w-10 h-5 align-middle select-none"><input type="checkbox" id="input-calib" class="toggle-checkbox absolute block w-5 h-5 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all right-5 border-zinc-600"/><label for="input-calib" class="toggle-label block overflow-hidden h-5 rounded-full bg-zinc-700 cursor-pointer"></label></div></div>
+                <!-- STEP 4: CAPACITY -->
+                <div id="step-capacity" class="wizard-step flex-grow flex flex-col hidden">
+                    <h3 class="text-xl font-bold text-white mb-4">Spulengröße (Vollgewicht)?</h3>
+                    <select id="input-capacity" onchange="wizNext(false)" class="w-full p-4 text-lg bg-zinc-900 border border-zinc-800 rounded-xl text-white outline-none font-bold">
+                        <option value="250">250g (Sample)</option>
+                        <option value="500">500g (Small)</option>
+                        <option value="750">750g (Medium)</option>
+                        <option value="1000" selected>1000g (Standard)</option>
+                        <option value="2000">2000g (Big)</option>
+                        <option value="3000">3000g (Industrial)</option>
+                    </select>
+                </div>
+
+                <!-- STEP 5: LEVEL -->
+                <div id="step-level" class="wizard-step flex-grow flex flex-col hidden justify-center items-center py-4">
+                    <h3 class="text-xl font-bold text-white mb-8 w-full text-left">Füllstand aktuell?</h3>
+                    <div class="w-full bg-zinc-900/50 p-8 rounded-3xl border border-white/5 flex flex-col items-center">
+                        <div class="text-5xl font-black text-indigo-400 mb-6"><span id="level-display">100%</span></div>
+                        <input type="range" id="input-level" min="0" max="100" step="0.5" oninput="updateLevelDisplay(this.value)" class="w-full h-6">
+                        <div class="w-full flex justify-between text-xs text-zinc-500 font-bold mt-4"><span>Leer (0%)</span> <span>Voll (100%)</span></div>
                     </div>
                 </div>
 
-                <div id="dryer-section" class="bg-zinc-900/50 p-4 rounded-2xl border border-white/5 flex flex-col justify-between hidden">
-                    <div class="section-title" style="margin-bottom:0">Trocknung</div>
-                    <div class="flex justify-between items-end mt-2"><div id="dryer-status" class="text-xs text-zinc-300">Unbekannt</div><button onclick="setDryerDate()" class="bg-zinc-800 p-2 rounded text-white active:scale-95"><i data-lucide="rotate-cw" class="w-4 h-4"></i></button></div>
+                <!-- STEP 6: EXTRAS -->
+                <div id="step-extras" class="wizard-step flex-grow flex flex-col hidden space-y-3 overflow-y-auto pb-4">
+                    <h3 class="text-xl font-bold text-white mb-2">Weitere Details</h3>
+                    
+                    <div id="calib-section" class="bg-zinc-900/50 p-4 rounded-2xl border border-white/5 flex justify-between items-center">
+                        <div class="section-title mb-0">Im Slicer Kalibriert?</div>
+                        <div class="relative inline-block w-12 h-6 align-middle select-none">
+                            <input type="checkbox" id="input-calib" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer transition-all right-6 border-zinc-600"/>
+                            <label for="input-calib" class="toggle-label block overflow-hidden h-6 rounded-full bg-zinc-700 cursor-pointer"></label>
+                        </div>
+                    </div>
+
+                    <div id="dryer-section" class="bg-zinc-900/50 p-4 rounded-2xl border border-white/5 flex justify-between items-center hidden">
+                        <div>
+                             <div class="section-title mb-1">Letzte Trocknung</div>
+                             <div id="dryer-status" class="text-xs text-zinc-300 font-bold">Unbekannt</div>
+                        </div>
+                        <button onclick="setDryerDate()" class="bg-zinc-800 p-3 rounded-xl text-white active:scale-95"><i data-lucide="rotate-cw" class="w-5 h-5"></i></button>
+                    </div>
+
+                    <div id="date-section">
+                        <label class="section-title block mb-2">Erfasst am</label>
+                        <input type="date" id="input-date" class="w-full p-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white font-bold">
+                    </div>
+
+                    <div>
+                        <label class="section-title block mb-2">Notizen (Optional)</label>
+                        <textarea id="input-notes" class="w-full p-4 bg-zinc-900 border border-zinc-800 rounded-xl text-white h-24" placeholder="Besonderheiten..."></textarea>
+                    </div>
                 </div>
 
-                <div><label class="section-title block mb-2">Material</label><div class="grid grid-cols-4 gap-2" id="material-grid"></div></div>
-                <div><label class="section-title block mb-2">Marke</label><select id="input-brand" class="w-full p-3.5"></select></div>
-                <div id="date-section"><label class="section-title block mb-2">Erstellt am</label><input type="date" id="input-date"></div>
-                <div><label class="section-title block mb-2">Notizen</label><textarea id="input-notes" class="w-full p-3.5 h-24" placeholder="..."></textarea></div>
-                
-                <div class="flex flex-col gap-3 pt-2 pb-10">
-                    <button onclick="saveItem()" class="w-full bg-indigo-600 py-4 rounded-xl text-white font-bold shadow-lg active:scale-95">Speichern</button>
-                    <button id="btn-quick-shop" onclick="copyToShop()" class="w-full bg-emerald-600/10 text-emerald-500 py-3 rounded-xl font-bold border border-emerald-500/20">Auf Einkaufsliste</button>
-                    <button id="btn-delete-item" onclick="openDeleteDialog()" class="text-red-500/60 text-xs font-bold py-2 uppercase tracking-widest hover:text-red-500 text-center w-full">Element entfernen</button>
+                <!-- -->
+                <!-- WIZARD NAVIGATION -->
+                <div class="mt-auto pt-4 flex gap-2 flex-shrink-0 w-full" id="wizard-nav">
+                    <button id="btn-wiz-prev" onclick="wizPrev()" class="p-4 bg-zinc-800 rounded-xl text-white active:scale-95"><i data-lucide="chevron-left"></i></button>
+                    <button id="btn-wiz-skip" onclick="wizNext(true)" class="flex-grow bg-zinc-800/50 text-zinc-400 py-4 rounded-xl font-bold active:scale-95">Überspringen</button>
+                    <button id="btn-wiz-next" onclick="wizNext(false)" class="flex-grow bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg active:scale-95 flex items-center justify-center">Weiter <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i></button>
                 </div>
+
+                <!-- EXTRA ACTIONS (Shown only on last step during edit) -->
+                <div id="wizard-extra-actions" class="hidden flex-col gap-3 mt-4 flex-shrink-0 w-full">
+                    <button id="btn-quick-shop" onclick="copyToShop()" class="w-full bg-emerald-600/10 text-emerald-500 py-3 rounded-xl font-bold border border-emerald-500/20 active:scale-95">Auf Einkaufsliste</button>
+                    <button id="btn-delete-item" onclick="openDeleteDialog()" class="text-red-500/60 text-xs font-bold py-2 uppercase tracking-widest hover:text-red-500 text-center w-full active:scale-95">Element entfernen</button>
+                </div>
+
             </div>
         </div>
     </div>
 
+    <!-- -->
     <!-- OTHER OVERLAYS -->
     <div id="tools-overlay" class="overlay-base overlay-hidden">
         <div class="w-full max-w-md mx-auto px-5 pb-5 flex flex-col h-full safe-top-overlay safe-bottom">
@@ -296,6 +365,7 @@
     <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-zinc-800 text-white px-6 py-3 rounded-full shadow-2xl z-[500] transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none font-bold text-sm flex gap-2 border border-white/10"></div>
 
     <script>
+        /* */
         // =========================================================================
         // FIREBASE CONFIGURATION FÜR CLOUD SYNC
         // =========================================================================
@@ -314,140 +384,81 @@
         const MATS=["PLA","PETG","ABS","ASA","TPU","PC","PA","Wood","Carbon"];
         const HYGRO_MATS=["PETG","ABS","ASA","TPU","PC","PA","Carbon"];
         
-        // --- EXPANDED COLOR DB (v10.2) ---
+        // --- EXPANDED COLOR DB ---
         const ALL_COLORS = [
             // 1. YELLOW & GOLD
             {name:"Yellow",hex:"#FFFF00",look:"plain"},{name:"Lemon Yellow",hex:"#FFF700",look:"plain"},{name:"Sun Yellow",hex:"#FFD700",look:"plain"},
             {name:"Golden Yellow",hex:"#FFC000",look:"plain"},{name:"Maize",hex:"#FBEC5D",look:"plain"},{name:"Signal Yellow",hex:"#F2C618",look:"plain"},
             {name:"Silk Yellow",hex:"#FFFF00",look:"silk"},{name:"Silk Gold",hex:"#FFD700",look:"silk"},{name:"Silk Champagne",hex:"#F7E7CE",look:"silk"},
             {name:"Silk Light Gold",hex:"#F1E5AC",look:"silk"},{name:"Silk Antique Gold",hex:"#CFB53B",look:"silk"},{name:"Silk Brass",hex:"#B5A642",look:"silk"},
-            {name:"Silk Lime-Yellow",hex:"#DFFF00",look:"silk"},
-            {name:"Matte Yellow",hex:"#FFFF00",look:"matte"},{name:"Matte Mustard",hex:"#FFDB58",look:"matte"},{name:"Matte Ocher",hex:"#CC7722",look:"matte"},
-            {name:"Transparent Yellow",hex:"#FFFF00",look:"translucent"},{name:"Neon Yellow",hex:"#CCFF00",look:"plain"},{name:"Glow Yellow",hex:"#FFFFE0",look:"glow"},
-            {name:"Galaxy Gold",hex:"#FFD700",look:"galaxy"},{name:"Banana",hex:"#FFE135",look:"plain"},
-
+            {name:"Matte Yellow",hex:"#FFFF00",look:"matte"},{name:"Transparent Yellow",hex:"#FFFF00",look:"translucent"},{name:"Neon Yellow",hex:"#CCFF00",look:"plain"},
+            
             // 2. BLUE
             {name:"Blue",hex:"#0000FF",look:"plain"},{name:"Sky Blue",hex:"#87CEEB",look:"plain"},{name:"Navy Blue",hex:"#000080",look:"plain"},
             {name:"Royal Blue",hex:"#4169E1",look:"plain"},{name:"Electric Blue",hex:"#7DF9FF",look:"plain"},{name:"Baby Blue",hex:"#89CFF0",look:"plain"},
-            {name:"Midnight Blue",hex:"#191970",look:"plain"},{name:"Cyan",hex:"#00FFFF",look:"plain"},{name:"Turquoise",hex:"#40E0D0",look:"plain"},
-            {name:"Teal",hex:"#008080",look:"plain"},
-            {name:"Silk Blue",hex:"#0000FF",look:"silk"},{name:"Silk Light Blue",hex:"#ADD8E6",look:"silk"},{name:"Silk Dark Blue",hex:"#00008B",look:"silk"},
-            {name:"Silk Cyan",hex:"#00FFFF",look:"silk"},{name:"Silk Teal",hex:"#008080",look:"silk"},{name:"Silk Ice Blue",hex:"#F0F8FF",look:"silk"},
-            {name:"Matte Blue",hex:"#0000FF",look:"matte"},{name:"Matte Navy",hex:"#000080",look:"matte"},{name:"Matte Teal",hex:"#008080",look:"matte"},
-            {name:"Matte Ice Blue",hex:"#F0F8FF",look:"matte"},
-            {name:"Galaxy Blue",hex:"#0000FF",look:"galaxy"},{name:"Starlight Blue",hex:"#191970",look:"galaxy"},{name:"Sparkle Blue",hex:"#4169E1",look:"galaxy"},
-            {name:"Translucent Blue",hex:"#0000FF",look:"translucent"},{name:"Glass Blue",hex:"#E0FFFF",look:"translucent"},{name:"Glow Blue",hex:"#BAE6FD",look:"glow"},
+            {name:"Cyan",hex:"#00FFFF",look:"plain"},{name:"Turquoise",hex:"#40E0D0",look:"plain"},{name:"Teal",hex:"#008080",look:"plain"},
+            {name:"Silk Blue",hex:"#0000FF",look:"silk"},{name:"Silk Cyan",hex:"#00FFFF",look:"silk"},{name:"Matte Blue",hex:"#0000FF",look:"matte"},
+            {name:"Galaxy Blue",hex:"#0000FF",look:"galaxy"},{name:"Translucent Blue",hex:"#0000FF",look:"translucent"},{name:"Glow Blue",hex:"#BAE6FD",look:"glow"},
 
             // 3. GREEN
-            {name:"Green",hex:"#008000",look:"plain"},{name:"Lime Green",hex:"#32CD32",look:"plain"},{name:"Grass Green",hex:"#7CFC00",look:"plain"},
-            {name:"Forest Green",hex:"#228B22",look:"plain"},{name:"Pine Green",hex:"#01796F",look:"plain"},{name:"Mint Green",hex:"#98FF98",look:"plain"},
-            {name:"Kelly Green",hex:"#4CBB17",look:"plain"},{name:"Emerald Green",hex:"#50C878",look:"plain"},
-            {name:"Olive Drab",hex:"#6B8E23",look:"plain"},{name:"Olive Green",hex:"#808000",look:"plain"},{name:"Army Green",hex:"#4B5320",look:"plain"},
-            {name:"Khaki Green",hex:"#F0E68C",look:"plain"},{name:"Camo Green",hex:"#78866B",look:"plain"},{name:"Ranger Green",hex:"#354A21",look:"plain"},
-            {name:"Silk Green",hex:"#008000",look:"silk"},{name:"Silk Lime",hex:"#32CD32",look:"silk"},{name:"Silk Olive",hex:"#808000",look:"silk"},
-            {name:"Silk Emerald",hex:"#50C878",look:"silk"},{name:"Silk Mint",hex:"#98FF98",look:"silk"},
-            {name:"Matte Green",hex:"#008000",look:"matte"},{name:"Matte Olive",hex:"#808000",look:"matte"},{name:"Matte Mint",hex:"#98FF98",look:"matte"},
-            {name:"Matte Army",hex:"#4B5320",look:"matte"},{name:"Matte Forest",hex:"#228B22",look:"matte"},
-            {name:"Galaxy Green",hex:"#008000",look:"galaxy"},{name:"Sparkle Green",hex:"#006400",look:"galaxy"},{name:"Vertigo Jade",hex:"#00A86B",look:"galaxy"},
-            {name:"Neon Green",hex:"#39FF14",look:"plain"},{name:"Glow Green",hex:"#D9F99D",look:"glow"},{name:"Peak Green",hex:"#228B22",look:"plain"},
+            {name:"Green",hex:"#008000",look:"plain"},{name:"Lime Green",hex:"#32CD32",look:"plain"},{name:"Mint Green",hex:"#98FF98",look:"plain"},
+            {name:"Emerald Green",hex:"#50C878",look:"plain"},{name:"Olive Green",hex:"#808000",look:"plain"},{name:"Army Green",hex:"#4B5320",look:"plain"},
+            {name:"Silk Green",hex:"#008000",look:"silk"},{name:"Silk Emerald",hex:"#50C878",look:"silk"},{name:"Matte Green",hex:"#008000",look:"matte"},
+            {name:"Galaxy Green",hex:"#008000",look:"galaxy"},{name:"Neon Green",hex:"#39FF14",look:"plain"},{name:"Glow Green",hex:"#D9F99D",look:"glow"},
 
             // 4. RED & PINK
-            {name:"Red",hex:"#FF0000",look:"plain"},{name:"Fire Red",hex:"#FF4500",look:"plain"},{name:"Brick Red",hex:"#CB4154",look:"plain"},
-            {name:"Cherry Red",hex:"#D2042D",look:"plain"},{name:"Ruby Red",hex:"#E0115F",look:"plain"},{name:"Maroon",hex:"#800000",look:"plain"},
-            {name:"Burgundy",hex:"#800020",look:"plain"},{name:"Pink",hex:"#FFC0CB",look:"plain"},{name:"Hot Pink",hex:"#FF69B4",look:"plain"},
-            {name:"Magenta",hex:"#FF00FF",look:"plain"},{name:"Rose",hex:"#FF007F",look:"plain"},{name:"Coral",hex:"#FF7F50",look:"plain"},
-            {name:"Peach",hex:"#FFE5B4",look:"plain"},{name:"Salmon",hex:"#FA8072",look:"plain"},
-            {name:"Silk Red",hex:"#FF0000",look:"silk"},{name:"Silk Pink",hex:"#FFC0CB",look:"silk"},{name:"Silk Rose Gold",hex:"#B76E79",look:"silk"},
-            {name:"Silk Magenta",hex:"#FF00FF",look:"silk"},{name:"Silk Burgundy",hex:"#800020",look:"silk"},{name:"Silk Peach",hex:"#FFE5B4",look:"silk"},
-            {name:"Matte Red",hex:"#FF0000",look:"matte"},{name:"Matte Brick",hex:"#CB4154",look:"matte"},{name:"Matte Pink",hex:"#FFC0CB",look:"matte"},
-            {name:"Matte Maroon",hex:"#800000",look:"matte"},{name:"Galaxy Red",hex:"#FF0000",look:"galaxy"},{name:"Sparkle Red",hex:"#8B0000",look:"galaxy"},
-            {name:"Glitter Pink",hex:"#FF69B4",look:"galaxy"},{name:"Galaxy Purple (Red)",hex:"#800080",look:"galaxy"},
-            {name:"Translucent Red",hex:"#FF0000",look:"translucent"},{name:"Neon Red",hex:"#FF3333",look:"plain"},{name:"Neon Pink",hex:"#FF10F0",look:"plain"},
-            {name:"Glow Red",hex:"#FF9999",look:"glow"},
+            {name:"Red",hex:"#FF0000",look:"plain"},{name:"Fire Red",hex:"#FF4500",look:"plain"},{name:"Cherry Red",hex:"#D2042D",look:"plain"},
+            {name:"Maroon",hex:"#800000",look:"plain"},{name:"Pink",hex:"#FFC0CB",look:"plain"},{name:"Hot Pink",hex:"#FF69B4",look:"plain"},
+            {name:"Magenta",hex:"#FF00FF",look:"plain"},{name:"Coral",hex:"#FF7F50",look:"plain"},{name:"Peach",hex:"#FFE5B4",look:"plain"},
+            {name:"Silk Red",hex:"#FF0000",look:"silk"},{name:"Silk Rose Gold",hex:"#B76E79",look:"silk"},{name:"Matte Red",hex:"#FF0000",look:"matte"},
+            {name:"Galaxy Red",hex:"#FF0000",look:"galaxy"},{name:"Translucent Red",hex:"#FF0000",look:"translucent"},{name:"Neon Red",hex:"#FF3333",look:"plain"},
 
             // 5. PURPLE
             {name:"Purple",hex:"#800080",look:"plain"},{name:"Violet",hex:"#EE82EE",look:"plain"},{name:"Lilac",hex:"#C8A2C8",look:"plain"},
-            {name:"Lavender",hex:"#E6E6FA",look:"plain"},{name:"Plum",hex:"#DDA0DD",look:"plain"},{name:"Eggplant",hex:"#614051",look:"plain"},
-            {name:"Silk Purple",hex:"#800080",look:"silk"},{name:"Silk Violet",hex:"#EE82EE",look:"silk"},{name:"Silk Lilac",hex:"#C8A2C8",look:"silk"},
-            {name:"Matte Purple",hex:"#800080",look:"matte"},{name:"Matte Lavender",hex:"#E6E6FA",look:"matte"},
-            {name:"Galaxy Purple",hex:"#800080",look:"galaxy"},{name:"Wizards Voodoo",hex:"#4B0082",look:"galaxy"},{name:"Sparkle Violet",hex:"#EE82EE",look:"galaxy"},
+            {name:"Lavender",hex:"#E6E6FA",look:"plain"},{name:"Plum",hex:"#DDA0DD",look:"plain"},
+            {name:"Silk Purple",hex:"#800080",look:"silk"},{name:"Matte Purple",hex:"#800080",look:"matte"},{name:"Galaxy Purple",hex:"#800080",look:"galaxy"},
 
             // 6. ORANGE
             {name:"Orange",hex:"#FFA500",look:"plain"},{name:"Sunset Orange",hex:"#FD5E53",look:"plain"},{name:"Tangerine",hex:"#F28500",look:"plain"},
-            {name:"Pumpkin",hex:"#FF7518",look:"plain"},{name:"Apricot",hex:"#FBCEB1",look:"plain"},
-            {name:"Silk Orange",hex:"#FFA500",look:"silk"},{name:"Silk Copper-Orange",hex:"#B87333",look:"silk"},
-            {name:"Matte Orange",hex:"#FFA500",look:"matte"},{name:"Matte Terracotta",hex:"#E2725B",look:"matte"},
-            {name:"Neon Orange",hex:"#FF5F1F",look:"plain"},{name:"Translucent Orange",hex:"#FFA500",look:"translucent"},
+            {name:"Silk Orange",hex:"#FFA500",look:"silk"},{name:"Matte Orange",hex:"#FFA500",look:"matte"},{name:"Neon Orange",hex:"#FF5F1F",look:"plain"},
 
             // 7. WHITE & GREY
             {name:"White",hex:"#FFFFFF",look:"plain"},{name:"Cold White",hex:"#F8F9FA",look:"plain"},{name:"Warm White",hex:"#FEF9E7",look:"plain"},
-            {name:"Natural",hex:"#E3E4DB",look:"plain"},{name:"Grey",hex:"#808080",look:"plain"},{name:"Light Grey",hex:"#D3D3D3",look:"plain"},
-            {name:"Dark Grey",hex:"#A9A9A9",look:"plain"},{name:"Silver",hex:"#C0C0C0",look:"metallic"},{name:"Anthracite",hex:"#36454F",look:"plain"},
-            {name:"Gunmetal",hex:"#2A3439",look:"metallic"},{name:"Slate Grey",hex:"#708090",look:"plain"},
-            {name:"Silk White",hex:"#FFFFFF",look:"silk"},{name:"Silk Silver",hex:"#C0C0C0",look:"silk"},{name:"Silk Chrome",hex:"#E8E8E8",look:"silk"},
-            {name:"Silk Pearl White",hex:"#F0F8FF",look:"silk"},{name:"Silk Grey",hex:"#808080",look:"silk"},{name:"Silk Gunmetal",hex:"#2A3439",look:"silk"},
-            {name:"Matte White",hex:"#F5F5F5",look:"matte"},{name:"Matte Grey",hex:"#808080",look:"matte"},{name:"Matte Ash Grey",hex:"#B2BEB5",look:"matte"},
-            {name:"Matte Charcoal",hex:"#36454F",look:"matte"},
-            {name:"Marble White",hex:"#FFFFFF",look:"stone"},{name:"Marble Grey",hex:"#808080",look:"stone"},{name:"Granite",hex:"#696969",look:"stone"},
-            {name:"Concrete",hex:"#D3D3D3",look:"stone"},{name:"Stone White",hex:"#F5F5DC",look:"stone"},{name:"Rock",hex:"#888C8D",look:"stone"},
-            {name:"Cement Grey",hex:"#808080",look:"stone"},
-            {name:"Galaxy Silver",hex:"#C0C0C0",look:"galaxy"},{name:"Twinkle Silver",hex:"#DCDCDC",look:"galaxy"},{name:"Galaxy Grey",hex:"#808080",look:"galaxy"},
-            {name:"Vertigo Grey",hex:"#3F3F46",look:"galaxy"},
+            {name:"Grey",hex:"#808080",look:"plain"},{name:"Light Grey",hex:"#D3D3D3",look:"plain"},{name:"Dark Grey",hex:"#A9A9A9",look:"plain"},
+            {name:"Silver",hex:"#C0C0C0",look:"metallic"},{name:"Anthracite",hex:"#36454F",look:"plain"},
+            {name:"Silk White",hex:"#FFFFFF",look:"silk"},{name:"Silk Silver",hex:"#C0C0C0",look:"silk"},{name:"Matte White",hex:"#F5F5F5",look:"matte"},
+            {name:"Matte Grey",hex:"#808080",look:"matte"},{name:"Marble White",hex:"#FFFFFF",look:"stone"},{name:"Marble Grey",hex:"#808080",look:"stone"},
+            {name:"Galaxy Silver",hex:"#C0C0C0",look:"galaxy"},{name:"Galaxy Grey",hex:"#808080",look:"galaxy"},
 
             // 8. BLACK
-            {name:"Black",hex:"#000000",look:"plain"},{name:"Jet Black",hex:"#0A0A0A",look:"plain"},{name:"Onyx Black",hex:"#353839",look:"plain"},
+            {name:"Black",hex:"#000000",look:"plain"},{name:"Onyx Black",hex:"#353839",look:"plain"},
             {name:"Silk Black",hex:"#27272A",look:"silk"},{name:"Matte Black",hex:"#111111",look:"matte"},
-            {name:"Galaxy Black",hex:"#09090B",look:"galaxy"},{name:"Starlight Black",hex:"#000000",look:"galaxy"},{name:"Sparkle Black",hex:"#1A1A1A",look:"galaxy"},
-            {name:"Carbon Black",hex:"#1C1C1C",look:"cf"},
+            {name:"Galaxy Black",hex:"#09090B",look:"galaxy"},{name:"Carbon Black",hex:"#1C1C1C",look:"cf"},
 
             // 9. BROWN & WOOD
             {name:"Brown",hex:"#A52A2A",look:"plain"},{name:"Chocolate",hex:"#D2691E",look:"plain"},{name:"Coffee",hex:"#6F4E37",look:"plain"},
-            {name:"Mocha",hex:"#967969",look:"plain"},{name:"Beige",hex:"#F5F5DC",look:"plain"},{name:"Tan",hex:"#D2B48C",look:"plain"},
-            {name:"Sand",hex:"#C2B280",look:"plain"},{name:"Skin/Flesh",hex:"#FFCC99",look:"plain"},
-            {name:"Earth Brown",hex:"#4A3728",look:"plain"},{name:"Clay",hex:"#B66A50",look:"plain"},{name:"Terracotta",hex:"#E2725B",look:"plain"},
-            {name:"Desert Tan",hex:"#D2B48C",look:"plain"},{name:"Bone",hex:"#E3DAC9",look:"plain"},
-            {name:"Silk Brown",hex:"#A52A2A",look:"silk"},{name:"Silk Bronze",hex:"#CD7F32",look:"silk"},{name:"Silk Copper",hex:"#B87333",look:"silk"},
-            {name:"Wood",hex:"#DEB887",look:"wood"},{name:"Light Wood",hex:"#DEB887",look:"wood"},{name:"Birch",hex:"#F5F5DC",look:"wood"},
-            {name:"Pine",hex:"#FFE4C4",look:"wood"},{name:"Bamboo",hex:"#F0E68C",look:"wood"},{name:"Dark Wood",hex:"#3E2723",look:"wood"},
-            {name:"Walnut",hex:"#5D4037",look:"wood"},{name:"Ebony",hex:"#222021",look:"wood"},{name:"Cork",hex:"#A0522D",look:"wood"},
-            {name:"Coconut",hex:"#965A3E",look:"wood"},{name:"Olive Wood",hex:"#808000",look:"wood"},
+            {name:"Beige",hex:"#F5F5DC",look:"plain"},{name:"Terracotta",hex:"#E2725B",look:"plain"},
+            {name:"Wood",hex:"#DEB887",look:"wood"},{name:"Bamboo",hex:"#F0E68C",look:"wood"},{name:"Walnut",hex:"#5D4037",look:"wood"},
 
             // 10. METAL
             {name:"Copper",hex:"#B87333",look:"metallic"},{name:"Bronze",hex:"#CD7F32",look:"metallic"},{name:"Brass",hex:"#B5A642",look:"metallic"},
-            {name:"Stainless Steel",hex:"#E0E0E0",look:"metallic"},{name:"Iron",hex:"#434B4D",look:"metallic"},{name:"Aluminium",hex:"#848789",look:"metallic"},
-            {name:"Titanium",hex:"#878681",look:"metallic"},
 
             // 11. MULTICOLOR & SPECIAL
             {name:"Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)"},
             {name:"Silk Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(45deg, #ff0000, #ffff00, #0000ff)"},
             {name:"Matte Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(45deg, #ff9a9e, #fad0c4, #fad0c4)"},
-            {name:"Pastel Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #ff9a9e, #fecfef, #a1c4fd)"},
-            {name:"Neon Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #ff00ff, #00ffff, #ffff00)"},
-            {name:"Forest Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #2d6a4f, #40916c, #52b788)"},
-            {name:"Ocean Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #03045e, #0077b6, #00b4d8)"},
-            {name:"Macaron Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #ffc3a0, #ffafbd, #ffc3a0)"},
-            {name:"Candy Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #ff9a9e, #fecfef, #a1c4fd)"},
-            {name:"Luminous Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #e0ffe0, #e0ffff, #ffe0e0)"},
-            {name:"Red-Blue",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, red, blue)"},
-            {name:"Blue-Green",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, blue, green)"},
-            {name:"Pink-Yellow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, pink, yellow)"},
-            {name:"Black-Red",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, black, red)"},
-            {name:"Gold-Silver",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, gold, silver)"},
-            {name:"Yellow-Blue",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, yellow, blue)"},
-            {name:"Purple-Green",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, purple, green)"},
-            {name:"Silk Blue-Green",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #0000FF, #008000)"},
             {name:"Gold-Silver-Copper",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, #FFD700, #C0C0C0, #B87333)"},
-            {name:"Red-Blue-Green",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, red, blue, green)"},
-            {name:"Red-Gold-Purple",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, red, gold, purple)"},
-            {name:"Vertigo Galaxy",hex:"#006400",look:"galaxy"},{name:"Burnt Titanium",hex:"#5a4fcf",look:"galaxy"},
-            {name:"Morning Glory",hex:"#6495ED",look:"plain"},{name:"Stardust",hex:"#F5F5DC",look:"galaxy"},
-            {name:"Cosmic",hex:"#483D8B",look:"galaxy"},{name:"Nebula",hex:"#483D8B",look:"galaxy"},{name:"Aurora",hex:"#90EE90",look:"plain"}
+            {name:"Red-Blue-Green",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, red, blue, green)"}
         ];
 
         let spools=[], shopItems=[], amsSlots=[null,null,null,null], activeId=null, activeCtx='Lager';
         let selCol="White", selHex="#FFFFFF", selLook="plain", selMat="PLA";
         let sortMode='id', sortDir=1, prodWeight=0, pendingBooking=null, activeAMSSlotIndex=null;
-        let touchstartX=0, touchendX=0, confirmCallback=null, pendingImportData=null, lastProdState={mat:"",brand:"",col:""};
+        let confirmCallback=null, pendingImportData=null, lastProdState={mat:"",brand:"",col:""};
+
+        // --- WIZARD STATE ---
+        let wizCurrent = 0;
+        let wizSteps = [];
 
         function setStatus(statusType) {
             const dot = document.getElementById('sync-dot');
@@ -461,6 +472,7 @@
             }
         }
 
+        /* */
         async function initSync() {
             setStatus('connecting');
             try {
@@ -470,11 +482,10 @@
                 db = firebase.firestore();
                 auth = firebase.auth();
 
-                // Versuche eine anonyme Anmeldung. (Empfohlen für offene Firebase Datenbanken)
                 try {
                     await auth.signInAnonymously();
                 } catch(e) {
-                    console.warn("Anonyme Anmeldung fehlgeschlagen (in Firebase evt. deaktiviert).", e);
+                    console.warn("Anonyme Anmeldung fehlgeschlagen.", e);
                 }
 
                 firebaseReady = true;
@@ -500,9 +511,6 @@
                 }, (err) => {
                     console.error("Firestore Error:", err);
                     setStatus('offline');
-                    if (err.message.includes("permissions") || err.message.includes("Missing or insufficient")) {
-                        alert("Firebase-Fehler: Zugriff verweigert! Bitte stelle die Firestore Rules in der Firebase Console auf 'allow read, write: if true;'.");
-                    }
                 });
 
             } catch (e) {
@@ -528,14 +536,13 @@
                 setTimeout(()=>{ splash.style.display='none'; document.getElementById('app').style.opacity='1'; }, 1500);
             }
             try {
-                // Lade zuerst die lokalen Backups
                 spools=JSON.parse(localStorage.getItem('fpool_inv')||'[]');
                 shopItems=JSON.parse(localStorage.getItem('fpool_shop')||'[]');
                 const sAMS=JSON.parse(localStorage.getItem('fpool_ams')); if(sAMS) amsSlots=sAMS;
                 spools.forEach(s => { if(!s.capacity) s.capacity = 1000; });
             } catch(e){spools=[];}
             
-            render(); checkBackup(); setupSwipe(); setupCustomConfirm();
+            render(); checkBackup(); setupCustomConfirm();
             initSync(); 
         };
 
@@ -555,6 +562,7 @@
             if(window.lucide) lucide.createIcons();
         }
 
+        /* */
         /* --- LOGIC --- */
         function getSpoolVisualHtml(s){ const v=getVisuals(s); return `<div class="spool-icon"><div class="spool-flange left"></div><div class="spool-body look-${v.look}" style="--fil-color: ${v.hex}; ${v.gradient ? 'background:'+v.gradient : ''}"></div><div class="spool-flange right"></div></div>`; }
         
@@ -608,6 +616,7 @@
                 l.innerHTML+=`<div onclick="openModal(${s.number},'Lager')" class="spool-card fade-in">${getSpoolVisualHtml(s)}<div class="flex-grow min-w-0"><div class="flex justify-between items-center mb-1"><div class="flex items-center"><span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">${s.material}</span>${statusBadge}</div><span class="font-mono font-bold text-white text-lg">#${s.number.toString().padStart(3,'0')}</span></div><div class="text-sm font-bold text-white truncate mb-2">${v.name}</div><div class="flex justify-between items-end mt-1"><span class="text-[10px] bg-zinc-800 px-2 py-0.5 rounded text-zinc-400 border border-white/5 max-w-[60px] truncate">${s.brand||'-'}</span><div class="text-right flex flex-col items-end"><span class="text-[10px] font-mono font-bold ${s.level<20?'text-red-500':'text-emerald-500'}">${w}g <span class="text-zinc-600">/ ${displayLevel}%</span></span><span class="text-[8px] text-zinc-600 font-mono leading-tight">${d}</span></div></div></div>${s.isCalibrated?'<div class="absolute top-2 left-2 text-indigo-400 z-20"><span class="text-[8px]">🎯</span></div>':''}${needsDrying(s)?'<div class="absolute top-2 right-2 text-blue-400 z-20"><i data-lucide="droplets" class="w-3 h-3"></i></div>':''}</div>`;
             });
         }
+        
         function getVisuals(s){
             let match = ALL_COLORS.find(c => c.name === s.color);
             return {
@@ -622,6 +631,7 @@
         function checkBackup(){if(isBackupOverdue())toast("Backup empfohlen!");}
         function renderStatsMini(){let w=0;spools.forEach(s=>w+=getWeight(s));document.getElementById('mini-dashboard').innerText=`${spools.length} Spulen • ca. ${(w/1000).toFixed(1)} kg`;}
 
+        /* */
         /* --- HYBRID COLOR PICKER --- */
         function renderBubbleGrid(filterText = "") {
             const container = document.getElementById('color-bubbles-container');
@@ -677,11 +687,88 @@
             }
             
             renderBubbleGrid(c.name); 
+            
+            // Auto advance wizard on color select
+            setTimeout(() => wizNext(false), 300);
         }
 
         function updateFromNativePicker(hex) {
             selHex = hex;
             document.getElementById('color-preview-dot').style.background = hex;
+        }
+
+        /* */
+        /* --- WIZARD LOGIC --- */
+        function initWizard() {
+            wizCurrent = 0;
+            // Define steps based on context (Shop items need less info)
+            if(activeCtx === 'New' || activeCtx === 'Lager') {
+                wizSteps = ['material', 'brand', 'color', 'capacity', 'level', 'extras'];
+            } else if (activeCtx === 'ShopNew' || activeCtx === 'Shop') {
+                wizSteps = ['material', 'brand', 'color'];
+            }
+            showWizardStep(0);
+        }
+
+        function showWizardStep(idx) {
+            wizCurrent = idx;
+            // Hide all steps
+            document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('hidden'));
+            // Show current step
+            document.getElementById(`step-${wizSteps[idx]}`).classList.remove('hidden');
+
+            // Update Progress Bar
+            const pct = ((idx + 1) / wizSteps.length) * 100;
+            document.getElementById('wizard-progress').style.width = pct + '%';
+
+            // Update Navigation Buttons
+            const btnPrev = document.getElementById('btn-wiz-prev');
+            const btnSkip = document.getElementById('btn-wiz-skip');
+            const btnNext = document.getElementById('btn-wiz-next');
+            const extraActions = document.getElementById('wizard-extra-actions');
+
+            btnPrev.style.display = idx === 0 ? 'none' : 'block';
+
+            if (idx === wizSteps.length - 1) {
+                // Last step: Change Next to Save
+                btnSkip.style.display = 'none';
+                btnNext.innerHTML = 'Speichern <i data-lucide="check" class="w-5 h-5 ml-2"></i>';
+                btnNext.classList.remove('bg-indigo-600');
+                btnNext.classList.add('bg-emerald-600');
+                
+                // Show delete/shop actions if editing an existing Lager item
+                if(activeCtx === 'Lager') {
+                    extraActions.classList.remove('hidden');
+                    extraActions.classList.add('flex');
+                } else {
+                    extraActions.classList.add('hidden');
+                    extraActions.classList.remove('flex');
+                }
+            } else {
+                // Normal step
+                btnSkip.style.display = 'block';
+                btnNext.innerHTML = 'Weiter <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>';
+                btnNext.classList.add('bg-indigo-600');
+                btnNext.classList.remove('bg-emerald-600');
+                extraActions.classList.add('hidden');
+                extraActions.classList.remove('flex');
+            }
+            if(window.lucide) lucide.createIcons();
+        }
+
+        function wizNext(skipped) {
+            // Even if skipped, we just move forward and keep current UI values
+            if (wizCurrent < wizSteps.length - 1) {
+                showWizardStep(wizCurrent + 1);
+            } else {
+                saveItem();
+            }
+        }
+
+        function wizPrev() {
+            if (wizCurrent > 0) {
+                showWizardStep(wizCurrent - 1);
+            }
         }
 
         /* --- MODALS --- */
@@ -696,6 +783,8 @@
 
             if(!i && ctx !== 'New' && ctx !== 'ShopNew') return;
             
+            document.getElementById('modal-title-text').innerText = (ctx === 'New' || ctx === 'ShopNew') ? 'Erfassen' : 'Bearbeiten';
+
             const idSelect = document.getElementById('input-spool-id-select');
             const arrow = document.getElementById('id-select-arrow');
             idSelect.innerHTML = '';
@@ -720,7 +809,7 @@
             } else {
                 idSelect.disabled = true;
                 arrow.classList.add('hidden');
-                let displayId = (ctx === 'Shop' || ctx === 'ShopNew') ? '---' : i.number;
+                let displayId = (ctx === 'Shop' || ctx === 'ShopNew') ? 'SHOP' : i.number;
                 const opt = document.createElement('option');
                 opt.value = displayId;
                 opt.text = (typeof displayId === 'number') ? `#${displayId.toString().padStart(3,'0')}` : displayId;
@@ -729,41 +818,46 @@
 
             document.getElementById('modal-date').innerText=(ctx==='Lager'&&i.createdAt)?"Erstellt: "+new Date(i.createdAt).toLocaleDateString('de-DE'):"";
             const isL= (ctx==='Lager' || ctx==='New'); 
-            document.getElementById('btn-quick-shop').classList.toggle('hidden',!isL);
-            document.getElementById('level-section').style.display=isL?'block':'none';
-            document.getElementById('btn-delete-item').style.display=(ctx==='ShopNew' || ctx==='New')?'none':'block';
-            document.getElementById('capacity-section').style.display=isL?'grid':'none'; 
-            document.getElementById('date-section').style.display=isL?'block':'none';
             
-            const ds=document.getElementById('dryer-section');
-            if(isL&&HYGRO_MATS.includes(i.material)){ds.classList.remove('hidden');document.getElementById('dryer-status').innerText=i.lastDried?`Vor ${Math.floor((Date.now()-i.lastDried)/86400000)} Tagen`:'Nie';}else{ds.classList.add('hidden');}
-            
+            // Set basic values
             selCol=i.color || ''; selHex=i.hex||'#FFFFFF'; selLook=i.look||'plain'; selMat=i.material||'PLA';
             
+            // Populate Color UI
             document.getElementById('input-color-name').value = selCol;
             document.getElementById('native-color-picker').value = selHex;
-            
             const match = ALL_COLORS.find(c => c.name === selCol);
             const dot = document.getElementById('color-preview-dot');
             if(match && match.gradient) dot.style.background = match.gradient;
             else dot.style.background = selHex;
-            
             renderBubbleGrid(selCol); 
             
+            // Populate generic fields
             if(isL){
                 document.getElementById('input-level').value=i.level||100;
                 document.getElementById('level-display').innerText=(i.level||100)+'%';
                 document.getElementById('input-calib').checked=i.isCalibrated||false;
                 document.getElementById('input-capacity').value = i.capacity || 1000;
                 document.getElementById('input-date').value=i.createdAt?new Date(i.createdAt).toISOString().split('T')[0]:new Date().toISOString().split('T')[0];
+                
+                const ds=document.getElementById('dryer-section');
+                if(HYGRO_MATS.includes(i.material)){
+                    ds.classList.remove('hidden');
+                    document.getElementById('dryer-status').innerText=i.lastDried?`Vor ${Math.floor((Date.now()-i.lastDried)/86400000)} Tagen`:'Nie';
+                } else {
+                    ds.classList.add('hidden');
+                }
             }
             document.getElementById('input-notes').value=i.note||'';
-            renderMaterialGrid(); renderBrandSelect(i.brand);
+            
+            renderMaterialGrid(); 
+            renderBrandSelect(i.brand);
+            
+            // Start Wizard
+            initWizard();
             
             document.getElementById('modal-overlay').classList.remove('overlay-hidden');
             const m = document.getElementById('modal-content');
             m.classList.remove('active'); setTimeout(()=>m.classList.add('active'),10);
-            if(window.lucide) lucide.createIcons();
         }
 
         function closeModal(){
@@ -772,30 +866,35 @@
             setTimeout(()=>document.getElementById('modal-overlay').classList.add('overlay-hidden'),300);
         }
 
-        /* --- SWIPE --- */
-        function setupSwipe(){
-            const m=document.getElementById('editor-scroll-area'); 
-            m.addEventListener('touchstart',e=>{touchstartX=e.changedTouches[0].screenX;},{passive:true});
-            m.addEventListener('touchend',e=>{touchendX=e.changedTouches[0].screenX;handleSwipe();},{passive:true});
-        }
-        function handleSwipe(){
-            if(activeCtx!=='Lager')return;
-            if(Math.abs(touchendX-touchstartX)>60) {
-                if(touchendX<touchstartX) navigateSpool(1);
-                if(touchendX>touchstartX) navigateSpool(-1);
-            }
-        }
-        function navigateSpool(dir){
-            const list=getFilteredSpools(), idx=list.findIndex(s=>s.number===activeId);
-            if(idx===-1)return;
-            let nI=idx+dir; if(nI>=list.length)nI=0; if(nI<0)nI=list.length-1;
-            openModal(list[nI].number,'Lager');
-        }
-
+        /* */
         /* --- STANDARD RENDERERS --- */
-        function renderMaterialGrid(){const el=document.getElementById('material-grid');el.innerHTML='';MATS.forEach(m=>{const a=selMat===m;el.innerHTML+=`<button onclick="setMat('${m}')" class="py-3 rounded-xl text-[10px] font-black uppercase border transition-all ${a?'bg-indigo-600 border-indigo-500 text-white':'bg-zinc-900 border-zinc-800 text-zinc-500'}">${m}</button>`;});}
-        function renderBrandSelect(c){const el=document.getElementById('input-brand');el.innerHTML='<option value="">Keine</option>';BRANDS.forEach(b=>{el.innerHTML+=`<option value="${b}" ${c===b?'selected':''}>${b}</option>`;});}
-        function setMat(m){selMat=m;renderMaterialGrid();const b=document.getElementById('dryer-section');if(activeCtx==='Lager'&&HYGRO_MATS.includes(m))b.classList.remove('hidden');else b.classList.add('hidden');}
+        function renderMaterialGrid(){
+            const el=document.getElementById('material-grid');el.innerHTML='';
+            MATS.forEach(m=>{
+                const a=selMat===m;
+                el.innerHTML+=`<button onclick="setMat('${m}')" class="py-4 rounded-xl text-xs font-black uppercase border transition-all active:scale-95 ${a?'bg-indigo-600 border-indigo-500 text-white shadow-lg':'bg-zinc-900 border-zinc-800 text-zinc-500'}">${m}</button>`;
+            });
+        }
+        
+        function renderBrandSelect(c){
+            const el=document.getElementById('input-brand');
+            el.innerHTML='<option value="">Keine Marke gewählt</option>';
+            BRANDS.forEach(b=>{
+                el.innerHTML+=`<option value="${b}" ${c===b?'selected':''}>${b}</option>`;
+            });
+        }
+        
+        function setMat(m){
+            selMat=m;
+            renderMaterialGrid();
+            const b=document.getElementById('dryer-section');
+            if(activeCtx==='Lager'&&HYGRO_MATS.includes(m)) b.classList.remove('hidden');
+            else b.classList.add('hidden');
+            
+            // Auto advance
+            setTimeout(() => wizNext(false), 250);
+        }
+        
         function updateLevelDisplay(v){document.getElementById('level-display').innerText=v+'%';}
 
         function saveItem(){
@@ -851,6 +950,7 @@
         function copyToShop(){const s=spools.find(x=>x.number===activeId);if(s){shopItems.push({material:s.material,color:s.color,hex:s.hex,look:s.look,brand:s.brand});save();toast("Auf Einkaufsliste!");}}
         function setDryerDate(){const s=spools.find(x=>x.number===activeId);if(s){s.lastDried=Date.now();save();document.getElementById('dryer-status').innerText='Gerade eben';toast("Markiert!");}}
 
+        /* */
         /* --- SORTING --- */
         function openSortMenu(){ document.getElementById('sort-overlay').classList.remove('overlay-hidden'); updateSortMenuIcons(); }
         function closeSortMenu(){ document.getElementById('sort-overlay').classList.add('overlay-hidden'); }
@@ -929,11 +1029,12 @@
             c.innerHTML=`<div class="grid grid-cols-2 gap-3 mb-4"><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title">Gesamt</div><div class="text-3xl font-black text-white">${t}</div><div class="text-[10px] text-zinc-400">Spulen</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title">Masse</div><div class="text-3xl font-black text-white">${(w/1000).toFixed(1)}</div><div class="text-[10px] text-zinc-400">kg (ca.)</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-emerald-500">Kalibriert</div><div class="text-3xl font-black text-white">${cal}</div><div class="text-[10px] text-zinc-400">${Math.round((cal/t||0)*100)}%</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-blue-500">Trocken</div><div class="text-3xl font-black text-white">${d}</div><div class="text-[10px] text-zinc-400">${Math.round((d/ht||0)*100)}% hygro</div></div></div><div class="grid grid-cols-2 gap-3 mb-4"><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-indigo-400">Top Materialien</div><div class="mt-2">${topMatsHtml}</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-orange-400">Top Marken</div><div class="mt-2">${topBrandsHtml}</div></div></div><div class="grid grid-cols-2 gap-3 mb-4"><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5"><div class="section-title text-red-500">Älteste Spule</div><div class="mt-1">${shelfLifeHtml}</div></div><div class="bg-zinc-900 p-4 rounded-2xl border border-white/5 flex flex-col justify-center"><div class="section-title mb-2">Farbgruppen</div><div class="w-full h-4 bg-zinc-800 rounded-full overflow-hidden flex"><div style="width:${monoPct}%" class="bg-zinc-500 h-full"></div><div style="width:${100-monoPct}%" class="bg-indigo-500 h-full"></div></div><div class="flex justify-between text-[9px] font-bold mt-1 text-zinc-400"><span>Mono ${(w > 0 ? (monoWeight/1000).toFixed(1) : 0)}kg</span><span>Bunt ${(w > 0 ? (colorWeight/1000).toFixed(1) : 0)}kg</span></div></div></div>`;
         }
         
-        function openSettings(){toggleBodyScroll(true);document.getElementById('settings-overlay').classList.remove('overlay-hidden');document.getElementById('settings-content').innerHTML=`<div><div class="section-title">Daten</div><button onclick="exportData()" class="glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full mb-3 active:scale-95"><div class="bg-indigo-500/20 p-2 rounded-lg text-indigo-500"><i data-lucide="download"></i></div><span>Backup erstellen</span></button><div class="relative glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full active:scale-95"><div class="bg-emerald-500/20 p-2 rounded-lg text-emerald-500"><i data-lucide="upload"></i></div><span>Backup einspielen</span><input type="file" accept=".json" onchange="importData(event)" class="absolute inset-0 opacity-0 cursor-pointer"></div></div><div><div class="section-title text-red-500/80">Zone</div><button onclick="performReset()" class="p-4 rounded-xl bg-red-900/10 text-red-500 font-bold border border-red-500/20 flex gap-3 items-center w-full active:scale-95"><div class="bg-red-500/20 p-2 rounded-lg"><i data-lucide="alert-triangle"></i></div><span>Zurücksetzen</span></button></div><div class="text-center text-[10px] text-zinc-600 font-mono pt-4">Filament Pool v10.10 (Cloud Sync)<br>MN.CONCEPTS</div>`;if(window.lucide)lucide.createIcons();}
+        function openSettings(){toggleBodyScroll(true);document.getElementById('settings-overlay').classList.remove('overlay-hidden');document.getElementById('settings-content').innerHTML=`<div><div class="section-title">Daten</div><button onclick="exportData()" class="glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full mb-3 active:scale-95"><div class="bg-indigo-500/20 p-2 rounded-lg text-indigo-500"><i data-lucide="download"></i></div><span>Backup erstellen</span></button><div class="relative glass-panel p-4 rounded-xl text-left font-bold text-white flex gap-3 items-center w-full active:scale-95"><div class="bg-emerald-500/20 p-2 rounded-lg text-emerald-500"><i data-lucide="upload"></i></div><span>Backup einspielen</span><input type="file" accept=".json" onchange="importData(event)" class="absolute inset-0 opacity-0 cursor-pointer"></div></div><div><div class="section-title text-red-500/80">Zone</div><button onclick="performReset()" class="p-4 rounded-xl bg-red-900/10 text-red-500 font-bold border border-red-500/20 flex gap-3 items-center w-full active:scale-95"><div class="bg-red-500/20 p-2 rounded-lg"><i data-lucide="alert-triangle"></i></div><span>Zurücksetzen</span></button></div><div class="text-center text-[10px] text-zinc-600 font-mono pt-4">Filament Pool v10.20 (Wizard UX)<br>MN.CONCEPTS</div>`;if(window.lucide)lucide.createIcons();}
         function closeSettings(){toggleBodyScroll(false);document.getElementById('settings-overlay').classList.add('overlay-hidden');}
         function closeTools(){toggleBodyScroll(false);document.getElementById('tools-overlay').classList.add('overlay-hidden');}
         function renderToolHeader(t,b){document.getElementById('tools-header').innerHTML=`<div class="flex items-center gap-3"><button onclick="${b}" class="p-2 bg-zinc-800 rounded-full text-zinc-400"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><h2 class="text-xl font-bold text-white">${t}</h2></div>`;if(window.lucide)lucide.createIcons();}
 
+        /* */
         /* --- AMS HELPERS --- */
         function handleAMSSlotClick(i){if(prodWeight>0&&amsSlots[i])requestBooking(amsSlots[i],prodWeight);}
         function clearAMSSlot(i){openCustomConfirm("Entfernen","Löschen?",()=>{amsSlots[i]=null;save();renderProductionTool();});}
