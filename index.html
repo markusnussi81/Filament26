@@ -18,11 +18,9 @@
     <script src="https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore-compat.js" crossorigin="anonymous"></script>
     
     <style>
-        /* */
-        /* --- CORE --- */
         :root { --app-bg: #09090b; --card-bg: #18181b; }
         body { background-color: var(--app-bg); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; color: #e4e4e7; width: 100vw; overflow-x: hidden; -webkit-tap-highlight-color: transparent; }
-        body.no-scroll { overflow: hidden; }
+        body.no-scroll { overflow: hidden; } /* iOS fix: removed position: fixed to keep click targets correct */
 
         /* iOS Safe Area Fixes */
         .safe-top { padding-top: max(env(safe-area-inset-top), 20px); }
@@ -36,8 +34,6 @@
         .glass-panel { background: #18181b; border-top: 1px solid rgba(255, 255, 255, 0.1); display: flex; flex-direction: column; }
         .section-title { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #71717a; margin-bottom: 8px; }
         
-        /* */
-        /* Lists */
         .spool-card { background: var(--card-bg); border: 1px solid rgba(255, 255, 255, 0.06); border-radius: 16px; display: flex; align-items: center; padding: 12px; gap: 12px; position: relative; overflow: hidden; transition: transform 0.1s, background 0.2s; cursor: pointer; touch-action: manipulation; z-index: 10; }
         .spool-card:active { transform: scale(0.98); background: #27272a; }
         .mini-card { padding: 10px; gap: 12px; }
@@ -45,7 +41,7 @@
         /* Visuals & Looks */
         .spool-icon { width: 24px; height: 48px; display: flex; justify-content: space-between; flex-shrink: 0; filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.5)); }
         .spool-flange { width: 4px; height: 100%; background: linear-gradient(90deg, #222, #444 40%, #111); border-radius: 2px; border: 1px solid #000; z-index: 2; }
-        .spool-body { flex-grow: 1; height: 88%; margin: 0 -1px; z-index: 1; background-color: var(--fil-color); background-image: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.6) 100%), repeating-linear-gradient(90deg, transparent 0px, transparent 1px, rgba(0,0,0,0.1) 2px); }
+        .spool-body { flex-grow: 1; height: 88%; margin: 0 -1px; z-index: 1; background-color: var(--fil-color); background-image: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(255,255,255,0.2) 25%, rgba(0,0,0,0.1) 50%, rgba(0,0,0,0.6) 100%), repeating-linear-gradient(90deg, transparent 0px, transparent 1px, rgba(0,0,0,0.1) 2px); background-size: cover; background-position: center; }
         
         .look-silk .spool-body { background-image: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, rgba(255,255,255,0.8) 40%, rgba(0,0,0,0.4) 100%); }
         .look-metallic .spool-body { background-image: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.5) 50%, transparent 100%), linear-gradient(0deg, rgba(0,0,0,0.8) 0%, #fff 20%, rgba(0,0,0,0.8) 50%, #fff 80%, rgba(0,0,0,0.8) 100%); }
@@ -57,9 +53,8 @@
         .look-wood .spool-body { background-image: repeating-linear-gradient(90deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 5px), linear-gradient(0deg, rgba(0,0,0,0.3) 0%, transparent 50%, rgba(0,0,0,0.3) 100%); }
         .look-stone .spool-body { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.4'/%3E%3C/svg%3E"), linear-gradient(0deg, rgba(0,0,0,0.4) 0%, transparent 50%, rgba(0,0,0,0.4) 100%); }
         .look-rainbow .spool-body { background: var(--fil-gradient); opacity: 0.9; }
+        .look-photo .spool-body { box-shadow: inset 0 0 10px rgba(0,0,0,0.6); }
 
-        /* */
-        /* Inputs */
         input, select, textarea { font-size: 16px !important; background: #27272a; color: white; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); outline: none; }
         input[type="range"] { -webkit-appearance: none; width: 100%; height: 6px; background: #27272a; border-radius: 99px; border: none; }
         input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 24px; height: 24px; background: white; border-radius: 50%; cursor: pointer; box-shadow: 0 0 10px rgba(255,255,255,0.3); border: 2px solid #09090b; }
@@ -72,13 +67,11 @@
         .color-bubble { width: 38px; height: 38px; border-radius: 50%; border: 2px solid #3f3f46; position: relative; transition: transform 0.1s; margin-bottom: 4px; overflow: hidden;}
         .color-bubble.active { border-color: #fff; transform: scale(1.1); box-shadow: 0 0 0 2px rgba(255,255,255,0.1); z-index: 10; }
         .color-label { font-size: 9px; color: #a1a1aa; text-align: center; width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
-        /* Special bubble looks */
         .color-bubble.look-wood { background-image: repeating-linear-gradient(45deg, rgba(0,0,0,0.1) 0px, rgba(0,0,0,0.1) 2px, transparent 2px, transparent 5px); }
         .color-bubble.look-galaxy { background-image: repeating-linear-gradient(45deg, rgba(255,255,255,0.4) 0px, rgba(255,255,255,0.4) 1px, transparent 1px, transparent 8px); }
         .color-bubble.look-stone { background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.4'/%3E%3C/svg%3E"); }
+        .color-bubble.look-photo { background-size: cover !important; background-position: center !important; }
 
-        /* */
-        /* AMS */
         .ams-grid { display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; gap: 12px; width: 100%; margin: 0 auto 24px auto; position: relative; }
         .ams-grid::after { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 40px; height: 40px; background: #27272a; border: 4px solid #09090b; border-radius: 50%; z-index: 20; box-shadow: 0 0 10px rgba(0,0,0,0.8); pointer-events: none; }
         .ams-slot { background: #18181b; border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; transition: all 0.2s; cursor: pointer; }
@@ -95,16 +88,12 @@
         .ams-slot:nth-child(1) .ams-del-btn { top: 8px; right: 8px; } .ams-slot:nth-child(2) .ams-del-btn { top: 8px; left: 8px; }
         .ams-slot:nth-child(3) .ams-del-btn { bottom: 8px; right: 8px; } .ams-slot:nth-child(4) .ams-del-btn { bottom: 8px; left: 8px; }
 
-        /* Tools */
-        .stats-bar-container { background: #27272a; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 4px; position: relative; }
-        .stats-bar-fill { height: 100%; background: #6366f1; border-radius: 4px; transition: width 0.5s ease-out; }
         .tool-btn-row { display: flex; align-items: center; text-align: left; background: #18181b; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 20px; gap: 16px; transition: 0.2s; width: 100%; margin-bottom: 12px; }
         .tool-btn-row:active { transform: scale(0.98); background: #27272a; }
         .tool-icon-large { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .calc-btn { background: #27272a; border: 1px solid rgba(255,255,255,0.1); border-radius: 12px; padding: 12px; font-weight: bold; color: white; transition: 0.1s; }
         .calc-btn:active { background: #3f3f46; transform: scale(0.95); }
         
-        /* */
         .sort-btn-row { width: 100%; text-align: left; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: bold; color: #a1a1aa; display: flex; justify-content: space-between; align-items: center; }
         .sort-btn-row.active { color: #818cf8; }
         .sort-btn-row:last-child { border-bottom: none; }
@@ -112,7 +101,6 @@
         .sort-arrow { transition: transform 0.2s; }
         .sort-arrow.desc { transform: rotate(180deg); }
 
-        /* Modals & Scroll */
         .overlay-base { z-index: 100; position: fixed; inset: 0; background: #09090b; display: flex; flex-direction: column; height: 100%; width: 100%; transition: opacity 0.3s; }
         .overlay-hidden { display: none !important; opacity: 0; pointer-events: none; }
         .modal-slide { transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1); transform: translateY(100%); background: #09090b; }
@@ -120,7 +108,6 @@
         .scroll-container { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding-bottom: env(safe-area-inset-bottom); }
         .logo-gradient { background: linear-gradient(to right, #818cf8, #c084fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
-        /* ID Select */
         .id-select-wrapper { display: flex; align-items: center; font-family: monospace; font-size: 1.875rem; font-weight: 900; color: white; position: relative; }
         .id-select { -webkit-appearance: none; appearance: none; background: transparent; color: white; border: none; font-size: inherit; font-family: inherit; font-weight: inherit; padding-right: 20px; cursor: pointer; outline: none; border-bottom: 2px dashed rgba(255,255,255,0.2); border-radius: 0; }
         .id-select:disabled { border: none; padding-right: 0; opacity: 1; color: white; }
@@ -140,17 +127,14 @@
         #color-bubbles-container { flex-grow: 1; overflow-y: auto; padding-bottom: 20px;}
     </style>
 </head>
-<body class="safe-top safe-bottom" ontouchstart="">
+<body class="safe-top safe-bottom" ontouchstart=""> <!-- ontouchstart="" is needed for iOS active states! -->
 
-    <!-- -->
-    <!-- SPLASH -->
     <div id="splash" class="fixed inset-0 bg-[#09090b] z-[9999] flex flex-col items-center justify-center transition-opacity duration-500">
         <div class="mb-4 text-indigo-500"><i data-lucide="disc" class="w-16 h-16"></i></div>
         <h1 class="text-3xl font-black tracking-tighter logo-gradient">FILAMENT</h1>
         <p class="text-zinc-500 text-[10px] font-bold uppercase tracking-[0.3em] mt-2">MN.CONCEPTS v10.20</p>
     </div>
 
-    <!-- MAIN APP -->
     <div id="app" class="w-full max-w-md mx-auto p-4 flex flex-col min-h-screen opacity-0 transition-opacity duration-500 relative z-10 pb-24">
         <div class="flex items-center justify-between mb-6 pt-2">
             <div>
@@ -185,8 +169,6 @@
         <div id="empty-state" class="hidden text-center py-10 text-zinc-600 text-sm">Lager ist leer.</div>
     </div>
 
-    <!-- -->
-    <!-- SORT OVERLAY -->
     <div id="sort-overlay" class="overlay-base overlay-hidden bg-black/80 backdrop-blur-sm" onclick="closeSortMenu()">
         <div class="absolute bottom-0 left-0 right-0 w-full max-w-md mx-auto bg-[#18181b] rounded-t-3xl border-t border-white/10 p-2 safe-bottom" onclick="event.stopPropagation()">
             <div class="w-12 h-1 bg-zinc-700 rounded-full mx-auto my-3"></div>
@@ -200,7 +182,6 @@
         </div>
     </div>
 
-    <!-- WIZARD EDITOR MODAL -->
     <div id="modal-overlay" class="overlay-base overlay-hidden bg-black/50 backdrop-blur-sm">
         <div id="modal-content" class="modal-slide w-full max-w-md mx-auto bg-[#09090b] h-full flex flex-col safe-top-overlay safe-bottom px-5 pb-5 shadow-2xl">
             
@@ -248,8 +229,10 @@
                             <div class="absolute left-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full border border-white/20 shadow-sm" id="color-preview-dot" style="background-color: #fff;"></div>
                         </div>
                         <div class="relative w-12 flex-shrink-0">
+                            <!-- Button Layer for Visuals -->
                             <div class="w-full h-full bg-zinc-800 rounded-xl border border-zinc-700 flex items-center justify-center cursor-pointer relative active:scale-95 transition-transform">
                                 <i data-lucide="camera" class="w-5 h-5 text-zinc-400 pointer-events-none"></i>
+                                <!-- Native File Input overlay (no capture="environment" to allow photo library selection) -->
                                 <input type="file" id="camera-input" accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="handleCameraCapture(event)" style="padding:0; margin:0; border:none;">
                             </div>
                         </div>
@@ -319,7 +302,6 @@
                     </div>
                 </div>
 
-                <!-- -->
                 <!-- WIZARD NAVIGATION -->
                 <div class="mt-auto pt-4 flex gap-2 flex-shrink-0 w-full" id="wizard-nav">
                     <button id="btn-wiz-prev" onclick="wizPrev()" class="p-4 bg-zinc-800 rounded-xl text-white active:scale-95"><i data-lucide="chevron-left"></i></button>
@@ -327,7 +309,7 @@
                     <button id="btn-wiz-next" onclick="wizNext(false)" class="flex-grow bg-indigo-600 text-white py-4 rounded-xl font-bold shadow-lg active:scale-95 flex items-center justify-center">Weiter <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i></button>
                 </div>
 
-                <!-- EXTRA ACTIONS (Shown only on last step during edit) -->
+                <!-- EXTRA ACTIONS (Shown only on last step) -->
                 <div id="wizard-extra-actions" class="hidden flex-col gap-3 mt-4 flex-shrink-0 w-full">
                     <button id="btn-quick-shop" onclick="copyToShop()" class="w-full bg-emerald-600/10 text-emerald-500 py-3 rounded-xl font-bold border border-emerald-500/20 active:scale-95">Auf Einkaufsliste</button>
                     <button id="btn-delete-item" onclick="openDeleteDialog()" class="text-red-500/60 text-xs font-bold py-2 uppercase tracking-widest hover:text-red-500 text-center w-full active:scale-95">Element entfernen</button>
@@ -337,8 +319,6 @@
         </div>
     </div>
 
-    <!-- -->
-    <!-- OTHER OVERLAYS -->
     <div id="tools-overlay" class="overlay-base overlay-hidden">
         <div class="w-full max-w-md mx-auto px-5 pb-5 flex flex-col h-full safe-top-overlay safe-bottom">
             <div id="tools-header" class="flex justify-between items-center mb-6 flex-shrink-0"></div>
@@ -370,11 +350,10 @@
     <div id="confirm-booking-overlay" class="fixed inset-0 bg-black/80 z-[300] hidden flex items-center justify-center p-6 backdrop-blur-sm"><div class="glass-panel w-full max-w-xs p-8 rounded-3xl text-center"><h2 class="font-bold text-xl text-white mb-2">Menge buchen?</h2><p class="text-zinc-400 text-sm mb-6" id="confirm-booking-msg"></p><div class="flex gap-2"><button id="btn-confirm-book" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl active:scale-95">Ja</button><button onclick="closeConfirmBooking()" class="w-full bg-zinc-800 text-white font-bold py-3 rounded-xl active:scale-95">Abbruch</button></div></div></div>
     <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-zinc-800 text-white px-6 py-3 rounded-full shadow-2xl z-[500] transition-all duration-300 opacity-0 translate-y-[-20px] pointer-events-none font-bold text-sm flex gap-2 border border-white/10"></div>
 
+    <!-- FOTO AUSWAHL DIALOG -->
+    <div id="photo-choice-overlay" class="fixed inset-0 bg-black/80 z-[400] hidden flex items-center justify-center p-6 backdrop-blur-sm"><div class="glass-panel w-full max-w-sm p-6 rounded-3xl text-center"><h2 class="font-bold text-xl text-white mb-6">Verwendung wählen</h2><div class="grid grid-cols-2 gap-4"><button id="btn-choose-color" class="bg-zinc-800 p-4 rounded-2xl flex flex-col items-center gap-3 active:scale-95 border border-transparent"><div id="choice-color-bubble" class="w-16 h-16 rounded-full border-4 border-zinc-700"></div><div class="text-sm font-bold text-white"><span id="choice-color-name">Erkannt</span></div><div class="text-[10px] text-zinc-400">Als Standardfarbe</div></button><button id="btn-choose-photo" class="bg-zinc-800 p-4 rounded-2xl flex flex-col items-center gap-3 active:scale-95 border border-transparent"><div id="choice-photo-bubble" class="w-16 h-16 rounded-full border-4 border-zinc-700 bg-cover bg-center"></div><div class="text-sm font-bold text-white">Foto</div><div class="text-[10px] text-zinc-400">Als Textur (Spule)</div></button></div><button onclick="closePhotoChoice()" class="mt-6 text-zinc-500 font-bold p-2 text-sm active:scale-95">Abbrechen</button></div></div>
+
     <script>
-        /* */
-        // =========================================================================
-        // FIREBASE CONFIGURATION FÜR CLOUD SYNC
-        // =========================================================================
         const MY_CONFIG = {
             apiKey: "AIzaSyBYpvycPmRz4L8oqhSrKg7gnaufUpLkxZQ",
             authDomain: "filament-2e902.firebaseapp.com",
@@ -390,66 +369,44 @@
         const MATS=["PLA","PETG","ABS","ASA","TPU","PC","PA","Wood","Carbon"];
         const HYGRO_MATS=["PETG","ABS","ASA","TPU","PC","PA","Carbon"];
         
-        // --- EXPANDED COLOR DB ---
         const ALL_COLORS = [
-            // 1. YELLOW & GOLD
             {name:"Yellow",hex:"#FFFF00",look:"plain"},{name:"Lemon Yellow",hex:"#FFF700",look:"plain"},{name:"Sun Yellow",hex:"#FFD700",look:"plain"},
             {name:"Golden Yellow",hex:"#FFC000",look:"plain"},{name:"Maize",hex:"#FBEC5D",look:"plain"},{name:"Signal Yellow",hex:"#F2C618",look:"plain"},
             {name:"Silk Yellow",hex:"#FFFF00",look:"silk"},{name:"Silk Gold",hex:"#FFD700",look:"silk"},{name:"Silk Champagne",hex:"#F7E7CE",look:"silk"},
             {name:"Silk Light Gold",hex:"#F1E5AC",look:"silk"},{name:"Silk Antique Gold",hex:"#CFB53B",look:"silk"},{name:"Silk Brass",hex:"#B5A642",look:"silk"},
             {name:"Matte Yellow",hex:"#FFFF00",look:"matte"},{name:"Transparent Yellow",hex:"#FFFF00",look:"translucent"},{name:"Neon Yellow",hex:"#CCFF00",look:"plain"},
-            
-            // 2. BLUE
             {name:"Blue",hex:"#0000FF",look:"plain"},{name:"Sky Blue",hex:"#87CEEB",look:"plain"},{name:"Navy Blue",hex:"#000080",look:"plain"},
             {name:"Royal Blue",hex:"#4169E1",look:"plain"},{name:"Electric Blue",hex:"#7DF9FF",look:"plain"},{name:"Baby Blue",hex:"#89CFF0",look:"plain"},
             {name:"Cyan",hex:"#00FFFF",look:"plain"},{name:"Turquoise",hex:"#40E0D0",look:"plain"},{name:"Teal",hex:"#008080",look:"plain"},
             {name:"Silk Blue",hex:"#0000FF",look:"silk"},{name:"Silk Cyan",hex:"#00FFFF",look:"silk"},{name:"Matte Blue",hex:"#0000FF",look:"matte"},
             {name:"Galaxy Blue",hex:"#0000FF",look:"galaxy"},{name:"Translucent Blue",hex:"#0000FF",look:"translucent"},{name:"Glow Blue",hex:"#BAE6FD",look:"glow"},
-
-            // 3. GREEN
             {name:"Green",hex:"#008000",look:"plain"},{name:"Lime Green",hex:"#32CD32",look:"plain"},{name:"Mint Green",hex:"#98FF98",look:"plain"},
             {name:"Emerald Green",hex:"#50C878",look:"plain"},{name:"Olive Green",hex:"#808000",look:"plain"},{name:"Army Green",hex:"#4B5320",look:"plain"},
             {name:"Silk Green",hex:"#008000",look:"silk"},{name:"Silk Emerald",hex:"#50C878",look:"silk"},{name:"Matte Green",hex:"#008000",look:"matte"},
             {name:"Galaxy Green",hex:"#008000",look:"galaxy"},{name:"Neon Green",hex:"#39FF14",look:"plain"},{name:"Glow Green",hex:"#D9F99D",look:"glow"},
-
-            // 4. RED & PINK
             {name:"Red",hex:"#FF0000",look:"plain"},{name:"Fire Red",hex:"#FF4500",look:"plain"},{name:"Cherry Red",hex:"#D2042D",look:"plain"},
             {name:"Maroon",hex:"#800000",look:"plain"},{name:"Pink",hex:"#FFC0CB",look:"plain"},{name:"Hot Pink",hex:"#FF69B4",look:"plain"},
             {name:"Magenta",hex:"#FF00FF",look:"plain"},{name:"Coral",hex:"#FF7F50",look:"plain"},{name:"Peach",hex:"#FFE5B4",look:"plain"},
             {name:"Silk Red",hex:"#FF0000",look:"silk"},{name:"Silk Rose Gold",hex:"#B76E79",look:"silk"},{name:"Matte Red",hex:"#FF0000",look:"matte"},
             {name:"Galaxy Red",hex:"#FF0000",look:"galaxy"},{name:"Translucent Red",hex:"#FF0000",look:"translucent"},{name:"Neon Red",hex:"#FF3333",look:"plain"},
-
-            // 5. PURPLE
             {name:"Purple",hex:"#800080",look:"plain"},{name:"Violet",hex:"#EE82EE",look:"plain"},{name:"Lilac",hex:"#C8A2C8",look:"plain"},
             {name:"Lavender",hex:"#E6E6FA",look:"plain"},{name:"Plum",hex:"#DDA0DD",look:"plain"},
             {name:"Silk Purple",hex:"#800080",look:"silk"},{name:"Matte Purple",hex:"#800080",look:"matte"},{name:"Galaxy Purple",hex:"#800080",look:"galaxy"},
-
-            // 6. ORANGE
             {name:"Orange",hex:"#FFA500",look:"plain"},{name:"Sunset Orange",hex:"#FD5E53",look:"plain"},{name:"Tangerine",hex:"#F28500",look:"plain"},
             {name:"Silk Orange",hex:"#FFA500",look:"silk"},{name:"Matte Orange",hex:"#FFA500",look:"matte"},{name:"Neon Orange",hex:"#FF5F1F",look:"plain"},
-
-            // 7. WHITE & GREY
             {name:"White",hex:"#FFFFFF",look:"plain"},{name:"Cold White",hex:"#F8F9FA",look:"plain"},{name:"Warm White",hex:"#FEF9E7",look:"plain"},
             {name:"Grey",hex:"#808080",look:"plain"},{name:"Light Grey",hex:"#D3D3D3",look:"plain"},{name:"Dark Grey",hex:"#A9A9A9",look:"plain"},
             {name:"Silver",hex:"#C0C0C0",look:"metallic"},{name:"Anthracite",hex:"#36454F",look:"plain"},
             {name:"Silk White",hex:"#FFFFFF",look:"silk"},{name:"Silk Silver",hex:"#C0C0C0",look:"silk"},{name:"Matte White",hex:"#F5F5F5",look:"matte"},
             {name:"Matte Grey",hex:"#808080",look:"matte"},{name:"Marble White",hex:"#FFFFFF",look:"stone"},{name:"Marble Grey",hex:"#808080",look:"stone"},
             {name:"Galaxy Silver",hex:"#C0C0C0",look:"galaxy"},{name:"Galaxy Grey",hex:"#808080",look:"galaxy"},
-
-            // 8. BLACK
             {name:"Black",hex:"#000000",look:"plain"},{name:"Onyx Black",hex:"#353839",look:"plain"},
             {name:"Silk Black",hex:"#27272A",look:"silk"},{name:"Matte Black",hex:"#111111",look:"matte"},
             {name:"Galaxy Black",hex:"#09090B",look:"galaxy"},{name:"Carbon Black",hex:"#1C1C1C",look:"cf"},
-
-            // 9. BROWN & WOOD
             {name:"Brown",hex:"#A52A2A",look:"plain"},{name:"Chocolate",hex:"#D2691E",look:"plain"},{name:"Coffee",hex:"#6F4E37",look:"plain"},
             {name:"Beige",hex:"#F5F5DC",look:"plain"},{name:"Terracotta",hex:"#E2725B",look:"plain"},
             {name:"Wood",hex:"#DEB887",look:"wood"},{name:"Bamboo",hex:"#F0E68C",look:"wood"},{name:"Walnut",hex:"#5D4037",look:"wood"},
-
-            // 10. METAL
             {name:"Copper",hex:"#B87333",look:"metallic"},{name:"Bronze",hex:"#CD7F32",look:"metallic"},{name:"Brass",hex:"#B5A642",look:"metallic"},
-
-            // 11. MULTICOLOR & SPECIAL
             {name:"Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet)"},
             {name:"Silk Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(45deg, #ff0000, #ffff00, #0000ff)"},
             {name:"Matte Rainbow",hex:"#FFFFFF",look:"rainbow",gradient:"linear-gradient(45deg, #ff9a9e, #fad0c4, #fad0c4)"},
@@ -458,13 +415,10 @@
         ];
 
         let spools=[], shopItems=[], amsSlots=[null,null,null,null], activeId=null, activeCtx='Lager';
-        let selCol="White", selHex="#FFFFFF", selLook="plain", selMat="PLA";
+        let selCol="White", selHex="#FFFFFF", selLook="plain", selMat="PLA", selImage=null;
         let sortMode='id', sortDir=1, prodWeight=0, pendingBooking=null, activeAMSSlotIndex=null;
         let confirmCallback=null, pendingImportData=null, lastProdState={mat:"",brand:"",col:""};
-
-        // --- WIZARD STATE ---
-        let wizCurrent = 0;
-        let wizSteps = [];
+        let currentSteps = [], currentStep = 0;
 
         function setStatus(statusType) {
             const dot = document.getElementById('sync-dot');
@@ -478,21 +432,13 @@
             }
         }
 
-        /* */
         async function initSync() {
             setStatus('connecting');
             try {
-                if (!firebase.apps.length) {
-                    firebase.initializeApp(MY_CONFIG);
-                }
+                if (!firebase.apps.length) firebase.initializeApp(MY_CONFIG);
                 db = firebase.firestore();
                 auth = firebase.auth();
-
-                try {
-                    await auth.signInAnonymously();
-                } catch(e) {
-                    console.warn("Anonyme Anmeldung fehlgeschlagen.", e);
-                }
+                try { await auth.signInAnonymously(); } catch(e) { console.warn("Anonyme Anmeldung fehlgeschlagen.", e); }
 
                 firebaseReady = true;
                 const docRef = db.collection('filament_app').doc('state');
@@ -515,13 +461,10 @@
                         render();
                     }
                 }, (err) => {
-                    console.error("Firestore Error:", err);
-                    setStatus('offline');
+                    console.error("Firestore Error:", err); setStatus('offline');
                 });
-
             } catch (e) {
-                console.error("Firebase Init Error:", e);
-                setStatus('offline');
+                console.error("Firebase Init Error:", e); setStatus('offline');
             }
         }
 
@@ -531,16 +474,13 @@
                 const docRef = db.collection('filament_app').doc('state');
                 await docRef.set({ spools, shopItems, amsSlots });
             } catch (e) {
-                console.error("Sync Save Error:", e);
-                setStatus('offline');
+                console.error("Sync Save Error:", e); setStatus('offline');
             }
         }
 
         window.onload = function() {
             const splash = document.getElementById('splash');
-            if(splash) {
-                setTimeout(()=>{ splash.style.display='none'; document.getElementById('app').style.opacity='1'; }, 1500);
-            }
+            if(splash) { setTimeout(()=>{ splash.style.display='none'; document.getElementById('app').style.opacity='1'; }, 1500); }
             try {
                 spools=JSON.parse(localStorage.getItem('fpool_inv')||'[]');
                 shopItems=JSON.parse(localStorage.getItem('fpool_shop')||'[]');
@@ -568,9 +508,11 @@
             if(window.lucide) lucide.createIcons();
         }
 
-        /* */
-        /* --- LOGIC --- */
-        function getSpoolVisualHtml(s){ const v=getVisuals(s); return `<div class="spool-icon"><div class="spool-flange left"></div><div class="spool-body look-${v.look}" style="--fil-color: ${v.hex}; ${v.gradient ? 'background:'+v.gradient : ''}"></div><div class="spool-flange right"></div></div>`; }
+        function getSpoolVisualHtml(s){
+            const v=getVisuals(s); 
+            const bg = v.look === 'photo' && v.image ? `background-image: url('${v.image}') !important; background-size: cover; background-position: center;` : (v.gradient ? `background:${v.gradient}` : ''); 
+            return `<div class="spool-icon"><div class="spool-flange left"></div><div class="spool-body look-${v.look}" style="--fil-color: ${v.hex}; ${bg}"></div><div class="spool-flange right"></div></div>`; 
+        }
         
         function getFilteredSpools() {
             const qRaw = document.getElementById('search-input').value.toLowerCase();
@@ -622,8 +564,8 @@
                 l.innerHTML+=`<div onclick="openModal(${s.number},'Lager')" class="spool-card fade-in">${getSpoolVisualHtml(s)}<div class="flex-grow min-w-0"><div class="flex justify-between items-center mb-1"><div class="flex items-center"><span class="text-[10px] font-black text-zinc-500 uppercase tracking-widest">${s.material}</span>${statusBadge}</div><span class="font-mono font-bold text-white text-lg">#${s.number.toString().padStart(3,'0')}</span></div><div class="text-sm font-bold text-white truncate mb-2">${v.name}</div><div class="flex justify-between items-end mt-1"><span class="text-[10px] bg-zinc-800 px-2 py-0.5 rounded text-zinc-400 border border-white/5 max-w-[60px] truncate">${s.brand||'-'}</span><div class="text-right flex flex-col items-end"><span class="text-[10px] font-mono font-bold ${s.level<20?'text-red-500':'text-emerald-500'}">${w}g <span class="text-zinc-600">/ ${displayLevel}%</span></span><span class="text-[8px] text-zinc-600 font-mono leading-tight">${d}</span></div></div></div>${s.isCalibrated?'<div class="absolute top-2 left-2 text-indigo-400 z-20"><span class="text-[8px]">🎯</span></div>':''}${needsDrying(s)?'<div class="absolute top-2 right-2 text-blue-400 z-20"><i data-lucide="droplets" class="w-3 h-3"></i></div>':''}</div>`;
             });
         }
-        
         function getVisuals(s){
+            if (s.look === 'photo') return { name: s.color || "Foto", hex: s.hex || '#FFF', look: 'photo', image: s.imageUrl };
             let match = ALL_COLORS.find(c => c.name === s.color);
             return {
                 name:s.color,
@@ -637,8 +579,6 @@
         function checkBackup(){if(isBackupOverdue())toast("Backup empfohlen!");}
         function renderStatsMini(){let w=0;spools.forEach(s=>w+=getWeight(s));document.getElementById('mini-dashboard').innerText=`${spools.length} Spulen • ca. ${(w/1000).toFixed(1)} kg`;}
 
-        /* */
-        /* --- HYBRID COLOR PICKER --- */
         function renderBubbleGrid(filterText = "") {
             const container = document.getElementById('color-bubbles-container');
             container.innerHTML = '';
@@ -678,14 +618,13 @@
         }
 
         function selectColorFromBubble(c) {
-            selCol = c.name;
-            selHex = c.hex;
-            selLook = c.look;
+            selCol = c.name; selHex = c.hex; selLook = c.look; selImage = null;
             
             document.getElementById('input-color-name').value = c.name;
             document.getElementById('native-color-picker').value = c.hex;
             
             const dot = document.getElementById('color-preview-dot');
+            dot.style.backgroundImage = 'none';
             if(c.gradient) {
                 dot.style.background = c.gradient;
             } else {
@@ -693,8 +632,6 @@
             }
             
             renderBubbleGrid(c.name); 
-            
-            // Auto advance wizard on color select
             setTimeout(() => wizNext(false), 300);
         }
 
@@ -706,30 +643,40 @@
         function colorDistance(r1, g1, b1, r2, g2, b2) {
             return Math.sqrt(Math.pow(r2 - r1, 2) + Math.pow(g2 - g1, 2) + Math.pow(b2 - b1, 2));
         }
-
         function hexToRgb(hex) {
             const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
             return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : {r: 0, g: 0, b: 0};
         }
 
+        function closePhotoChoice() { document.getElementById('photo-choice-overlay').classList.add('hidden'); }
+
         function handleCameraCapture(event) {
             const file = event.target.files[0];
             if (!file) return;
 
-            toast("Analysiere Farbe...");
+            toast("Analysiere Bild...");
             const img = new Image();
             const reader = new FileReader();
 
             reader.onload = (e) => { img.src = e.target.result; };
 
             img.onload = () => {
+                const MAX_SIZE = 256;
+                let width = img.width;
+                let height = img.height;
+                if (width > height) { if (width > MAX_SIZE) { height *= MAX_SIZE / width; width = MAX_SIZE; } }
+                else { if (height > MAX_SIZE) { width *= MAX_SIZE / height; height = MAX_SIZE; } }
+
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                canvas.width = 50; canvas.height = 50;
-                ctx.drawImage(img, 0, 0, 50, 50);
+                canvas.width = width; canvas.height = height;
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const thumbnailData = canvas.toDataURL('image/jpeg', 0.6);
                 
-                // Wir lesen die durchschnittliche Farbe aus der Mitte des Bildes aus (20x20 Block)
-                const imgData = ctx.getImageData(15, 15, 20, 20);
+                const cx = Math.floor(width/2) - 10;
+                const cy = Math.floor(height/2) - 10;
+                const imgData = ctx.getImageData(cx, cy, 20, 20);
                 const data = imgData.data;
                 let r = 0, g = 0, b = 0;
                 const count = data.length / 4;
@@ -745,7 +692,6 @@
                 let closestLook = "plain";
                 let minDist = Infinity;
                 
-                // Nächste Farbe aus der Datenbank anhand RGB-Distanz finden
                 ALL_COLORS.forEach(c => {
                     if (c.hex && !c.gradient) {
                         const cRgb = hexToRgb(c.hex);
@@ -756,98 +702,106 @@
                     }
                 });
 
-                selHex = hex;
-                selCol = "Cam: " + closestName;
-                selLook = closestLook;
+                document.getElementById('choice-color-bubble').style.backgroundColor = hex;
+                document.getElementById('choice-color-name').innerText = "Farbe: " + closestName;
+                document.getElementById('choice-photo-bubble').style.backgroundImage = `url(${thumbnailData})`;
 
-                document.getElementById('native-color-picker').value = hex;
-                document.getElementById('input-color-name').value = selCol;
-                document.getElementById('color-preview-dot').style.background = hex;
-                
-                renderBubbleGrid(closestName);
-                toast("Farbe erkannt!");
+                document.getElementById('btn-choose-color').onclick = () => {
+                    selHex = hex; selCol = "Cam: " + closestName; selLook = closestLook; selImage = null;
+                    document.getElementById('native-color-picker').value = hex;
+                    document.getElementById('input-color-name').value = selCol;
+                    const dot = document.getElementById('color-preview-dot');
+                    dot.style.background = hex; dot.style.backgroundImage = 'none';
+                    renderBubbleGrid(closestName);
+                    closePhotoChoice(); toast("Farbe übernommen!"); setTimeout(() => wizNext(false), 300);
+                };
+
+                document.getElementById('btn-choose-photo').onclick = () => {
+                    selHex = hex; selCol = "Foto-Textur"; selLook = "photo"; selImage = thumbnailData;
+                    document.getElementById('native-color-picker').value = hex;
+                    document.getElementById('input-color-name').value = selCol;
+                    const dot = document.getElementById('color-preview-dot');
+                    dot.style.background = hex; dot.style.backgroundImage = `url(${thumbnailData})`; dot.style.backgroundSize = 'cover';
+                    renderBubbleGrid(""); 
+                    closePhotoChoice(); toast("Foto übernommen!"); setTimeout(() => wizNext(false), 300);
+                };
+
+                document.getElementById('photo-choice-overlay').classList.remove('hidden');
                 event.target.value = ""; 
             };
             reader.readAsDataURL(file);
         }
 
-        /* */
-        /* --- WIZARD LOGIC --- */
         function initWizard() {
-            wizCurrent = 0;
-            // Define steps based on context (Shop items need less info)
-            if(activeCtx === 'New' || activeCtx === 'Lager') {
-                wizSteps = ['material', 'brand', 'color', 'capacity', 'level', 'extras'];
-            } else if (activeCtx === 'ShopNew' || activeCtx === 'Shop') {
-                wizSteps = ['material', 'brand', 'color'];
+            const isL = (activeCtx === 'Lager' || activeCtx === 'New');
+            currentSteps = ['step-material', 'step-brand', 'step-color'];
+            if (isL) {
+                currentSteps.push('step-capacity', 'step-level', 'step-extras');
+            } else {
+                currentSteps.push('step-extras');
             }
-            showWizardStep(0);
+            currentStep = 0;
+            
+            // Hide all potential steps first
+            ['step-material', 'step-brand', 'step-color', 'step-capacity', 'step-level', 'step-extras'].forEach(s => {
+                const el = document.getElementById(s);
+                if (el) el.classList.add('hidden');
+            });
+            
+            updateWizardUI();
         }
 
-        function showWizardStep(idx) {
-            wizCurrent = idx;
-            // Hide all steps
-            document.querySelectorAll('.wizard-step').forEach(el => el.classList.add('hidden'));
-            // Show current step
-            document.getElementById(`step-${wizSteps[idx]}`).classList.remove('hidden');
-
-            // Update Progress Bar
-            const pct = ((idx + 1) / wizSteps.length) * 100;
-            document.getElementById('wizard-progress').style.width = pct + '%';
-
-            // Update Navigation Buttons
-            const btnPrev = document.getElementById('btn-wiz-prev');
-            const btnSkip = document.getElementById('btn-wiz-skip');
-            const btnNext = document.getElementById('btn-wiz-next');
-            const extraActions = document.getElementById('wizard-extra-actions');
-
-            btnPrev.style.display = idx === 0 ? 'none' : 'block';
-
-            if (idx === wizSteps.length - 1) {
-                // Last step: Change Next to Save
-                btnSkip.style.display = 'none';
-                btnNext.innerHTML = 'Speichern <i data-lucide="check" class="w-5 h-5 ml-2"></i>';
-                btnNext.classList.remove('bg-indigo-600');
-                btnNext.classList.add('bg-emerald-600');
-                
-                // Show delete/shop actions if editing an existing Lager item
-                if(activeCtx === 'Lager') {
-                    extraActions.classList.remove('hidden');
-                    extraActions.classList.add('flex');
-                } else {
-                    extraActions.classList.add('hidden');
-                    extraActions.classList.remove('flex');
+        function updateWizardUI() {
+            currentSteps.forEach((s, idx) => {
+                const el = document.getElementById(s);
+                if (el) {
+                    if (idx === currentStep) el.classList.remove('hidden');
+                    else el.classList.add('hidden');
                 }
+            });
+            
+            const progress = ((currentStep) / (currentSteps.length - 1)) * 100;
+            document.getElementById('wizard-progress').style.width = `${progress}%`;
+            
+            document.getElementById('btn-wiz-prev').style.display = currentStep === 0 ? 'none' : 'block';
+            
+            const nextBtn = document.getElementById('btn-wiz-next');
+            const skipBtn = document.getElementById('btn-wiz-skip');
+            
+            if (currentStep === currentSteps.length - 1) {
+                nextBtn.innerHTML = '<i data-lucide="save" class="w-4 h-4 mr-1"></i> Speichern';
+                nextBtn.classList.add('bg-emerald-600');
+                nextBtn.classList.remove('bg-indigo-600');
+                skipBtn.style.display = 'none';
+                document.getElementById('wizard-extra-actions').classList.remove('hidden');
             } else {
-                // Normal step
-                btnSkip.style.display = 'block';
-                btnNext.innerHTML = 'Weiter <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>';
-                btnNext.classList.add('bg-indigo-600');
-                btnNext.classList.remove('bg-emerald-600');
-                extraActions.classList.add('hidden');
-                extraActions.classList.remove('flex');
+                nextBtn.innerHTML = 'Weiter <i data-lucide="arrow-right" class="w-4 h-4 ml-1"></i>';
+                nextBtn.classList.remove('bg-emerald-600');
+                nextBtn.classList.add('bg-indigo-600');
+                skipBtn.style.display = 'block';
+                document.getElementById('wizard-extra-actions').classList.add('hidden');
             }
             if(window.lucide) lucide.createIcons();
         }
 
         function wizNext(skipped) {
-            // Even if skipped, we just move forward and keep current UI values
-            if (wizCurrent < wizSteps.length - 1) {
-                showWizardStep(wizCurrent + 1);
+            if (currentStep < currentSteps.length - 1) {
+                currentStep++;
+                updateWizardUI();
             } else {
                 saveItem();
             }
         }
 
         function wizPrev() {
-            if (wizCurrent > 0) {
-                showWizardStep(wizCurrent - 1);
+            if (currentStep > 0) {
+                currentStep--;
+                updateWizardUI();
             }
         }
 
-        /* --- MODALS --- */
         function openModal(id, ctx) {
-            activeId=id; activeCtx=ctx; toggleBodyScroll(true);
+            activeId = id; activeCtx = ctx; toggleBodyScroll(true);
             
             let i = (ctx === 'New') 
                 ? {number: id, material:'PLA', color:'', hex:'#FFFFFF', look:'plain', brand:'', level:100, capacity:1000, createdAt:new Date().toISOString(), isCalibrated:false, note:''} 
@@ -862,6 +816,8 @@
             const idSelect = document.getElementById('input-spool-id-select');
             const arrow = document.getElementById('id-select-arrow');
             idSelect.innerHTML = '';
+
+            const isL = (ctx === 'Lager' || ctx === 'New');
 
             if (ctx === 'New') {
                 idSelect.disabled = false;
@@ -883,55 +839,63 @@
             } else {
                 idSelect.disabled = true;
                 arrow.classList.add('hidden');
-                let displayId = (ctx === 'Shop' || ctx === 'ShopNew') ? 'SHOP' : i.number;
+                let displayId = (ctx === 'Shop' || ctx === 'ShopNew') ? '---' : i.number;
                 const opt = document.createElement('option');
                 opt.value = displayId;
                 opt.text = (typeof displayId === 'number') ? `#${displayId.toString().padStart(3,'0')}` : displayId;
                 idSelect.add(opt);
             }
 
-            document.getElementById('modal-date').innerText=(ctx==='Lager'&&i.createdAt)?"Erstellt: "+new Date(i.createdAt).toLocaleDateString('de-DE'):"";
-            const isL= (ctx==='Lager' || ctx==='New'); 
+            document.getElementById('modal-date').innerText = (ctx==='Lager'&&i.createdAt) ? "Erstellt: "+new Date(i.createdAt).toLocaleDateString('de-DE') : "";
             
-            // Set basic values
-            selCol=i.color || ''; selHex=i.hex||'#FFFFFF'; selLook=i.look||'plain'; selMat=i.material||'PLA';
+            document.getElementById('btn-quick-shop').classList.toggle('hidden', !isL);
+            document.getElementById('btn-delete-item').style.display = (ctx==='ShopNew' || ctx==='New') ? 'none' : 'block';
+
+            const ds = document.getElementById('dryer-section');
+            if(isL && HYGRO_MATS.includes(i.material)){
+                ds.classList.remove('hidden');
+                document.getElementById('dryer-status').innerText = i.lastDried ? `Vor ${Math.floor((Date.now()-i.lastDried)/86400000)} Tagen` : 'Nie';
+            } else {
+                ds.classList.add('hidden');
+            }
             
-            // Populate Color UI
+            selCol = i.color || ''; selHex = i.hex || '#FFFFFF'; selLook = i.look || 'plain'; selMat = i.material || 'PLA'; selImage = i.imageUrl || null;
+            
             document.getElementById('input-color-name').value = selCol;
             document.getElementById('native-color-picker').value = selHex;
-            const match = ALL_COLORS.find(c => c.name === selCol);
+            
             const dot = document.getElementById('color-preview-dot');
-            if(match && match.gradient) dot.style.background = match.gradient;
-            else dot.style.background = selHex;
+            if (selLook === 'photo' && selImage) {
+                dot.style.background = selHex;
+                dot.style.backgroundImage = `url(${selImage})`;
+                dot.style.backgroundSize = 'cover';
+            } else {
+                const match = ALL_COLORS.find(c => c.name === selCol);
+                if(match && match.gradient) dot.style.background = match.gradient;
+                else dot.style.background = selHex;
+                dot.style.backgroundImage = 'none';
+            }
+            
             renderBubbleGrid(selCol); 
             
-            // Populate generic fields
             if(isL){
-                document.getElementById('input-level').value=i.level||100;
-                document.getElementById('level-display').innerText=(i.level||100)+'%';
-                document.getElementById('input-calib').checked=i.isCalibrated||false;
+                document.getElementById('input-level').value = i.level || 100;
+                document.getElementById('level-display').innerText = (i.level || 100) + '%';
+                document.getElementById('input-calib').checked = i.isCalibrated || false;
                 document.getElementById('input-capacity').value = i.capacity || 1000;
-                document.getElementById('input-date').value=i.createdAt?new Date(i.createdAt).toISOString().split('T')[0]:new Date().toISOString().split('T')[0];
-                
-                const ds=document.getElementById('dryer-section');
-                if(HYGRO_MATS.includes(i.material)){
-                    ds.classList.remove('hidden');
-                    document.getElementById('dryer-status').innerText=i.lastDried?`Vor ${Math.floor((Date.now()-i.lastDried)/86400000)} Tagen`:'Nie';
-                } else {
-                    ds.classList.add('hidden');
-                }
+                document.getElementById('input-date').value = i.createdAt ? new Date(i.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
             }
-            document.getElementById('input-notes').value=i.note||'';
+            document.getElementById('input-notes').value = i.note || '';
             
             renderMaterialGrid(); 
             renderBrandSelect(i.brand);
             
-            // Start Wizard
             initWizard();
             
             document.getElementById('modal-overlay').classList.remove('overlay-hidden');
             const m = document.getElementById('modal-content');
-            m.classList.remove('active'); setTimeout(()=>m.classList.add('active'),10);
+            m.classList.remove('active'); 
+            setTimeout(() => m.classList.add('active'), 10);
         }
 
         function closeModal(){
@@ -940,8 +904,6 @@
             setTimeout(()=>document.getElementById('modal-overlay').classList.add('overlay-hidden'),300);
         }
 
-        /* */
-        /* --- STANDARD RENDERERS --- */
         function renderMaterialGrid(){
             const el=document.getElementById('material-grid');el.innerHTML='';
             MATS.forEach(m=>{
@@ -953,19 +915,13 @@
         function renderBrandSelect(c){
             const el=document.getElementById('input-brand');
             el.innerHTML='<option value="">Keine Marke gewählt</option>';
-            BRANDS.forEach(b=>{
-                el.innerHTML+=`<option value="${b}" ${c===b?'selected':''}>${b}</option>`;
-            });
+            BRANDS.forEach(b=>{ el.innerHTML+=`<option value="${b}" ${c===b?'selected':''}>${b}</option>`; });
         }
         
         function setMat(m){
-            selMat=m;
-            renderMaterialGrid();
+            selMat=m; renderMaterialGrid();
             const b=document.getElementById('dryer-section');
-            if(activeCtx==='Lager'&&HYGRO_MATS.includes(m)) b.classList.remove('hidden');
-            else b.classList.add('hidden');
-            
-            // Auto advance
+            if(activeCtx==='Lager'&&HYGRO_MATS.includes(m)) b.classList.remove('hidden'); else b.classList.add('hidden');
             setTimeout(() => wizNext(false), 250);
         }
         
@@ -979,7 +935,8 @@
                 const d={
                     material:selMat, color:finalColorName, hex:selHex, look:selLook,
                     brand:document.getElementById('input-brand').value,
-                    note:document.getElementById('input-notes').value
+                    note:document.getElementById('input-notes').value,
+                    imageUrl: selImage
                 };
 
                 if(activeCtx==='Lager'){
@@ -1024,8 +981,6 @@
         function copyToShop(){const s=spools.find(x=>x.number===activeId);if(s){shopItems.push({material:s.material,color:s.color,hex:s.hex,look:s.look,brand:s.brand});save();toast("Auf Einkaufsliste!");}}
         function setDryerDate(){const s=spools.find(x=>x.number===activeId);if(s){s.lastDried=Date.now();save();document.getElementById('dryer-status').innerText='Gerade eben';toast("Markiert!");}}
 
-        /* */
-        /* --- SORTING --- */
         function openSortMenu(){ document.getElementById('sort-overlay').classList.remove('overlay-hidden'); updateSortMenuIcons(); }
         function closeSortMenu(){ document.getElementById('sort-overlay').classList.add('overlay-hidden'); }
         function setSortMode(m){ 
@@ -1047,7 +1002,6 @@
             }
         }
 
-        /* --- TOOLS / AMS / SETTINGS --- */
         function openTools(){toggleBodyScroll(true);document.getElementById('tools-overlay').classList.remove('overlay-hidden');renderToolHeader('Werkzeuge','closeTools()');
             document.getElementById('tools-content').innerHTML=`<button onclick="openProductionTool()" class="tool-btn-row border-indigo-500/30 bg-indigo-500/5"><div class="tool-icon-large bg-indigo-500 text-white"><i data-lucide="zap"></i></div><div class="flex-grow"><div class="text-lg font-bold text-white">Produktion & Buchung</div><div class="text-xs text-indigo-300">Druckcheck & Verbrauch erfassen</div></div><i data-lucide="chevron-right"></i></button><button onclick="renderShoppingList()" class="tool-btn-row"><div class="tool-icon-large bg-orange-500/20 text-orange-500"><i data-lucide="shopping-cart"></i></div><div class="flex-grow"><div class="text-lg font-bold text-white">Einkaufsliste</div><div class="text-xs text-zinc-500">Filamente nachbestellen</div></div><i data-lucide="chevron-right"></i></button><button onclick="openStatsMenu()" class="tool-btn-row"><div class="tool-icon-large bg-emerald-500/20 text-emerald-500"><i data-lucide="bar-chart-3"></i></div><div class="flex-grow"><div class="text-lg font-bold text-white">Statistik</div><div class="text-xs text-zinc-500">Bestandsanalyse & Kalibrierung</div></div><i data-lucide="chevron-right"></i></button>`;
             if(window.lucide)lucide.createIcons();
@@ -1061,31 +1015,20 @@
             const cal=spools.filter(s=>s.isCalibrated).length;
             const d=spools.filter(s=>!needsDrying(s)&&HYGRO_MATS.includes(s.material)).length;
             const ht=spools.filter(s=>HYGRO_MATS.includes(s.material)).length;
-            let w=0;
-            const matCount = {};
-            const brandCount = {};
-            let monoWeight = 0;
-            let colorWeight = 0;
-            let oldestSpool = null;
-            let oldestDate = new Date();
+            let w=0; const matCount = {}; const brandCount = {};
+            let monoWeight = 0; let colorWeight = 0;
+            let oldestSpool = null; let oldestDate = new Date();
 
             spools.forEach(s=> {
-                const weight = getWeight(s);
-                w+=weight;
+                const weight = getWeight(s); w+=weight;
                 if(s.material) matCount[s.material] = (matCount[s.material] || 0) + 1;
-                const b = s.brand || 'Unbekannt';
-                brandCount[b] = (brandCount[b] || 0) + 1;
+                const b = s.brand || 'Unbekannt'; brandCount[b] = (brandCount[b] || 0) + 1;
                 const col = (s.color || '').toLowerCase();
                 if(col.includes('white') || col.includes('black') || col.includes('grey') || col.includes('gray') || col.includes('silver') || col.includes('clear') || col.includes('bone') || col.includes('marble') || col.includes('transparent')) {
                     monoWeight += weight;
-                } else {
-                    colorWeight += weight;
-                }
+                } else { colorWeight += weight; }
                 const cDate = new Date(s.createdAt);
-                if(cDate < oldestDate) {
-                    oldestDate = cDate;
-                    oldestSpool = s;
-                }
+                if(cDate < oldestDate) { oldestDate = cDate; oldestSpool = s; }
             });
             
             const sortedMats = Object.entries(matCount).sort((a,b) => b[1] - a[1]).slice(0, 3);
@@ -1108,8 +1051,6 @@
         function closeTools(){toggleBodyScroll(false);document.getElementById('tools-overlay').classList.add('overlay-hidden');}
         function renderToolHeader(t,b){document.getElementById('tools-header').innerHTML=`<div class="flex items-center gap-3"><button onclick="${b}" class="p-2 bg-zinc-800 rounded-full text-zinc-400"><i data-lucide="arrow-left" class="w-5 h-5"></i></button><h2 class="text-xl font-bold text-white">${t}</h2></div>`;if(window.lucide)lucide.createIcons();}
 
-        /* */
-        /* --- AMS HELPERS --- */
         function handleAMSSlotClick(i){if(prodWeight>0&&amsSlots[i])requestBooking(amsSlots[i],prodWeight);}
         function clearAMSSlot(i){openCustomConfirm("Entfernen","Löschen?",()=>{amsSlots[i]=null;save();renderProductionTool();});}
         function openAMSPicker(i){activeAMSSlotIndex=i;document.getElementById('ams-picker-overlay').classList.remove('overlay-hidden');const l=document.getElementById('ams-picker-list');l.innerHTML='';[...spools].sort((a,b)=>a.number-b.number).forEach(s=>{if(!amsSlots.includes(s.number)){const v=getVisuals(s);l.innerHTML+=`<div onclick="assignSpoolToAMS(${s.number})" class="flex items-center gap-3 p-3 bg-zinc-900 border border-white/5 rounded-xl cursor-pointer active:bg-zinc-800"><div class="font-mono font-bold text-zinc-500 w-8">#${s.number}</div><div class="w-3 h-3 rounded-full" style="background:${v.gradient||v.hex}"></div><div class="flex-grow"><div class="text-xs font-bold text-white">${v.name}</div><div class="text-[10px] text-zinc-500">${s.material}</div></div><div class="text-xs font-mono text-emerald-500">${getWeight(s)}g</div></div>`;}});if(l.innerHTML==='')l.innerHTML='<div class="text-zinc-500 text-center text-sm p-4">Keine freien Spulen.</div>';}
@@ -1120,21 +1061,12 @@
         function requestBooking(id,g){pendingBooking={id,g};document.getElementById('confirm-booking-msg').innerText=`${g}g buchen?`;document.getElementById('btn-confirm-book').onclick=()=>executeBooking();document.getElementById('confirm-booking-overlay').classList.remove('hidden');}
         function executeBooking(){
             if(!pendingBooking) return;
-            const{id,g}=pendingBooking;
-            const s=spools.find(x=>x.number===id);
-            if(s){
-                const cap = s.capacity || 1000;
-                const percentUsed = (g / cap) * 100;
-                s.level = Math.max(0, s.level - percentUsed);
-                save();
-                toast(`-${g}g verbucht!`);
-                renderProductionTool();
-            }
+            const{id,g}=pendingBooking; const s=spools.find(x=>x.number===id);
+            if(s){ const cap = s.capacity || 1000; const percentUsed = (g / cap) * 100; s.level = Math.max(0, s.level - percentUsed); save(); toast(`-${g}g verbucht!`); renderProductionTool(); }
             closeConfirmBooking();
         }
         function closeConfirmBooking(){document.getElementById('confirm-booking-overlay').classList.add('hidden');pendingBooking=null;}
 
-        /* --- UTILS --- */
         function setupCustomConfirm(){document.getElementById('btn-confirm-action').onclick=function(){if(confirmCallback)confirmCallback();closeConfirm();};}
         function openCustomConfirm(t,m,fn){document.getElementById('confirm-title').innerText=t;document.getElementById('confirm-msg').innerText=m;confirmCallback=fn;document.getElementById('confirm-overlay').classList.remove('hidden');}
         function closeConfirm(){document.getElementById('confirm-overlay').classList.add('hidden');confirmCallback=null;}
